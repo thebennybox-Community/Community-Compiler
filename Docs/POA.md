@@ -1,31 +1,25 @@
 # Plan of attack
 
+- [ ] Create Mission Statement
 
+- [ ] Define the goal of this language
 
-- [ ] Create Misstion Statmen
+- [ ] Create A detailed List of Features
 
-- [ ] Define the goal of this laguage
-
-- [ ] Create A detailed List of Fetures
-
-- [ ] Use the list of Fetures to create the sytnax defntion
+- [ ] Use the list of Features to create the syntax definition
 
 - [ ] Design the Compiler Structure and Layout
 
 - [ ] Design the IL
 
-- [ ] Implment Sceliton Strucutre of code
+- [ ] Implement Skeleton Structure of code
 
-- [ ] Start Implmenting
+- [ ] Start Implementing
 
-- [ ] Standart Lib
+- [ ] Standard Lib
 
 - [ ] Self host
 
-
-
 ## Some ideas
 
-for the standart lib we can include things like vectors and matixes becuase it is a game dev lang
-
-
+for the standard lib we can include things like vectors and matrix because it is a game dev lang
