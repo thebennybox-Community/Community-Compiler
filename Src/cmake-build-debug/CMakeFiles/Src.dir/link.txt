@@ -1,0 +1,1 @@
+/usr/bin/c++  -g  -rdynamic CMakeFiles/Src.dir/main.cpp.o CMakeFiles/Src.dir/Token.cpp.o CMakeFiles/Src.dir/Error.cpp.o CMakeFiles/Src.dir/TokenStream.cpp.o  -o Src 
