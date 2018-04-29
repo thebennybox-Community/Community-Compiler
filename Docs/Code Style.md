@@ -1,8 +1,8 @@
-#Code Style
+# Code Style
 
-##General
+## General
 
-####Semicolon
+#### Semicolon
 The semicolon after a statement/expression isn't separated by a space. Following statements/expression are separated by a space.
 ```
 function();
@@ -10,7 +10,7 @@ function();
 a = 1; b = 3; c = 2;
 ```
 
-####Bodies
+#### Bodies
 The the starting bracket of a body is always placed on the line the body header is on separated from it by a space. The ending bracket is on a new line.
 
 ```
@@ -23,7 +23,7 @@ struct {
 }
 ```
 
-####Indentation
+#### Indentation
 Code should be indented by four spaces
 
 ```
@@ -35,9 +35,9 @@ impl Test {
 ```
 
 
-##Literals
+## Literals
 
-####Numbers
+#### Numbers
 Numbers should written like normal numbers. They can also contain underscores to help readability.  
 ```
 12
@@ -47,20 +47,20 @@ Numbers should written like normal numbers. They can also contain underscores to
 0.000_000_1
 ```
 
-####Strings
+#### Strings
 You can't do anything wrong here.
 ```
 "Hey there!"
 ```
 
-####Booleans
+#### Booleans
 You'll create a compiler error if you do it wrong.
 ```
 true
 false
 ```
 
-##Declarations
+## Declarations
 The equal sign has spaces on both sides, the colon specifying the type however only has one afterwards.
 ```
 dec a;
@@ -68,9 +68,9 @@ dec a = 0;
 dec a: str = "cool stuff";
 ```
 
-##Statements
+## Statements
 
-####If
+#### If
 There are spaces between ``if`` and the brackets and between the brackets and the body.
 
 ```
@@ -99,7 +99,7 @@ if (false) {
 }
 ```
 
-####Loops
+#### Loops
 Loops have a similar style to if statements
 
 ```
@@ -108,7 +108,7 @@ loop (true) {
 }
 ```
 
-####Match
+#### Match
 Same for ``match``
 
 ```
@@ -117,7 +117,7 @@ match (a) {
 }
 ```
 
-##Naming
+## Naming
 Functions and variables should be written in camelCase
 ```
 fn doStuff() { ... }
@@ -131,7 +131,7 @@ Structs should be named with PascalCase
 struct NiceStruct { ... }
 ```
 
-##Operators
+## Operators
 Every operator should be surrounded by spaces
 ```
 3 * 4
@@ -145,7 +145,7 @@ i++
 !boolean
 ```
 
-##Arrays
+## Arrays
 Arrays initializer have no spaces after/before their braces.
 
 ```
