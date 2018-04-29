@@ -23,3 +23,11 @@
 ## Some ideas
 
 for the standard lib we can include things like vectors and matrix because it is a game dev lang
+
+# Mission Statement
+
+- The learn this is an educational project
+
+- To have fun, we all love coding and its even more fun when we work together
+
+- To Build a laguage that is designed for game development

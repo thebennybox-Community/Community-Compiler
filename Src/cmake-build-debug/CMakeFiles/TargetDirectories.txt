@@ -1,0 +1,3 @@
+/home/myvar/GitHub/Community-Compiler/Src/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/myvar/GitHub/Community-Compiler/Src/cmake-build-debug/CMakeFiles/Src.dir
+/home/myvar/GitHub/Community-Compiler/Src/cmake-build-debug/CMakeFiles/edit_cache.dir
