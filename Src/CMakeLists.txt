@@ -1,6 +1,16 @@
-# cmake_minimum_required(VERSION <specify CMake version here>)
-project(Src)
+cmake_minimum_required(VERSION 2.6)
+
+project(compiler)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(Src main.cpp Token.cpp Token.h Error.cpp Error.h TokenStream.cpp TokenStream.h)
+add_executable(
+	compiler
+		main.cpp
+		Token.cpp
+		Token.h
+		Error.cpp
+		Error.h
+		TokenStream.cpp
+		TokenStream.h
+)
