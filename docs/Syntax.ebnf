@@ -1,0 +1,62 @@
+Comment ::= SingleLineComment | MultilineComment
+
+Literal ::= StringLiteral | NumberLiteral | Boolean
+
+DecStatement ::= DecKeyword Symbol (Colon Type)? (Equal Expr)?
+
+CodeBlock ::= OpenCurlyBracket grammar* CloseCurlyBracket
+
+Invoke ::= Symbol OpenParenthesis (Expr (Comma Expr)*)? CloseParenthesis
+
+InfixOperator ::= Equal
+                | Plus | Minus | Mul | Divide
+                | Or | And | Xor
+                | CompareEqual | NotEqual
+                | GreaterThan | LessThan
+                | GreaterThanEqual | LessThanEqual
+
+PrefixOperator ::= Not | Minus | MinusMinus | PlusPlus
+
+SuffixOperator ::= MinusMinus | PlusPlus
+
+Expr ::= OpenParenthesis Expr CloseParenthesis
+       | Literal | Symbol
+       | Expr (InfixOperator | Symbol) Expr
+       | (Symbol | PrefixOperator) Expr
+       | Expr (Symbol | SuffixOperator)
+       | Invoke
+       | CodeBlock
+       | Array
+       | Fn
+
+Params ::= OpenParenthesis (Symbol Colon Type (Comma Symbol Colon Type)*)? CloseParenthesis
+Fn ::= FnKeyword Symbol Params (Colon Type)? CodeBlock
+
+Type ::= Symbol (OpenSquareBracket CloseSquareBracket)*
+
+Array ::= OpenSquareBracket (Expr (Comma Expr)* Comma?)? CloseSquareBracket
+
+ForeachLoop ::= Symbol InKeyword Expr
+Loop ::= LoopKeyword OpenParenthesis (ForeachLoop | Expr) CloseParenthesis CodeBlock
+
+If ::= IfKeyword OpenParenthesis Expr CloseParenthesis CodeBlock
+       (ElseKeyword (CodeBlock | If))?
+
+Return ::= ReturnKeyword Expr
+
+Struct ::= StructKeyword Symbol OpenCurlyBracket (Symbol Colon Type)* CloseCurlyBracket
+
+Impl ::= ImplKeyword Symbol CodeBlock
+
+Attribute ::= At Invoke
+
+AffixFn ::= (InfixKeyword | PrefixKeyword | SuffixKeyword)
+            (Fn | OpKeyword AffixOperator Params (Colon Type)? CodeBlock)
+
+grammar ::= (Comment
+             | DecStatement
+             | Expr
+             | Return
+             | Struct
+             | Impl
+             | Attribute)*

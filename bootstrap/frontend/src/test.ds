@@ -1,7 +1,7 @@
 // Testing tokens!
 
-dec x = 8;
-dec y = 21;
+var x = 8;
+let y = 21;
 
 fn add(a: i32, b: i32) {
 	return a + b;

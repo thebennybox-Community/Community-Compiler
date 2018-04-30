@@ -13,4 +13,7 @@ add_executable(
 		Error.h
 		TokenStream.cpp
 		TokenStream.h
+		Parser.cpp
+		Parser.h
+		Ast.h
 )
