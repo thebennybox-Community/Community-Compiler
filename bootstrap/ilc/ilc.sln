@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ilc", "ilc.csproj", "{676BDCDB-3A57-4B63-B0B4-C80D55C2680B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{676BDCDB-3A57-4B63-B0B4-C80D55C2680B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{676BDCDB-3A57-4B63-B0B4-C80D55C2680B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{676BDCDB-3A57-4B63-B0B4-C80D55C2680B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{676BDCDB-3A57-4B63-B0B4-C80D55C2680B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

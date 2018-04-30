@@ -3,10 +3,10 @@
 if not exist build (
     mkdir build
     cd build
-    cmake ../src
+    cmake ../frontend
 
-    rem If src.sln was found, it's likely that the project was created successfully.
-    if exist "compiler.sln" (
+  
+    if exist "frontend.sln" (
     	color a
     	echo Finished generating project.
     ) else (
