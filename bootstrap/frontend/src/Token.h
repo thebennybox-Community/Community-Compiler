@@ -15,7 +15,8 @@
     F(MultilineComment), \
     \
     F(StringLiteral), \
-    F(NumberLiteral), \
+    F(IntegerLiteral), \
+    F(FloatLiteral), \
     F(Boolean), \
     \
     F(OpenParenthesis), \

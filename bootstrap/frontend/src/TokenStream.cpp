@@ -120,13 +120,31 @@ void TokenStream::lex(std::string src) {
 
             this->tokens.push_back(std::move(token));
         } else if(is_digit(src[i])) {
-            // TODO: Float parsing
+
+            token.type = TokenType::IntegerLiteral;
             int start = i;
             while(is_digit(src[i])) {
                 i++; column++;
             }
 
-            if(src[i] == 'i' || src[i] == 'u') {
+            if(src[i] == '.') {
+                // Floating point
+                token.type = TokenType::FloatLiteral;
+                i++; column++;
+                while(is_digit(src[i])) {
+                    i++; column++;
+                }
+
+                if(src[i] == 'e' || src[i] == 'E') {
+                    // Exponent
+                    i++; column++;
+                    while(is_digit(src[i])) {
+                        i++; column++;
+                    }
+                }
+            }
+
+            if(src[i] == 'i' || src[i] == 'u' || src[i] == 'f') {
                 int saved_i = i;
                 int saved_column = column;
                 i++; column++;
@@ -139,13 +157,15 @@ void TokenStream::lex(std::string src) {
                         src.substr(saved_i + 1, i - (saved_i + 1));
 
                     if(!(
-                        bits == "8" ||
-                        bits == "16" ||
+                        (bits == "8"  && src[saved_i] != 'f') ||
+                        (bits == "16" && src[saved_i] != 'f') ||
                         bits == "32" ||
                         bits == "64"
                     )) {
                         i = saved_i; // Invalid suffix, backtrack
                         column = saved_column;
+                    } else if(src[saved_i] == 'f') {
+                        token.type = TokenType::FloatLiteral;
                     }
                 } else {
                     i = saved_i; // Invalid suffix, backtrack
@@ -155,7 +175,6 @@ void TokenStream::lex(std::string src) {
 
             int length = i - start;
 
-            token.type = TokenType::NumberLiteral;
             token.raw = src.substr(start, length);
 
             this->tokens.push_back(std::move(token));
