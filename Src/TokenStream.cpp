@@ -31,7 +31,8 @@ void TokenStream::lex(std::string src) {
     int col = -1;
     int row = 1;
 
-    for (int i = 1/* Skip the space we add exstra */; i < src.length(); ++i) {
+	// Start at 1 because a space was added earlier.
+    for (int i = 1; i < src.length(); ++i) {
         char c = src[i];
 
         if (c == '\n') {
