@@ -1,1 +1,14 @@
-infix op suffix prefix
+// Testing tokens!
+
+dec x = 8;
+dec y = 21;
+
+fn add(a, b) {
+	return a + b;
+}
+
+dec z = add(x, y);
+
+loop(z < 30) {
+	z++;
+}
