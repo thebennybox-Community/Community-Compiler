@@ -4,381 +4,259 @@
 
 #include "TokenStream.h"
 
-enum class State {
-    Start,
-    NumberLiteral,
-    Symbol
+#include <cstdint>
+#include <map>
+
+static const std::map<std::string, TokenType> keywords = {
+    {"dec",      TokenType::Dec},
+    {"fn",       TokenType::Fn},
+    {"loop",     TokenType::Loop},
+    {"in",       TokenType::In},
+    {"continue", TokenType::Continue},
+    {"break",    TokenType::Break},
+    {"if",       TokenType::If},
+    {"else",     TokenType::Else},
+    {"return",   TokenType::Return},
+    {"struct",   TokenType::Struct},
+    {"get",      TokenType::Get},
+    {"set",      TokenType::Set},
+    {"impl",     TokenType::Impl},
+    {"suffix",   TokenType::Suffix},
+    {"prefix",   TokenType::Prefix},
+    {"infix",    TokenType::Infix},
 };
 
+static const std::map<std::string, TokenType> operators = {
+    {":",  TokenType::Colon},
+    {".",  TokenType::Dot},
+    {"=",  TokenType::Equal},
+    {"+",  TokenType::Plus},
+    {"-",  TokenType::Minus},
+    {"*",  TokenType::Mul},
+    {"/",  TokenType::Divide},
+    {"%",  TokenType::Mod},
+    {"==", TokenType::CmpEqual},
+    {"!=", TokenType::NotEqual},
+    {">",  TokenType::GreaterThan},
+    {">=", TokenType::GreaterThanEqual},
+    {"<",  TokenType::LessThan},
+    {"<=", TokenType::LessThanEqual},
+    {"!",  TokenType::Not},
+    {"&&", TokenType::And},
+    {"||", TokenType::Or},
+    {"^^", TokenType::Xor},
+    {"~",  TokenType::BitNot},
+    {"&",  TokenType::BitAnd},
+    {"|",  TokenType::BitOr},
+    {"^",  TokenType::BitXor},
+};
 
-bool isSymbolChar(char c) {
-    return isalpha(c) || isdigit(c) || c == '_';
+bool is_space(char c) {
+    return c == ' ' || c == '\t';
 }
 
-bool isKeyword(int startingIndex, std::string src, std::string keyword) {
-	bool isKeyword = true;
+bool is_lower(char c) {
+    return c >= 'a' && c <= 'z';
+}
 
-	for (int keywordIndex = 1; keywordIndex < keyword.length(); ++keywordIndex) {
-		int srcIndex = startingIndex + keywordIndex;
-		char srcChar = src[srcIndex];
-		char keywordChar = keyword[keywordIndex];
+bool is_upper(char c) {
+    return c >= 'A' && c <= 'Z';
+}
 
-		isKeyword = isKeyword && (srcChar == keywordChar);
+bool is_digit(char c) {
+    return c >= '0' && c <= '9';
+}
 
-		if (keywordIndex == (keyword.length() - 1))
-			isKeyword = isKeyword && !isSymbolChar(src[srcIndex + 1]);
+bool is_alpha(char c) {
+    return is_lower(c) || is_upper(c);
+}
 
-		if (!isKeyword)
-			return false;
-	}
+bool is_identifier_start(char c) {
+    return is_alpha(c) || c == '_';
+}
 
-	return isKeyword;
+bool is_identifier(char c) {
+    return is_identifier_start(c) || is_digit(c);
+}
+
+bool is_operator(char c) {
+    return std::string("~!@#$%^&*_+-=|\\/<>?.:").find(c) != std::string::npos;
 }
 
 void TokenStream::lex(std::string src) {
+    int line = 1, column = 1;
 
-    src = " " + src + " ";
+    for(int i = 0; i < src.size(); (void)0) {
+        Token token;
+        token.line = line;
+        token.column = column;
+        token.offset = i;
+        token.type = TokenType::Unknown;
 
-    Token tmp;
-
-    State state = State::Start;
-
-    bool inComment = false;
-    bool inMulComment = false;
-    bool inString = false;
-
-    int col = -1;
-    int row = 1;
-
-	// Start at 1 because a space was added earlier.
-    for (int i = 1; i < src.length(); ++i) {
-        char c = src[i];
-
-        if (c == '\n') {
-            row++;
-            col = -1;
-        }
-        col++;
-
-        if (inComment || inMulComment) {
-            if (inComment && c == '\n') {
-                inComment = false;
-                tokens.push_back(tmp);
-                tmp = {};
-            } else if (inMulComment && c == '*' && src[i + 1] == '/') {
-                inMulComment = false;
-                tokens.push_back(tmp);
-                tmp = {};
-                i++;
-            } else {
-                tmp.raw += c;
+        if(src[i] == '\n') {
+            i++;
+            line++;
+            column = 1;
+            continue;
+        } else if(is_space(src[i])) {
+            i++; column++;
+            continue;
+        } else if(is_identifier_start(src[i])) {
+            int start = i;
+            while(is_identifier(src[i])) {
+                i++; column++;
             }
-        } else {
-            if (inString) {
-                if (c == '"' && src[i - 1] != '\\') {
-                    inString = false;
-                    tokens.push_back(tmp);
-                    tmp = {};
-                } else {
-                    tmp.raw += c;
-                }
-            } else {
+            int length = i - start;
 
-                if (c == '/' && src[i + 1] == '/') {
-                    inComment = true;
-                    i++;
-                    tmp = {};
-                    tmp.row = row;
-                    tmp.column = col;
-                    tmp.offset = i;
-                    tmp.tokenType = TokenType::SingleLineComment;
-                    continue;
-                }
+            token.type = TokenType::Symbol;
+            token.raw = src.substr(start, length);
 
-                if (c == '/' && src[i + 1] == '*') {
-                    inMulComment = true;
-                    i++;
-                    tmp = {};
-                    tmp.row = row;
-                    tmp.column = col;
-                    tmp.offset = i;
-                    tmp.tokenType = TokenType::MultilineComment;
-                    continue;
+            if(keywords.count(token.raw) != 0) {
+                token.type = keywords.at(token.raw);
+            }
+
+            this->tokens.push_back(std::move(token));
+        } else if(is_digit(src[i])) {
+            // TODO: Float parsing
+            int start = i;
+            while(is_digit(src[i])) {
+                i++; column++;
+            }
+
+            if(src[i] == 'i' || src[i] == 'u') {
+                int saved_i = i;
+                int saved_column = column;
+                i++; column++;
+                while(is_digit(src[i])) {
+                    i++; column++;
                 }
 
-                if (c == '"') {
-                    inString = true;
-                    tmp = {};
-                    tmp.row = row;
-                    tmp.column = col;
-                    tmp.offset = i;
-                    tmp.tokenType = TokenType::StringLiteral;
-                    continue;
-                }
+                if(!is_identifier(src[i])) {
+                    std::string bits =
+                        src.substr(saved_i + 1, i - (saved_i + 1));
 
-                // here we can start doing syntax
-                switch (state) {
-                    case State::Start: {
-                        bool aerror = false;
-                        if (c == '{') {
-                            tokens.push_back({col, row, i, "{", TokenType::OpenCurlyBracket});
-                        } else if (c == '}') {
-                            tokens.push_back({col, row, i, "}", TokenType::CloseCurlyBracket});
-                        } else if (c == ':') {
-                            tokens.push_back({col, row, i, ":", TokenType::Colon});
-                        } else if (c == '=') {
-                            if (src[i + 1] == '=') {
-                                tokens.push_back({col, row, i, "==", TokenType::CmpEqual});
-                                i++;
-                            } else {
-                                tokens.push_back({col, row, i, "=", TokenType::Equal});
-                            }
-                        } else if (c == '>') {
-                            tokens.push_back({col, row, i, ">", TokenType::GreaterThan});
-                        } else if (c == '<') {
-                            tokens.push_back({col, row, i, "<", TokenType::LessThan});
-                        } else if (c == '!') {
-                            if (src[i + 1] == '=') {
-                                tokens.push_back({col, row, i, "!=", TokenType::NotEqual});
-                                i++;
-                            } else {
-                                tokens.push_back({col, row, i, "!", TokenType::Not});
-                            }
-                        } else if (c == '+') {
-                            tokens.push_back({col, row, i, "+", TokenType::Plus});
-                        } else if (c == '@') {
-                            tokens.push_back({col, row, i, "@", TokenType::At});
-                        } else if (c == '-') {
-                            tokens.push_back({col, row, i, "-", TokenType::Minus});
-                        } else if (c == '/') {
-                            tokens.push_back({col, row, i, "/", TokenType::Divide});
-                        } else if (c == '*') {
-                            tokens.push_back({col, row, i, "*", TokenType::Mul});
-                        } else if (c == ';') {
-                            tokens.push_back({col, row, i, ";", TokenType::SemiColon});
-                        } else if (c == '(') {
-                            tokens.push_back({col, row, i, "(", TokenType::OpenBracket});
-                        } else if (c == ')') {
-                            tokens.push_back({col, row, i, ")", TokenType::CloseBracket});
-                        } else if (c == '[') {
-                            tokens.push_back({col, row, i, "[", TokenType::OpenSquareBracket});
-                        } else if (c == ']') {
-                            tokens.push_back({col, row, i, "]", TokenType::CloseSquareBracket});
-                        } else if (c == ',') {
-                            tokens.push_back({col, row, i, ",", TokenType::Comma});
-                        } else if (c == '.') {
-                            tokens.push_back({col, row, i, ".", TokenType::Dot});
-                        } else if (isdigit(c)) {
-                            state = State::NumberLiteral;
-                            tmp = {};
-                        } else if (isalpha(c) || c == '_') {
-
-                            switch (c) {
-                                case 'f':
-                                    if (isKeyword(i, src, "false")) {
-                                        i += 4;
-                                        tokens.push_back({col, row, i, "false", TokenType::Boolean});
-                                        tmp = {};
-                                    } else if (src[i + 1] == 'n' && !isSymbolChar(src[i + 2])) {
-                                        i += 1;
-                                        tokens.push_back({col, row, i, "fn", TokenType::Fn});
-                                        tmp = {};
-
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 't':
-                                    if (isKeyword(i, src, "true")) {
-                                        i += 3;
-                                        tokens.push_back({col, row, i, "true", TokenType::Boolean});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 'd':
-                                    if (isKeyword(i, src, "dec")) {
-                                        i += 2;
-                                        tokens.push_back({col, row, i, "dec", TokenType::Dec});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 'o':
-                                    if (isKeyword(i, src, "op")) {
-                                        i += 1;
-                                        tokens.push_back({col, row, i, "op", TokenType::Op});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 'i':
-                                    if (isKeyword(i, src, "in")) {
-                                        i += 1;
-                                        tokens.push_back({col, row, i, "in", TokenType::In});
-                                        tmp = {};
-                                    } else if (isKeyword(i, src, "if")) {
-                                        i += 1;
-                                        tokens.push_back({col, row, i, "if", TokenType::If});
-                                        tmp = {};
-                                    } else if (isKeyword(i, src, "impl")) {
-                                        i += 3;
-                                        tokens.push_back({col, row, i, "impl", TokenType::Impl});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 'l':
-                                    if (isKeyword(i, src, "loop")) {
-                                        i += 3;
-                                        tokens.push_back({col, row, i, "loop", TokenType::Loop});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 'c':
-                                    if (isKeyword(i, src, "continue")) {
-                                        i += 7;
-                                        tokens.push_back({col, row, i, "continue", TokenType::Continue});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 'r':
-                                    if (isKeyword(i, src, "return")) {
-                                        i += 5;
-                                        tokens.push_back({col, row, i, "return", TokenType::Return});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 'p':
-                                    if (isKeyword(i, src, "prefix")) {
-                                        i += 5;
-                                        tokens.push_back({col, row, i, "prefix", TokenType::Prefix});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 's':
-                                    if (isKeyword(i, src, "struct")) {
-                                        i += 5;
-                                        tokens.push_back({col, row, i, "struct", TokenType::Struct});
-                                        tmp = {};
-                                    } else if (isKeyword(i, src, "set")) {
-                                        i += 2;
-                                        tokens.push_back({col, row, i, "set", TokenType::Set});
-                                        tmp = {};
-                                    } else if (isKeyword(i, src, "suffix")) {
-                                        i += 5;
-                                        tokens.push_back({col, row, i, "suffix", TokenType::Suffix});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 'b':
-                                    if (isKeyword(i, src, "break")) {
-                                        i += 4;
-                                        tokens.push_back({col, row, i, "break", TokenType::Break});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 'e':
-                                    if (isKeyword(i, src, "else")) {
-                                        i += 3;
-                                        tokens.push_back({col, row, i, "else", TokenType::Else});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                case 'g':
-                                    if (isKeyword(i, src, "get")) {
-                                        i += 2;
-                                        tokens.push_back({col, row, i, "get", TokenType::Get});
-                                        tmp = {};
-                                    } else {
-                                        state = State::Symbol;
-                                        tmp = {};
-                                    }
-                                    break;
-                                default:
-                                    state = State::Symbol;
-                                    tmp = {};
-                                    break;
-                            }
-
-                        } else if (c != '\n' && c != ' ' && c != '\t') {
-                            Token x = {col, row, i, std::string(1, c), TokenType::Unknown};
-                            errors.push_back({ErrorType::UnexpectedCharacter, x});
-                            tmp = {};
-                            aerror = true;
-                        }
-
-                        if (!aerror) {
-                            tmp.raw += c;
-                        }
+                    if(!(
+                        bits == "8" ||
+                        bits == "16" ||
+                        bits == "32" ||
+                        bits == "64"
+                    )) {
+                        i = saved_i; // Invalid suffix, backtrack
+                        column = saved_column;
                     }
-                        break;
-                    case State::NumberLiteral:
-                        if (!(c == 'f' || c == 'i' || c == 'u' || c == '.' || c == '_') && !isdigit(c)) {
-                            state = State::Start;
-
-                            tmp.row = row;
-                            tmp.column = col;
-                            tmp.offset = i;
-                            tmp.tokenType = TokenType::NumberLiteral;
-                            tokens.push_back(tmp);
-                            tmp = {};
-                            i--;
-                            col--;
-
-                        } else {
-                            tmp.raw += c;
-                        }
-                        break;
-                    case State::Symbol:
-                        if (!isalpha(c) && !isdigit(c) && c != '_') {
-                            tmp.row = row;
-                            tmp.column = col;
-                            tmp.offset = i;
-                            tmp.tokenType = TokenType::Symbol;
-                            tokens.push_back(tmp);
-                            tmp = {};
-
-                            state = State::Start;
-
-                            i--;
-                            col--;
-                        } else {
-                            tmp.raw += c;
-                        }
-                        break;
+                } else {
+                    i = saved_i; // Invalid suffix, backtrack
+                    column = saved_column;
                 }
             }
+
+            int length = i - start;
+
+            token.type = TokenType::NumberLiteral;
+            token.raw = src.substr(start, length);
+
+            this->tokens.push_back(std::move(token));
+        } else if(src[i] == '/' && src[i + 1] == '/') {
+            i += 2; // Skip //
+            int start = i;
+            while(src[i] != '\n') {
+                i++; column++;
+            }
+            int length = i - start;
+
+            token.type = TokenType::SingleLineComment;
+            token.raw = src.substr(start, length);
+
+            this->tokens.push_back(std::move(token));
+        } else if(src[i] == '/' && src[i + 1] == '*') {
+            i += 2; // Skip /*
+            int start = i;
+            while(!(src[i] == '*' && src[i + 1] == '/')) {
+                if(src[i] == '\n') {
+                    line++;
+                    column = 1;
+                } else {
+                    column++;
+                }
+                i++;
+            }
+            int length = i - start;
+            i += 2; // Skip */
+
+            token.type = TokenType::MultilineComment;
+            token.raw = src.substr(start, length);
+
+            this->tokens.push_back(std::move(token));
+        } else if(is_operator(src[i])) {
+            int start = i;
+            while(is_operator(src[i])) {
+                i++; column++;
+            }
+            int length = i - start;
+
+            token.type = TokenType::CustomOperator;
+            token.raw = src.substr(start, length);
+
+            if(operators.count(token.raw) != 0) {
+                token.type = operators.at(token.raw);
+            }
+
+            this->tokens.push_back(std::move(token));
+        } else if(src[i] == ',') {
+            i++; column++;
+            token.type = TokenType::Comma;
+            token.raw = ",";
+
+            this->tokens.push_back(std::move(token));
+        } else if(src[i] == ';') {
+            i++; column++;
+            token.type = TokenType::SemiColon;
+            token.raw = ";";
+
+            this->tokens.push_back(std::move(token));
+        } else if(src[i] == '(') {
+            i++; column++;
+            token.type = TokenType::OpenParenthesis;
+            token.raw = "(";
+
+            this->tokens.push_back(std::move(token));
+        } else if(src[i] == ')') {
+            i++; column++;
+            token.type = TokenType::CloseParenthesis;
+            token.raw = ")";
+
+            this->tokens.push_back(std::move(token));
+        } else if(src[i] == '{') {
+            i++; column++;
+            token.type = TokenType::OpenCurlyBracket;
+            token.raw = "{";
+
+            this->tokens.push_back(std::move(token));
+        } else if(src[i] == '}') {
+            i++; column++;
+            token.type = TokenType::CloseCurlyBracket;
+            token.raw = "}";
+
+            this->tokens.push_back(std::move(token));
+        } else if(src[i] == '[') {
+            i++; column++;
+            token.type = TokenType::OpenSquareBracket;
+            token.raw = "[";
+
+            this->tokens.push_back(std::move(token));
+        } else if(src[i] == ']') {
+            i++; column++;
+            token.type = TokenType::CloseSquareBracket;
+            token.raw = "]";
+
+            this->tokens.push_back(std::move(token));
+        } else {
+            this->errors.push_back({
+                ErrorType::UnexpectedCharacter,
+                {line, column, i, std::string(1, src[i]), TokenType::Unknown}
+            });
+
+            i++; column++;
         }
     }
 }

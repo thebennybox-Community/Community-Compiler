@@ -7,42 +7,26 @@
 
 #include <string>
 
-
-
 #define TokenType_ENUM(name) name
 #define TokenType_NAME_ARRAY(name) #name
 
 #define TokenTypes(F) \
     F(SingleLineComment), \
     F(MultilineComment), \
-    F(OpenCurlyBracket), \
-    F(CloseCurlyBracket), \
+    \
     F(StringLiteral), \
     F(NumberLiteral), \
-    F(Symbol), \
     F(Boolean), \
-    F(Dec), \
-    F(Fn), \
-    F(Colon), \
-    F(SemiColon), \
-    F(Comma), \
-    F(Dot), \
-    F(Equal), \
-    F(Plus), \
-    F(Minus), \
-    F(Divide), \
-    F(Mul), \
-    F(OpenBracket), \
-    F(CloseBracket), \
+    \
+    F(OpenParenthesis), \
+    F(CloseParenthesis), \
+    F(OpenCurlyBracket), \
+    F(CloseCurlyBracket), \
     F(OpenSquareBracket), \
     F(CloseSquareBracket), \
-    F(Loop), \
-    F(In), \
-    F(CmpEqual), \
-    F(GreaterThan), \
-    F(LessThan), \
-    F(Not), \
-    F(NotEqual), \
+    \
+    F(Dec), \
+    F(Fn), \
     F(Continue), \
     F(Break), \
     F(If), \
@@ -56,27 +40,56 @@
     F(Op), \
     F(Suffix), \
     F(Prefix), \
+    F(Infix), \
+    F(Loop), \
+    F(In), \
+    \
+    F(Colon), \
+    F(SemiColon), \
+    F(Comma), \
+    F(Dot), \
+    F(Equal), \
+    F(Plus), \
+    F(Minus), \
+    F(Mul), \
+    F(Divide), \
+    F(Mod), \
+    F(CmpEqual), \
+    F(NotEqual), \
+    F(GreaterThan), \
+    F(GreaterThanEqual), \
+    F(LessThan), \
+    F(LessThanEqual), \
+    F(Not), \
+    F(And), \
+    F(Or), \
+    F(Xor), \
+    F(BitNot), \
+    F(BitAnd), \
+    F(BitOr), \
+    F(BitXor), \
+    F(CustomOperator), \
+    \
+    F(Symbol), \
     F(Unknown), \
 
 enum class TokenType {
-TokenTypes(TokenType_ENUM)
+    TokenTypes(TokenType_ENUM)
 };
 static const char *tokenTypeNames[] = {
-        TokenTypes(TokenType_NAME_ARRAY)
-        };
+    TokenTypes(TokenType_NAME_ARRAY)
+};
 
-        class Token {
+struct Token {
+public:
+    int line;
+    int column;
+    int offset;
 
-            public:
-            int column;
-            int row;
-            int offset;
+    std::string raw;
 
-            std::string raw;
-
-            TokenType tokenType;
-
-        };
+    TokenType type;
+};
 
 
 #endif //SRC_TOKEN_H
