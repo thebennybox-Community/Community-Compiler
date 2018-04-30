@@ -15,6 +15,25 @@ bool isSymbolChar(char c) {
     return isalpha(c) || isdigit(c) || c == '_';
 }
 
+bool isKeyword(int startingIndex, std::string src, std::string keyword) {
+	bool isKeyword = true;
+
+	for (int keywordIndex = 1; keywordIndex < keyword.length(); ++keywordIndex) {
+		int srcIndex = startingIndex + keywordIndex;
+		char srcChar = src[srcIndex];
+		char keywordChar = keyword[keywordIndex];
+
+		isKeyword = isKeyword && (srcChar == keywordChar);
+
+		if (keywordIndex == (keyword.length() - 1))
+			isKeyword = isKeyword && !isSymbolChar(src[srcIndex + 1]);
+
+		if (!isKeyword)
+			return false;
+	}
+
+	return isKeyword;
+}
 
 void TokenStream::lex(std::string src) {
 
@@ -97,7 +116,7 @@ void TokenStream::lex(std::string src) {
                     continue;
                 }
 
-                //here we can start doing syntax
+                // here we can start doing syntax
                 switch (state) {
                     case State::Start: {
                         bool aerror = false;
@@ -156,10 +175,7 @@ void TokenStream::lex(std::string src) {
 
                             switch (c) {
                                 case 'f':
-                                    if (src[i + 1] == 'a'
-                                        && src[i + 2] == 'l'
-                                        && src[i + 3] == 's'
-                                        && src[i + 4] == 'e' && !isSymbolChar(src[i + 5])) {
+                                    if (isKeyword(i, src, "false")) {
                                         i += 4;
                                         tokens.push_back({col, row, i, "false", TokenType::Boolean});
                                         tmp = {};
@@ -174,9 +190,7 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 't':
-                                    if (src[i + 1] == 'r'
-                                        && src[i + 2] == 'u'
-                                        && src[i + 3] == 'e' && !isSymbolChar(src[i + 4])) {
+                                    if (isKeyword(i, src, "true")) {
                                         i += 3;
                                         tokens.push_back({col, row, i, "true", TokenType::Boolean});
                                         tmp = {};
@@ -186,8 +200,7 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 'd':
-                                    if (src[i + 1] == 'e'
-                                        && src[i + 2] == 'c' && !isSymbolChar(src[i + 3])) {
+                                    if (isKeyword(i, src, "dec")) {
                                         i += 2;
                                         tokens.push_back({col, row, i, "dec", TokenType::Dec});
                                         tmp = {};
@@ -197,7 +210,7 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 'o':
-                                    if (src[i + 1] == 'p' && !isSymbolChar(src[i + 2])) {
+                                    if (isKeyword(i, src, "op")) {
                                         i += 1;
                                         tokens.push_back({col, row, i, "op", TokenType::Op});
                                         tmp = {};
@@ -207,19 +220,15 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 'i':
-                                    if (src[i + 1] == 'n' && !isSymbolChar(src[i + 2])) {
+                                    if (isKeyword(i, src, "in")) {
                                         i += 1;
                                         tokens.push_back({col, row, i, "in", TokenType::In});
                                         tmp = {};
-                                    } else if (src[i + 1] == 'f'
-                                               && !isSymbolChar(src[i + 2])) {
+                                    } else if (isKeyword(i, src, "if")) {
                                         i += 1;
                                         tokens.push_back({col, row, i, "if", TokenType::If});
                                         tmp = {};
-                                    } else if (src[i + 1] == 'm'
-                                               && src[i + 2] == 'p'
-                                               && src[i + 3] == 'l'
-                                               && !isSymbolChar(src[i + 4])) {
+                                    } else if (isKeyword(i, src, "impl")) {
                                         i += 3;
                                         tokens.push_back({col, row, i, "impl", TokenType::Impl});
                                         tmp = {};
@@ -229,10 +238,7 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 'l':
-                                    if (src[i + 1] == 'o'
-                                        && src[i + 2] == 'o'
-                                        && src[i + 3] == 'p'
-                                        && !isSymbolChar(src[i + 4])) {
+                                    if (isKeyword(i, src, "loop")) {
                                         i += 3;
                                         tokens.push_back({col, row, i, "loop", TokenType::Loop});
                                         tmp = {};
@@ -242,14 +248,7 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 'c':
-                                    if (src[i + 1] == 'o'
-                                        && src[i + 2] == 'n'
-                                        && src[i + 3] == 't'
-                                        && src[i + 4] == 'i'
-                                        && src[i + 5] == 'n'
-                                        && src[i + 6] == 'u'
-                                        && src[i + 7] == 'e'
-                                        && !isSymbolChar(src[i + 8])) {
+                                    if (isKeyword(i, src, "continue")) {
                                         i += 7;
                                         tokens.push_back({col, row, i, "continue", TokenType::Continue});
                                         tmp = {};
@@ -259,12 +258,7 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 'r':
-                                    if (src[i + 1] == 'e'
-                                        && src[i + 2] == 't'
-                                        && src[i + 3] == 'u'
-                                        && src[i + 4] == 'r'
-                                        && src[i + 5] == 'n'
-                                        && !isSymbolChar(src[i + 6])) {
+                                    if (isKeyword(i, src, "return")) {
                                         i += 5;
                                         tokens.push_back({col, row, i, "return", TokenType::Return});
                                         tmp = {};
@@ -274,12 +268,7 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 'p':
-                                    if (src[i + 1] == 'r'
-                                        && src[i + 2] == 'e'
-                                        && src[i + 3] == 'f'
-                                        && src[i + 4] == 'i'
-                                        && src[i + 5] == 'x'
-                                        && !isSymbolChar(src[i + 6])) {
+                                    if (isKeyword(i, src, "prefix")) {
                                         i += 5;
                                         tokens.push_back({col, row, i, "prefix", TokenType::Prefix});
                                         tmp = {};
@@ -289,27 +278,15 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 's':
-                                    if (src[i + 1] == 't'
-                                        && src[i + 2] == 'r'
-                                        && src[i + 3] == 'u'
-                                        && src[i + 4] == 'c'
-                                        && src[i + 5] == 't'
-                                        && !isSymbolChar(src[i + 6])) {
+                                    if (isKeyword(i, src, "struct")) {
                                         i += 5;
                                         tokens.push_back({col, row, i, "struct", TokenType::Struct});
                                         tmp = {};
-                                    } else if (src[i + 1] == 'e'
-                                               && src[i + 2] == 't'
-                                               && !isSymbolChar(src[i + 3])) {
+                                    } else if (isKeyword(i, src, "set")) {
                                         i += 2;
                                         tokens.push_back({col, row, i, "set", TokenType::Set});
                                         tmp = {};
-                                    } else if (src[i + 1] == 'u'
-                                               && src[i + 2] == 'f'
-                                               && src[i + 3] == 'f'
-                                               && src[i + 4] == 'i'
-                                               && src[i + 5] == 'x'
-                                               && !isSymbolChar(src[i + 6])) {
+                                    } else if (isKeyword(i, src, "suffix")) {
                                         i += 5;
                                         tokens.push_back({col, row, i, "suffix", TokenType::Suffix});
                                         tmp = {};
@@ -319,11 +296,7 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 'b':
-                                    if (src[i + 1] == 'r'
-                                        && src[i + 2] == 'e'
-                                        && src[i + 3] == 'a'
-                                        && src[i + 4] == 'k'
-                                        && !isSymbolChar(src[i + 5])) {
+                                    if (isKeyword(i, src, "break")) {
                                         i += 4;
                                         tokens.push_back({col, row, i, "break", TokenType::Break});
                                         tmp = {};
@@ -333,10 +306,7 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 'e':
-                                    if (src[i + 1] == 'l'
-                                        && src[i + 2] == 's'
-                                        && src[i + 3] == 'e'
-                                        && !isSymbolChar(src[i + 4])) {
+                                    if (isKeyword(i, src, "else")) {
                                         i += 3;
                                         tokens.push_back({col, row, i, "else", TokenType::Else});
                                         tmp = {};
@@ -346,9 +316,7 @@ void TokenStream::lex(std::string src) {
                                     }
                                     break;
                                 case 'g':
-                                    if (src[i + 1] == 'e'
-                                        && src[i + 2] == 't'
-                                        && !isSymbolChar(src[i + 3])) {
+                                    if (isKeyword(i, src, "get")) {
                                         i += 2;
                                         tokens.push_back({col, row, i, "get", TokenType::Get});
                                         tmp = {};
