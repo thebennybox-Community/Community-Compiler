@@ -3,9 +3,9 @@
 if not exist build (
     mkdir build
     cd build
-    cmake ../frontend
+    cmake ../src
 
-  
+
     if exist "frontend.sln" (
     	color a
     	echo Finished generating project.
