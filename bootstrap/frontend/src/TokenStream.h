@@ -5,7 +5,7 @@
 #ifndef SRC_TOKENSTREAM_H
 #define SRC_TOKENSTREAM_H
 
-
+#include <string>
 #include <vector>
 #include "Error.h"
 
@@ -15,7 +15,6 @@ public:
     std::vector<Token> tokens;
 
     void lex(std::string src);
-
 };
 
 
