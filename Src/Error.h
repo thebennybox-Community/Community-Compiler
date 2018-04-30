@@ -5,20 +5,16 @@
 #ifndef SRC_ERROR_H
 #define SRC_ERROR_H
 
-
 #include "Token.h"
 
-enum class ErrorType
-{
+enum class ErrorType {
     UnexpectedCharacter
 };
 
 class Error {
-
 public:
     ErrorType errorType;
     Token token;
 };
-
 
 #endif //SRC_ERROR_H
