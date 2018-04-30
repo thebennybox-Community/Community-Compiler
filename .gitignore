@@ -1,5 +1,6 @@
 # Build files
 /build
+.idea
 
 # Prerequisites
 *.d
@@ -102,3 +103,21 @@ fabric.properties
 .idea/sonarlint
 
 # End of https://www.gitignore.io/api/clion
+
+# Rider
+# Rider auto-generates .iml files, and contentModel.xml
+**/.idea/**/*.iml
+**/.idea/**/contentModel.xml
+**/.idea/**/modules.xml
+
+*.suo
+*.user
+.vs/
+[Bb]in/
+[Oo]bj/
+_UpgradeReport_Files/
+[Pp]ackages/
+
+Thumbs.db
+Desktop.ini
+.DS_Store
