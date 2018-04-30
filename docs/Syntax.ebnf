@@ -2,7 +2,7 @@ Comment ::= SingleLineComment | MultilineComment
 
 Literal ::= StringLiteral | NumberLiteral | Boolean
 
-DecStatement ::= DecKeyword Symbol (Colon Type)? (Equal Expr)?
+DecStatement ::= (VarKeyword | LetKeyword) Symbol (Colon Type)? (Equal Expr)?
 
 CodeBlock ::= OpenCurlyBracket grammar* CloseCurlyBracket
 
