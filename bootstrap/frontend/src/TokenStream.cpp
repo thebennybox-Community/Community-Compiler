@@ -25,6 +25,8 @@ static const std::map<std::string, TokenType> keywords = {
     {"suffix",   TokenType::Suffix},
     {"prefix",   TokenType::Prefix},
     {"infix",    TokenType::Infix},
+    {"true",     TokenType::Boolean},
+    {"false",    TokenType::Boolean},
 };
 
 static const std::map<std::string, TokenType> operators = {
