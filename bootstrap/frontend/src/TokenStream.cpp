@@ -178,6 +178,39 @@ void TokenStream::lex(std::string src) {
             token.raw = src.substr(start, length);
 
             this->tokens.push_back(std::move(token));
+        } else if(src[i] == '"') {
+            i++; column++; // Skip opening "
+
+            int start = i;
+            while(src[i] != '"') {
+                if(src[i] == '\\') {
+                    i++; column++;
+                } else if(src[i] == '\n') {
+                    // TODO: Should we stop parsing a string here?
+                    this->errors.push_back({
+                        ErrorType::UnexpectedCharacter,
+                        {
+                            line, column, i,
+                            "\n", TokenType::Unknown
+                        }
+                    });
+                    line++;
+                    i++;
+                    column = 1;
+                    continue;
+                }
+
+                i++; column++;
+            }
+
+            int length = i - start;
+
+            i++; column++; // Skip closing "
+
+            token.type = TokenType::StringLiteral;
+            token.raw = src.substr(start, length);
+
+            this->tokens.push_back(std::move(token));
         } else if(src[i] == '/' && src[i + 1] == '/') {
             i += 2; // Skip //
             int start = i;
