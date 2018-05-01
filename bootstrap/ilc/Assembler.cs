@@ -104,13 +104,13 @@ namespace ilc
                         Add(new Push(opcode.A0));
                         break;
                     case OpcodeType.PushF32:
-                       // SectionData.Add($"flt{++_gCounter} dd ''");
-                        Add($"push __float32__( {((float)opcode.A0):n8} )");
+                        // SectionData.Add($"flt{++_gCounter} dd ''");
+                        Add($"push __float32__( {((float) opcode.A0):n8} )");
                         break;
                     case OpcodeType.PushF64:
-                        Add($"push __float64__( {((double)opcode.A0):n8} )");
+                        Add($"push __float64__( {((double) opcode.A0):n8} )");
                         break;
-                        
+
                     case OpcodeType.PushStr:
                         SectionData.Add($"str{++_gCounter} db '{opcode.A0}',0");
                         Add($"mov eax, str{_gCounter}");
@@ -131,6 +131,23 @@ namespace ilc
 
                         Add(new Push(Registers.Eax));
                         break;
+
+                    case OpcodeType.AddressLoc:
+                    {
+                        var off = -(4 + (int) (uint) opcode.A0);
+                        Add($"lea eax, [ebp{(off < 0 ? "" : "+") + (off)}]");
+                    }
+                        Add(new Push(Registers.Eax));
+                        break;
+                        
+                    case OpcodeType.AddressArg:
+                    {
+                        var off = (8 + (int) (uint) opcode.A0);
+                        Add($"lea eax, [ebp{(off < 0 ? "" : "+") + (off)}]");
+                    }
+                        Add(new Push(Registers.Eax));
+                        break;
+
                     case OpcodeType.StoreLoc:
                         Add(new Pop(Registers.Eax));
                         Add(new Mov(Registers.Ebp, Registers.Eax)
@@ -374,8 +391,8 @@ namespace ilc
 
             sb.AppendLine("global main");
             sb.AppendLine("main:");
-        
-            
+
+
             foreach (var o in SectionText)
             {
                 sb.AppendLine(o.ToString());

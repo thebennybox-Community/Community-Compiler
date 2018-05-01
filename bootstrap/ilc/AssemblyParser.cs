@@ -100,6 +100,14 @@ namespace ilc
                         tmp.Id = OpcodeType.LoadLoc;
                         tmp.A0 = uint.Parse(segs[1]);
                         break;
+                    case "addr.loc":
+                        tmp.Id = OpcodeType.AddressLoc;
+                        tmp.A0 = uint.Parse(segs[1]);
+                        break;
+                    case "addr.arg":
+                        tmp.Id = OpcodeType.AddressArg;
+                        tmp.A0 = uint.Parse(segs[1]);
+                        break;
                     case "store.loc":
                         tmp.Id = OpcodeType.StoreLoc;
                         tmp.A0 = uint.Parse(segs[1]);

@@ -1,4 +1,13 @@
-fcall gInit
+
+start:
+
+push.str ""
+
+push.u32 0
+store.loc 0
+addr.loc 0
+
+fcall glutInit u32 str
 
 push.i32 0
 fcall glutInitDisplayMode i32

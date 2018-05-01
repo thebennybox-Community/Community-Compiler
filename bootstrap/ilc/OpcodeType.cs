@@ -43,5 +43,7 @@
         PushU64,
         Del,
         PushFn,
+        AddressLoc,
+        AddressArg,
     }
 }

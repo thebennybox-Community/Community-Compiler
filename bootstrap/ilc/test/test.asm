@@ -1,8 +1,20 @@
 global main
 main:
-extern gInit
-call gInit
-add esp, 0
+global start
+start:
+push ebp
+mov ebp, esp
+sub esp, 16
+mov eax, str1
+push Eax
+push 0
+pop Eax
+mov [Ebp-4], Eax
+lea eax, [ebp-4]
+push Eax
+extern glutInit
+call glutInit
+add esp, 8
 push Eax
 push 0
 extern glutInitDisplayMode
@@ -15,7 +27,7 @@ extern glutInitWindowSize
 call glutInitWindowSize
 add esp, 8
 push Eax
-mov eax, str1
+mov eax, str2
 push Eax
 extern glutCreateWindow
 call glutCreateWindow
@@ -92,4 +104,5 @@ push Eax
 leave
 ret
 section .data
-str1 db 'Test',0
+str1 db '',0
+str2 db 'Test',0

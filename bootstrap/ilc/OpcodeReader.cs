@@ -214,6 +214,8 @@ namespace ilc
                         A0 = ReadStr()
                     };
                 case OpcodeType.LoadLoc:
+                case OpcodeType.AddressArg:
+                case OpcodeType.AddressLoc:
                 case OpcodeType.StoreLoc:
                 case OpcodeType.LoadArg:
                 case OpcodeType.StoreArg:
