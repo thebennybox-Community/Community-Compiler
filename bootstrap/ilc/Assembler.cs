@@ -374,10 +374,7 @@ namespace ilc
 
             sb.AppendLine("global main");
             sb.AppendLine("main:");
-            sb.AppendLine("call __start");
-            sb.AppendLine("mov eax, 0");
-            sb.AppendLine("ret");
-            sb.AppendLine("__start:");
+        
             
             foreach (var o in SectionText)
             {

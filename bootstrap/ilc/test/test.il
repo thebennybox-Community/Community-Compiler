@@ -1,5 +1,3 @@
-__main: 
-
 fcall gInit
 
 push.i32 0
@@ -23,6 +21,7 @@ fcall glutDisplayFunc
   
 fcall glutMainLoop
 
+push.i32 0
 ret
 
 display:

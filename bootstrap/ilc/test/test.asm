@@ -1,14 +1,5 @@
 global main
 main:
-call __start
-mov eax, 0
-ret
-__start:
-global __main
-__main:
-push ebp
-mov ebp, esp
-sub esp, 16
 extern gInit
 call gInit
 add esp, 0
@@ -47,6 +38,7 @@ extern glutMainLoop
 call glutMainLoop
 add esp, 0
 push Eax
+push 0
 leave
 ret
 global display
