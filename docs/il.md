@@ -45,6 +45,7 @@ ID   | Name           | A0              | A1              | Description
 0x24 | jz             | label           | -               | jumps conditionally Pop A; if(A == 0) goto label
 0x25 | Push i64       | i64             | -               | Push an i64 onto the stack
 0x26 | Push u64       | u64             | -               | Push an u64 onto the stack
+0x27 | del            | -               | -               | pop A;
 
 ## Binary File Format
 

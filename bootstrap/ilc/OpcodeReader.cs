@@ -7,9 +7,9 @@ namespace ilc
 {
     public class OpcodeReader
     {
-        private MemoryStream _stream;
+        private Stream _stream;
 
-        public OpcodeReader(MemoryStream stream)
+        public OpcodeReader(Stream stream)
         {
             _stream = stream;
         }
@@ -228,7 +228,7 @@ namespace ilc
             var re = new List<Opcode>();
 
 
-            while (_stream.Position < _stream.Capacity)
+            while (_stream.Position < _stream.Length)
             {
                 re.Add(ReadOpcode());
             }

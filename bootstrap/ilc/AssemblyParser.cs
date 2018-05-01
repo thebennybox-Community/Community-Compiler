@@ -17,7 +17,7 @@ namespace ilc
 
                 var tmp = new Opcode();
 
-                var segs = x.Split(' ');
+                var segs = x.Trim().Split(' ');
 
                 if (x.Contains("\""))
                 {
@@ -104,6 +104,9 @@ namespace ilc
                     case "add":
                         tmp.Id = OpcodeType.Add;
                         break;
+                    case "del":
+                        tmp.Id = OpcodeType.Del;
+                        break;
                     case "sub":
                         tmp.Id = OpcodeType.Sub;
                         break;
@@ -168,6 +171,10 @@ namespace ilc
                         break;
                     case "goto":
                         tmp.Id = OpcodeType.Goto;
+                        tmp.A0 = segs[1];
+                        break;
+                    case "jz":
+                        tmp.Id = OpcodeType.Jz;
                         tmp.A0 = segs[1];
                         break;
 

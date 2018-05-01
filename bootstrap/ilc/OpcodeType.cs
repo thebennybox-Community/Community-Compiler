@@ -41,5 +41,6 @@
         Jz,
         PushI64,
         PushU64,
+        Del
     }
 }
