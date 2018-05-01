@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "TokenStream.h"
+#include "Parser.h"
 
 std::string loadTextFromFile(std::string filepath) {
     std::ifstream stream(filepath);
@@ -47,6 +48,9 @@ int main(int argc, char **argv) {
             error.token.raw.c_str()
         );
     }
+
+    Parser parser;
+    parser.parse(stream.tokens);
 
     return 0;
 }

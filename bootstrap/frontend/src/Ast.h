@@ -4,10 +4,10 @@
 #include <memory>
 #include <vector>
 
-#define AstType_ENUM(name) name
-#define AstType_NAME_ARRAY(name) #name
+#define AstNodeType_ENUM(name) name
+#define AstNodeType_NAME_ARRAY(name) #name
 
-#define AstTypes(F) \
+#define AstNodeTypes(F) \
     F(AstBlock), \
     F(AstString), \
     F(AstNumber), \
@@ -26,55 +26,71 @@
     F(AstType), \
     F(AstSymbol), \
 
-enum class AstType {
-    AstTypes(AstType_ENUM)
+enum class AstNodeType {
+    AstNodeTypes(AstNodeType_ENUM)
 };
-static const char *tokenTypeNames[] = {
-    AstTypes(AstType_NAME_ARRAY)
+static const char *astNodeTypeNames[] = {
+    AstNodeTypes(AstNodeType_NAME_ARRAY)
 };
 
 struct AstNode {
-    int row, column;
-    AstType type;
-};
+    int line, column;
+    AstNodeType type;
 
-struct AstBlock: public AstNode {
-    std::vector<std::unique_ptr<AstNode>> statements;
-
-    AstBlock(): type(AstType::AstBlock) {}
+    AstNode(AstNodeType type): type(type) {}
 };
 
 struct AstString: public AstNode {
     std::string value;
 
-    AstString(): type(AstType::AstString) {}
+    AstString(): AstNode(AstNodeType::AstString) {}
 };
 
 struct AstNumber: public AstNode {
     bool is_float: 1;
     bool is_signed: 1;
+    int bits;
 
     union {
-        uint64_t unsigned_value;
-        int64_t signed_value;
-        double float_value;
-    };
+        uint64_t u;
+        int64_t i;
+        double f;
+    } value;
 
-    AstNumber(): type(AstType::AstNumber) {}
+    AstNumber(): AstNode(AstNodeType::AstNumber) {}
 };
 
 struct AstBoolean: public AstNode {
     bool value;
 
-    AstBoolean(): type(AstType::AstBoolean) {}
+    AstBoolean(): AstNode(AstNodeType::AstBoolean) {}
+};
+
+struct AstSymbol: public AstNode {
+    std::string name;
+
+    AstSymbol(): AstNode(AstNodeType::AstSymbol) {}
+};
+
+struct AstBlock: public AstNode {
+    std::vector<std::unique_ptr<AstNode>> statements;
+
+    AstBlock(): AstNode(AstNodeType::AstBlock) {}
+};
+
+struct AstType: public AstNode {
+
+
+    AstType(): AstNode(AstNodeType::AstType) {}
 };
 
 struct AstDec: public AstNode {
     std::unique_ptr<AstSymbol> name;
     std::unique_ptr<AstType> type;
     std::unique_ptr<AstNode> value;
+    bool immutable: 1;
 
-    AstDec(): type(AstType::AstDec) {}
+    AstDec(): AstNode(AstNodeType::AstDec) {}
 };
 
 struct AstFn: public AstNode {
@@ -83,69 +99,57 @@ struct AstFn: public AstNode {
     std::unique_ptr<AstType> return_type;
     std::unique_ptr<AstBlock> body;
 
-    AstFn(): type(AstType::AstFn) {}
+    AstFn(): AstNode(AstNodeType::AstFn) {}
 };
 
 struct AstLoop: public AstNode {
 
 
-    AstLoop(): type(AstType::AstLoop) {}
+    AstLoop(): AstNode(AstNodeType::AstLoop) {}
 };
 
 struct AstContinue: public AstNode {
-    AstContinue(): type(AstType::AstContinue) {}
+    AstContinue(): AstNode(AstNodeType::AstContinue) {}
 };
 
 struct AstBreak: public AstNode {
-    AstBreak(): type(AstType::AstBreak) {}
+    AstBreak(): AstNode(AstNodeType::AstBreak) {}
 };
 
 struct AstGet: public AstNode {
 
 
-    AstGet(): type(AstType::AstGet) {}
+    AstGet(): AstNode(AstNodeType::AstGet) {}
 };
 
 struct AstSet: public AstNode {
 
 
-    AstSet(): type(AstType::AstSet) {}
+    AstSet(): AstNode(AstNodeType::AstSet) {}
 };
 
 struct AstImpl: public AstNode {
 
 
-    AstImpl(): type(AstType::AstImpl) {}
+    AstImpl(): AstNode(AstNodeType::AstImpl) {}
 };
 
 struct AstAttribute: public AstNode {
 
 
-    AstAttribute(): type(AstType::AstAttribute) {}
+    AstAttribute(): AstNode(AstNodeType::AstAttribute) {}
 };
 
 struct AstOp: public AstNode {
 
 
-    AstOp(): type(AstType::AstOp) {}
+    AstOp(): AstNode(AstNodeType::AstOp) {}
 };
 
 struct AstExpr: public AstNode {
 
 
-    AstExpr(): type(AstType::AstExpr) {}
-};
-
-struct AstType: public AstNode {
-
-
-    AstType(): type(AstType::AstType) {}
-};
-
-struct AstSymbol: public AstNode {
-    std::string name;
-
-    AstSymbol(): type(AstType::AstSymbol) {}
+    AstExpr(): AstNode(AstNodeType::AstExpr) {}
 };
 
 struct Ast {
