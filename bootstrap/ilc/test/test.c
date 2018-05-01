@@ -1,15 +1,9 @@
 #include <stdio.h>
+#include <GL/glut.h>
 
-extern int add(int x, int y);
-extern void test();
-
-int main()
+void gInit()
 {
-
-    int x = add(10, 15);
-   
-    test();
-
-   printf("\n%d bob\n", x);
-   return 0;
+    char **myargv;
+    int myargc=0;
+    glutInit(&myargc, myargv);
 }

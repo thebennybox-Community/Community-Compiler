@@ -59,6 +59,7 @@ namespace ilc
                         switch (s)
                         {
                             case "str":
+                            case "fn":
                                 total += 4;
                                 break;
                             case "bool":
@@ -84,7 +85,14 @@ namespace ilc
                         Add(new Nop());
                         break;
 
+                    case OpcodeType.PushFn:
+                        if (!LabelSizes.ContainsKey(opcode.A0.ToString()))
+                        {
+                            Add($"extern {opcode.A0}");
+                        }
 
+                        Add($"push {opcode.A0}");
+                        break;
                     case OpcodeType.PushU8:
                     case OpcodeType.PushU16:
                     case OpcodeType.PushU32:
@@ -93,10 +101,16 @@ namespace ilc
                     case OpcodeType.PushI16:
                     case OpcodeType.PushI32:
                     case OpcodeType.PushI64:
-                    case OpcodeType.PushF32:
-                    case OpcodeType.PushF64:
                         Add(new Push(opcode.A0));
                         break;
+                    case OpcodeType.PushF32:
+                       // SectionData.Add($"flt{++_gCounter} dd ''");
+                        Add($"push __float32__( {((float)opcode.A0):n8} )");
+                        break;
+                    case OpcodeType.PushF64:
+                        Add($"push __float64__( {((double)opcode.A0):n8} )");
+                        break;
+                        
                     case OpcodeType.PushStr:
                         SectionData.Add($"str{++_gCounter} db '{opcode.A0}',0");
                         Add($"mov eax, str{_gCounter}");
@@ -235,9 +249,48 @@ namespace ilc
                             Add($"extern {opcode.A0}");
                         }
 
-                        Add($"mov edx, esp");
+                        var x = ((string[]) opcode.A1);
+                        var tot = 0;
+
+                        if (x != null)
+                        {
+                            for (var i = 0; i < x.Length; i++)
+                            {
+                                var s = x[i];
+                                switch (s)
+                                {
+                                    case "str":
+                                    case "fn":
+                                        tot += 4;
+                                        break;
+                                    case "bool":
+                                        tot += 1;
+                                        break;
+                                    default:
+                                        tot += int.Parse(s.Remove(0, 1)) / 8;
+                                        break;
+                                }
+                            }
+                        }
+
+                        // Add($"mov edx, esp");
                         Add($"call {opcode.A0}");
-                        Add($"sub esp, edx");
+
+                        if (!LabelSizes.ContainsKey(opcode.A0.ToString()))
+                        {
+                            Add($"add esp, {tot}");
+                        }
+                        else
+                        {
+                            Add($"add esp, {LabelLocalSizes[opcode.A0.ToString()]}");
+                        }
+
+
+                        if (!LabelSizes.ContainsKey(opcode.A0.ToString()))
+                        {
+                            Add(new Push(Registers.Eax));
+                        }
+
 
                         break;
                     case OpcodeType.Label:
@@ -319,6 +372,13 @@ namespace ilc
         {
             var sb = new StringBuilder();
 
+            sb.AppendLine("global main");
+            sb.AppendLine("main:");
+            sb.AppendLine("call __start");
+            sb.AppendLine("mov eax, 0");
+            sb.AppendLine("ret");
+            sb.AppendLine("__start:");
+            
             foreach (var o in SectionText)
             {
                 sb.AppendLine(o.ToString());

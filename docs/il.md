@@ -5,7 +5,7 @@ This IL is stack backed.
 ## Opcodes
 
 ID   | Name           | A0              | A1              | Description
----- | -------------- | --------------- | --------------- | -------------------------------------------------------------------
+---- | -------------- | --------------- | --------------- | ---------------------------------------------------------------------------------------------------
 0x00 | No Operation   | -               | -               | Place holder
 0x01 | Push u8        | u8              | -               | Push an u8 onto the stack
 0x02 | Push u16       | u16             | -               | Push an u16 onto the stack
@@ -38,7 +38,7 @@ ID   | Name           | A0              | A1              | Description
 0x1D | Equal          | -               | -               | Pop A; Push A == 0
 0x1E | Greater Than   | -               | -               | Pop A; Push A > 0
 0x1F | Smaller Than   | -               | -               | Pop A; Push A < 0
-0x20 | Call Function  | Label           | -               | Pop num of arguments and creates stack frame then jumps to label
+0x20 | Call Function  | Label           | Argument Type[] | Pop num of arguments and creates stack frame then jumps to label; A1 is only req for external calls
 0x21 | Return         | -               | -               | return, the return value should be on the stack
 0x22 | Label          | Name            | Argument Type[] | behaves like a nop, but just stores meta data type[0] = return type
 0x23 | goto           | label           | -               | jumps unconditionally to label
@@ -46,6 +46,7 @@ ID   | Name           | A0              | A1              | Description
 0x25 | Push i64       | i64             | -               | Push an i64 onto the stack
 0x26 | Push u64       | u64             | -               | Push an u64 onto the stack
 0x27 | del            | -               | -               | pop A;
+0x28 | Push fn        | label           | -               | Push an fn pointer onto the stack
 
 ## Binary File Format
 
