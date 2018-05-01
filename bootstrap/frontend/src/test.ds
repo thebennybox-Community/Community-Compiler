@@ -1,7 +1,8 @@
 // Testing tokens!
 
-var x = 8;
-let y = 21;
+/*
+dec x = 8;
+dec y = 21;
 
 fn add(a: i32, b: i32) {
 	return a + b;
@@ -31,6 +32,7 @@ dispose [...];
 ::
 
 @@
+*/
 
 true
 false
@@ -42,3 +44,13 @@ false
 
 2f320
 2.8e3f640
+
+2
+2.6
+2u32
+2.6f64
+"te
+st"
+"t\""
+var a: u32;
+let b: f64;
