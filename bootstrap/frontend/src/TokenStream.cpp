@@ -144,7 +144,13 @@ void TokenStream::lex(std::string src) {
                 }
             }
 
-            if(src[i] == 'i' || src[i] == 'u' || src[i] == 'f') {
+            if(
+                (
+                    (src[i] == 'i' || src[i] == 'u') &&
+                    token.type == TokenType::IntegerLiteral
+                ) ||
+                src[i] == 'f'
+            ) {
                 int saved_i = i;
                 int saved_column = column;
                 i++; column++;
