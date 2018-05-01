@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace ilc
 {
@@ -6,7 +7,7 @@ namespace ilc
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var ops = AssemblyParser.Parser(File.ReadAllText("test.il"));
         }
     }
 }

@@ -4,44 +4,47 @@ This IL is stack backed.
 
 ## Opcodes
 
-ID   | Name           | A0              | A1          | Description
----- | -------------- | --------------- | ----------- | ------------------------------------------------------------------
-0x00 | No Operation   | -               | -           | Place holder
-0x01 | Push u8        | u8              | -           | Push an u8 onto the stack
-0x02 | Push u16       | u16             | -           | Push an u16 onto the stack
-0x03 | Push u32       | u32             | -           | Push an u32 onto the stack
-0x04 | Push i8        | i8              | -           | Push an i8 onto the stack
-0x05 | Push i16       | i16             | -           | Push an i16 onto the stack
-0x06 | Push i32       | i32             | -           | Push an i32 onto the stack
-0x07 | Push f32       | f32             | -           | Push an f32 onto the stack
-0x08 | Push f64       | f64             | -           | Push an f64 onto the stack
-0x09 | Push str       | str             | -           | Push an string onto the stack
-0x0A | Push true      | true            | -           | Push an true onto the stack
-0x0B | Push false     | false           | -           | Push an false onto the stack
-0x0C | Load Local     | Local Offset    | -           | Push local onto stack from the offset, note the offset is in bytes
-0x0D | Store Local    | Local Offset    | -           | Pop Value from stack and store it at the local, offset is in bytes
-0x0E | Load Argument  | Argument Offset | -           | Push argument onto stack from the offset, offset is in bytes
-0x0F | Store Argument | Argument Offset | -           | Pop Value from stack and store it at the argument, offset in bytes
-0x10 | Add            | -               | -           | Pop A; Pop B; Push A + B
-0x11 | Subtract       | -               | -           | Pop A; Pop B; Push A - B
-0x12 | Multiply       | -               | -           | Pop A; Pop B; Push A * B
-0x13 | Divide         | -               | -           | Pop A; Pop B; Push A / B
-0x14 | Negate         | -               | -           | Pop A; Push -A
-0x15 | Shift Left     | -               | -           | Pop A; Pop B; Push A << B
-0x16 | Shift Right    | -               | -           | Pop A; Pop B; Push A >> B
-0x17 | And            | -               | -           | Pop A; Pop B; Push A & B
-0x18 | Or             | -               | -           | Pop A; Pop B; Push A
-0x19 | Xor            | -               | -           | Pop A; Pop B; Push A ^ B
-0x1A | Copy           | -               | -           | Pop A; Push A; Push A;
-0x1B | Read           | -               | -           | Pop A; Push `*A`
-0x1C | Write          | -               | -           | Pop A; Pop B; `*A = B`
-0x1D | Equal          | -               | -           | Pop A; Push A == 0
-0x1E | Greater Than   | -               | -           | Pop A; Push A > 0
-0x1F | Smaller Than   | -               | -           | Pop A; Push A < 0
-0x20 | Call Function  | Label           | -           | Pop num of arguments and creates stack frame then jumps to label
-0x21 | Return         | -               | -           | return, the return value should be on the stack
-0x22 | Label          | Argument Type[] | return type | behaves like a nop, but just stores meta data
-0x23 | goto           | label           | -           | jumps unconditionally to label
+ID   | Name           | A0              | A1              | Description
+---- | -------------- | --------------- | --------------- | -------------------------------------------------------------------
+0x00 | No Operation   | -               | -               | Place holder
+0x01 | Push u8        | u8              | -               | Push an u8 onto the stack
+0x02 | Push u16       | u16             | -               | Push an u16 onto the stack
+0x03 | Push u32       | u32             | -               | Push an u32 onto the stack
+0x04 | Push i8        | i8              | -               | Push an i8 onto the stack
+0x05 | Push i16       | i16             | -               | Push an i16 onto the stack
+0x06 | Push i32       | i32             | -               | Push an i32 onto the stack
+0x07 | Push f32       | f32             | -               | Push an f32 onto the stack
+0x08 | Push f64       | f64             | -               | Push an f64 onto the stack
+0x09 | Push str       | str             | -               | Push an string onto the stack
+0x0A | Push true      | -               | -               | Push an true onto the stack
+0x0B | Push false     | -               | -               | Push an false onto the stack
+0x0C | Load Local     | Local Offset    | -               | Push local onto stack from the offset, note the offset is in bytes
+0x0D | Store Local    | Local Offset    | -               | Pop Value from stack and store it at the local, offset is in bytes
+0x0E | Load Argument  | Argument Offset | -               | Push argument onto stack from the offset, offset is in bytes
+0x0F | Store Argument | Argument Offset | -               | Pop Value from stack and store it at the argument, offset in bytes
+0x10 | Add            | -               | -               | Pop A; Pop B; Push A + B
+0x11 | Subtract       | -               | -               | Pop A; Pop B; Push A - B
+0x12 | Multiply       | -               | -               | Pop A; Pop B; Push A * B
+0x13 | Divide         | -               | -               | Pop A; Pop B; Push A / B
+0x14 | Negate         | -               | -               | Pop A; Push -A
+0x15 | Shift Left     | -               | -               | Pop A; Pop B; Push A << B
+0x16 | Shift Right    | -               | -               | Pop A; Pop B; Push A >> B
+0x17 | And            | -               | -               | Pop A; Pop B; Push A & B
+0x18 | Or             | -               | -               | Pop A; Pop B; Push A
+0x19 | Xor            | -               | -               | Pop A; Pop B; Push A ^ B
+0x1A | Copy           | -               | -               | Pop A; Push A; Push A;
+0x1B | Read           | -               | -               | Pop A; Push `*A`
+0x1C | Write          | -               | -               | Pop A; Pop B; `*A = B`
+0x1D | Equal          | -               | -               | Pop A; Push A == 0
+0x1E | Greater Than   | -               | -               | Pop A; Push A > 0
+0x1F | Smaller Than   | -               | -               | Pop A; Push A < 0
+0x20 | Call Function  | Label           | -               | Pop num of arguments and creates stack frame then jumps to label
+0x21 | Return         | -               | -               | return, the return value should be on the stack
+0x22 | Label          | Name            | Argument Type[] | behaves like a nop, but just stores meta data type[0] = return type
+0x23 | goto           | label           | -               | jumps unconditionally to label
+0x24 | jz             | label           | -               | jumps conditionally Pop A; if(A == 0) goto label
+0x25 | Push i64       | i64             | -               | Push an i64 onto the stack
+0x26 | Push u64       | u64             | -               | Push an u64 onto the stack
 
 ## Binary File Format
 
@@ -104,3 +107,4 @@ ID   | Name
 0x21 | ret
 0x22 | Label:
 0x23 | goto
+0x24 | jz
