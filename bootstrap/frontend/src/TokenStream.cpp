@@ -8,8 +8,8 @@
 #include <map>
 
 static const std::map<std::string, TokenType> keywords = {
-    {"var",      TokenType::Var},
-    {"let",      TokenType::Let},
+    {"var",      TokenType::Dec},
+    {"let",      TokenType::Dec},
     {"fn",       TokenType::Fn},
     {"loop",     TokenType::Loop},
     {"in",       TokenType::In},
