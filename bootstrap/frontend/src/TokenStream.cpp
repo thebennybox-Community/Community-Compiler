@@ -138,6 +138,12 @@ void TokenStream::lex(std::string src) {
                 if(src[i] == 'e' || src[i] == 'E') {
                     // Exponent
                     i++; column++;
+
+                    // Check for sign of exponent
+                    if(src[i] == '+' || src[i] == '-') {
+                        i++; column++;
+                    }
+
                     while(is_digit(src[i])) {
                         i++; column++;
                     }
