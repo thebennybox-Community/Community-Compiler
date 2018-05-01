@@ -26,8 +26,7 @@
     F(OpenSquareBracket), \
     F(CloseSquareBracket), \
     \
-    F(Var), \
-    F(Let), \
+    F(Dec), \
     F(Fn), \
     F(Continue), \
     F(Break), \
