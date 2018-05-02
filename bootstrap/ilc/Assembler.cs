@@ -139,7 +139,7 @@ namespace ilc
                     }
                         Add(new Push(Registers.Eax));
                         break;
-                        
+
                     case OpcodeType.AddressArg:
                     {
                         var off = (8 + (int) (uint) opcode.A0);
@@ -261,6 +261,7 @@ namespace ilc
 
 
                     case OpcodeType.Fcall:
+                    {
                         if (!LabelSizes.ContainsKey(opcode.A0.ToString()))
                         {
                             Add($"extern {opcode.A0}");
@@ -307,8 +308,53 @@ namespace ilc
                         {
                             Add(new Push(Registers.Eax));
                         }
+                    }
+                        break;
+
+                    case OpcodeType.Invoke:
+                    {
+                         var x = ((string[]) opcode.A1);
+                        var tot = 0;
+
+                        if (x != null)
+                        {
+                            for (var i = 0; i < x.Length; i++)
+                            {
+                                var s = x[i];
+                                switch (s)
+                                {
+                                    case "str":
+                                    case "fn":
+                                        tot += 4;
+                                        break;
+                                    case "bool":
+                                        tot += 1;
+                                        break;
+                                    default:
+                                        tot += int.Parse(s.Remove(0, 1)) / 8;
+                                        break;
+                                }
+                            }
+                        }
+
+                         Add($"pop eax");
+                        Add($"call eax");
+
+                        if (!LabelSizes.ContainsKey(opcode.A0.ToString()))
+                        {
+                            Add($"add esp, {tot}");
+                        }
+                        else
+                        {
+                            Add($"add esp, {LabelLocalSizes[opcode.A0.ToString()]}");
+                        }
 
 
+                        if (!LabelSizes.ContainsKey(opcode.A0.ToString()))
+                        {
+                            Add(new Push(Registers.Eax));
+                        }
+                    }
                         break;
                     case OpcodeType.Label:
 
@@ -390,7 +436,7 @@ namespace ilc
             var sb = new StringBuilder();
 
             sb.AppendLine("global main");
-           sb.AppendLine("main:");
+            sb.AppendLine("main:");
             /* sb.AppendLine("push ebp");
             sb.AppendLine("mov ebp, esp");
             sb.AppendLine("call start");

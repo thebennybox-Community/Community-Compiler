@@ -1,5 +1,31 @@
 global main
 main:
+jmp start
+global fntest
+fntest:
+push ebp
+mov ebp, esp
+sub esp, 16
+push 41
+push princhar
+pop eax
+call eax
+add esp, 0
+leave
+ret
+global princhar
+princhar:
+push ebp
+mov ebp, esp
+sub esp, 16
+mov Eax, [Ebp+8]
+push Eax
+extern putchar
+call putchar
+add esp, 4
+push Eax
+leave
+ret
 global start
 start:
 push ebp

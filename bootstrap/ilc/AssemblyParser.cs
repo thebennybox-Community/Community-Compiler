@@ -184,8 +184,19 @@ namespace ilc
                                 z[i - 2] = segs[i];
                             }
                         }
-                        
-                        
+                        break;
+                    case "invoke":
+                        tmp.Id = OpcodeType.Invoke;
+                    {
+                        tmp.A0 = new string[segs.Length - 2];
+    
+                        var z = tmp.A1 as string[];
+    
+                        for (int i = 2; i < segs.Length; i++)
+                        {
+                            z[i - 2] = segs[i];
+                        }
+                    }
                         break;
                     case "ret":
                         tmp.Id = OpcodeType.Ret;

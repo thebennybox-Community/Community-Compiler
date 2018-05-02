@@ -45,5 +45,6 @@
         PushFn,
         AddressLoc,
         AddressArg,
+        Invoke
     }
 }

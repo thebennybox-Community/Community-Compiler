@@ -1,4 +1,26 @@
 
+goto start
+
+
+fntest:
+
+push.i32 41
+push.fn princhar
+invoke i32
+del
+
+
+ret
+
+princhar:
+load.arg 0
+fcall putchar i32
+ret
+
+
+
+
+
 start:
 
 load.arg 4
