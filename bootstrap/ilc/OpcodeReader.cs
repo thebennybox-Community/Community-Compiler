@@ -125,6 +125,12 @@ namespace ilc
                         A0 = ReadStr(),
                         A1 = ReadStrArray()
                     };
+                case OpcodeType.Invoke:
+                    return new Opcode()
+                    {
+                        Id = (OpcodeType) id,
+                        A0 =  ReadStrArray()
+                    };
 
                 case OpcodeType.Label:
                     return new Opcode()
