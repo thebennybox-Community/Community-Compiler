@@ -41,6 +41,10 @@
         Jz,
         PushI64,
         PushU64,
-        Del
+        Del,
+        PushFn,
+        AddressLoc,
+        AddressArg,
+        Invoke
     }
 }

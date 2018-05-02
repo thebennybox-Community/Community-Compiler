@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Globalization;
 
 namespace ilc
 {
@@ -12,7 +13,7 @@ namespace ilc
 
             foreach (var s in raw.Replace("\r\n", "\n").Split('\n'))
             {
-                var x = s.Split(';')[0].ToLower();
+                var x = s.Split(';')[0];
                 if (string.IsNullOrEmpty(x.Trim())) continue;
 
                 var tmp = new Opcode();
@@ -30,7 +31,13 @@ namespace ilc
                     segs[1] = segs[1].Remove(segs[1].Length - 1, 1);
                 }
 
-                switch (segs[0].Trim())
+                
+                var fmt = new NumberFormatInfo();
+                fmt.NegativeSign = "-";
+                fmt.NumberDecimalSeparator = ".";
+                
+                
+                switch (segs[0].Trim().ToLower())
                 {
                     case "nop":
                         tmp.Id = OpcodeType.nop;
@@ -69,14 +76,18 @@ namespace ilc
                         break;
                     case "push.f32":
                         tmp.Id = OpcodeType.PushF32;
-                        tmp.A0 = float.Parse(segs[1]);
+                        tmp.A0 = float.Parse(segs[1], fmt);
                         break;
                     case "push.f64":
                         tmp.Id = OpcodeType.PushF64;
-                        tmp.A0 = double.Parse(segs[1]);
+                        tmp.A0 = double.Parse(segs[1], fmt);
                         break;
                     case "push.str":
                         tmp.Id = OpcodeType.PushStr;
+                        tmp.A0 = segs[1];
+                        break;
+                    case "push.fn":
+                        tmp.Id = OpcodeType.PushFn;
                         tmp.A0 = segs[1];
                         break;
                     case "push.true":
@@ -87,6 +98,14 @@ namespace ilc
                         break;
                     case "load.loc":
                         tmp.Id = OpcodeType.LoadLoc;
+                        tmp.A0 = uint.Parse(segs[1]);
+                        break;
+                    case "addr.loc":
+                        tmp.Id = OpcodeType.AddressLoc;
+                        tmp.A0 = uint.Parse(segs[1]);
+                        break;
+                    case "addr.arg":
+                        tmp.Id = OpcodeType.AddressArg;
                         tmp.A0 = uint.Parse(segs[1]);
                         break;
                     case "store.loc":
@@ -165,6 +184,19 @@ namespace ilc
                                 z[i - 2] = segs[i];
                             }
                         }
+                        break;
+                    case "invoke":
+                        tmp.Id = OpcodeType.Invoke;
+                    {
+                        tmp.A0 = new string[segs.Length - 2];
+    
+                        var z = tmp.A1 as string[];
+    
+                        for (int i = 2; i < segs.Length; i++)
+                        {
+                            z[i - 2] = segs[i];
+                        }
+                    }
                         break;
                     case "ret":
                         tmp.Id = OpcodeType.Ret;

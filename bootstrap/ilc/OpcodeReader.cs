@@ -122,7 +122,8 @@ namespace ilc
                     return new Opcode()
                     {
                         Id = (OpcodeType) id,
-                        A0 = ReadStr()
+                        A0 = ReadStr(),
+                        A1 = ReadStrArray()
                     };
 
                 case OpcodeType.Label:
@@ -132,7 +133,6 @@ namespace ilc
                         A0 = ReadStr(),
                         A1 = ReadStrArray()
                     };
-                    break;
                 case OpcodeType.Goto:
                     return new Opcode()
                     {
@@ -207,7 +207,15 @@ namespace ilc
                         Id = (OpcodeType) id,
                         A0 = ReadStr()
                     };
+                case OpcodeType.PushFn:
+                    return new Opcode()
+                    {
+                        Id = (OpcodeType) id,
+                        A0 = ReadStr()
+                    };
                 case OpcodeType.LoadLoc:
+                case OpcodeType.AddressArg:
+                case OpcodeType.AddressLoc:
                 case OpcodeType.StoreLoc:
                 case OpcodeType.LoadArg:
                 case OpcodeType.StoreArg:
