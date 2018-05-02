@@ -1,13 +1,11 @@
 
 start:
 
-push.str ""
-
-push.u32 0
-store.loc 0
-addr.loc 0
+load.arg 4
+addr.arg 0
 
 fcall glutInit u32 str
+del
 
 push.i32 0
 fcall glutInitDisplayMode i32

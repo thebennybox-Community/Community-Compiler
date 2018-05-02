@@ -5,17 +5,13 @@ start:
 push ebp
 mov ebp, esp
 sub esp, 16
-mov eax, str1
+mov Eax, [Ebp+12]
 push Eax
-push 0
-pop Eax
-mov [Ebp-4], Eax
-lea eax, [ebp-4]
+lea eax, [ebp+8]
 push Eax
 extern glutInit
 call glutInit
 add esp, 8
-push Eax
 push 0
 extern glutInitDisplayMode
 call glutInitDisplayMode
@@ -27,7 +23,7 @@ extern glutInitWindowSize
 call glutInitWindowSize
 add esp, 8
 push Eax
-mov eax, str2
+mov eax, str1
 push Eax
 extern glutCreateWindow
 call glutCreateWindow
@@ -104,5 +100,4 @@ push Eax
 leave
 ret
 section .data
-str1 db '',0
-str2 db 'Test',0
+str1 db 'Test',0

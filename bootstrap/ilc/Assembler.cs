@@ -390,8 +390,12 @@ namespace ilc
             var sb = new StringBuilder();
 
             sb.AppendLine("global main");
-            sb.AppendLine("main:");
-
+           sb.AppendLine("main:");
+            /* sb.AppendLine("push ebp");
+            sb.AppendLine("mov ebp, esp");
+            sb.AppendLine("call start");
+            sb.AppendLine("pop ebp");
+            sb.AppendLine("ret");*/
 
             foreach (var o in SectionText)
             {
