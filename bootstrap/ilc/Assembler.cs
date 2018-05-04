@@ -89,6 +89,8 @@ namespace ilc
 
             foreach (var opcode in opcodes)
             {
+                //Add(new Comment(opcode.Id + " " + opcode.A0 + " " + opcode.A1));
+
                 switch (opcode.Id)
                 {
                     case OpcodeType.nop:
@@ -121,7 +123,7 @@ namespace ilc
                         break;
 
                     case OpcodeType.PushStr:
-                        SectionData.Add($"str{++_gCounter} db '{opcode.A0}',0");
+                        SectionData.Add($"str{++_gCounter} db '{opcode.A0.ToString().Trim('"')}',0");
                         Add(new Mov(Registers.Eax, $"str{_gCounter}"));
                         Add(new Push(Registers.Eax));
                         break;
@@ -425,11 +427,16 @@ namespace ilc
         }
 
 
+        private List<Extern> externs = new List<Extern>();
+
         private void Optimize()
         {
+            bool foundOptimization = false;
+
             for (var i = 0; i < SectionText.Count - 1; i++)
             {
                 var a = SectionText[i];
+
                 var b = SectionText[i + 1];
 
                 //push A, pop A = pointless
@@ -442,21 +449,67 @@ namespace ilc
                         SectionText.RemoveAt(i);
                         SectionText.RemoveAt(i);
                     }
+                    else if (!(ap.Value is Registers)
+                             && bp.Value is Registers)
+                    {
+                        SectionText.RemoveAt(i);
+                        SectionText.RemoveAt(i);
+
+                        SectionText.Insert(i, new Mov((Registers) bp.Value, ap.Value));
+                    }
+
+                    foundOptimization = true;
                 }
+
+                //no double externs
+                if (a is Extern x)
+                {
+                    if (!externs.Contains(x))
+                    {
+                        externs.Add(x);
+                    }
+
+                    SectionText.RemoveAt(i);
+                    foundOptimization = true;
+                }
+
+                //mov then call add opt
+                if (a is Mov m && b is Call c &&
+                    m.Destination == (Registers) c.Value)
+                {
+                    SectionText.RemoveAt(i);
+                    SectionText.RemoveAt(i);
+
+                    SectionText.Insert(i, new Call(m.Source));
+                }
+
+                if (a is Add add && add.Source is int t && t == 0)
+                {
+                    SectionText.RemoveAt(i);
+                }
+                if (a is Sub sub && sub.Source is int tt && tt == 0)
+                {
+                    SectionText.RemoveAt(i);
+                }
+            }
+
+            if (foundOptimization)
+            {
+                Optimize();
             }
         }
 
         public void WriteNasmAssemblyFile(string path)
         {
+            foreach (var @extern in externs)
+            {
+                SectionText.Insert(0, @extern);
+            }
+
             var sb = new StringBuilder();
 
             sb.AppendLine("global main");
             sb.AppendLine("main:");
-            /* sb.AppendLine("push ebp");
-            sb.AppendLine("mov ebp, esp");
-            sb.AppendLine("call start");
-            sb.AppendLine("pop ebp");
-            sb.AppendLine("ret");*/
 
             foreach (var o in SectionText)
             {

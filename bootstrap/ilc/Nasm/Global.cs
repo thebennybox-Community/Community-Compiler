@@ -1,4 +1,6 @@
-﻿namespace ilc.Nasm
+﻿using System.Runtime.InteropServices;
+
+namespace ilc.Nasm
 {
     public class Global
     {
@@ -11,7 +13,10 @@
 
         public override string ToString()
         {
-            return $"global {Value}";
+            bool isWindows = System.Runtime.InteropServices.RuntimeInformation
+                .IsOSPlatform(OSPlatform.Windows);
+            
+            return $"{(isWindows ? "_" : "")}global {Value}";
         }
     }
 }

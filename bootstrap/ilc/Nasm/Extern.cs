@@ -2,9 +2,9 @@
 
 namespace ilc.Nasm
 {
-    public class Call
+    public class Extern
     {
-        public Call(object value)
+        public Extern(object value)
         {
             Value = value;
         }
@@ -15,7 +15,7 @@ namespace ilc.Nasm
         {
             bool isWindows = System.Runtime.InteropServices.RuntimeInformation
                 .IsOSPlatform(OSPlatform.Windows);
-            return $"call {(isWindows ? "_" : "")}{Value}";
+            return $"extern {(isWindows ? "_" : "")}{Value}";
         }
     }
 }

@@ -50,7 +50,6 @@ fcall glutDisplayFunc
   
 fcall glutMainLoop
 
-push.i32 0
 ret
 
 display:

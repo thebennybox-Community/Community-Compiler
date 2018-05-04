@@ -25,10 +25,9 @@ namespace ilc
                     segs = new[]
                     {
                         segs[0],
-                        x
+                        x.Remove(0, segs[0].Length).Trim()
                     };
 
-                    segs[1] = segs[1].Remove(segs[1].Length - 1, 1);
                 }
 
                 

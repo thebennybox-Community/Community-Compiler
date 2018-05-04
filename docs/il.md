@@ -47,7 +47,7 @@ ID   | Name           | A0              | A1              | Description
 0x26 | Push u64       | u64             | -               | Push an u64 onto the stack
 0x27 | del            | -               | -               | pop A;
 0x28 | Push fn        | label           | -               | Push an fn pointer onto the stack
-0x28 | Invoke         | Argument Type[] | -               | Pop A; fcall A;
+0x29 | Invoke         | Argument Type[] | -               | Pop A; fcall A;
 
 ## Binary File Format
 

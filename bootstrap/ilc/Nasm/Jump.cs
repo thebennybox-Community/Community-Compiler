@@ -1,4 +1,6 @@
-﻿namespace ilc.Nasm
+﻿using System.Runtime.InteropServices;
+
+namespace ilc.Nasm
 {
     public class Jump
     {
@@ -10,8 +12,9 @@
         public object Value { get; set; }
 
         public override string ToString()
-        {
-            return $"jmp {Value}";
+        {   bool isWindows = System.Runtime.InteropServices.RuntimeInformation
+                .IsOSPlatform(OSPlatform.Windows);
+            return $"jmp {(isWindows ? "_" : "")}{Value}";
         }
     }
 }
