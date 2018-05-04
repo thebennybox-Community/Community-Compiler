@@ -13,7 +13,7 @@
         {
             if (Value is string)
             {
-                return $"push \"{Value}\"";
+               // return $"push \"{Value}\"";
             }
             
             return $"push {Value}";

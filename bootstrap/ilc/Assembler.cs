@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using ilc.Nasm;
 
@@ -13,7 +15,15 @@ namespace ilc
         private List<object> SectionData { get; set; } = new List<object>();
 
 
-        private void Add(object c) => SectionText.Add(c);
+        private void Add(object c)
+        {
+            if (c is string)
+            {
+                Console.WriteLine($"String Literal: {c}");
+            }
+
+            SectionText.Add(c);
+        }
 
         private Dictionary<string, int> LabelSizes { get; set; } = new Dictionary<string, int>();
         private Dictionary<string, int> LabelLocalSizes { get; set; } = new Dictionary<string, int>();
@@ -88,10 +98,10 @@ namespace ilc
                     case OpcodeType.PushFn:
                         if (!LabelSizes.ContainsKey(opcode.A0.ToString()))
                         {
-                            Add($"extern {opcode.A0}");
+                            Add(new Extern(opcode.A0));
                         }
 
-                        Add($"push {opcode.A0}");
+                        Add(new Push(opcode.A0));
                         break;
                     case OpcodeType.PushU8:
                     case OpcodeType.PushU16:
@@ -104,16 +114,15 @@ namespace ilc
                         Add(new Push(opcode.A0));
                         break;
                     case OpcodeType.PushF32:
-                        // SectionData.Add($"flt{++_gCounter} dd ''");
-                        Add($"push __float32__( {((float) opcode.A0):n8} )");
+                        Add(new Push($"__float32__( {((float) opcode.A0):n8} )"));
                         break;
                     case OpcodeType.PushF64:
-                        Add($"push __float64__( {((double) opcode.A0):n8} )");
+                        Add(new Push($"__float64__( {((double) opcode.A0):n8} )"));
                         break;
 
                     case OpcodeType.PushStr:
                         SectionData.Add($"str{++_gCounter} db '{opcode.A0}',0");
-                        Add($"mov eax, str{_gCounter}");
+                        Add(new Mov(Registers.Eax, $"str{_gCounter}"));
                         Add(new Push(Registers.Eax));
                         break;
                     case OpcodeType.PushTrue:
@@ -135,7 +144,10 @@ namespace ilc
                     case OpcodeType.AddressLoc:
                     {
                         var off = -(4 + (int) (uint) opcode.A0);
-                        Add($"lea eax, [ebp{(off < 0 ? "" : "+") + (off)}]");
+                        Add(new Lea(Registers.Eax, Registers.Ebp)
+                        {
+                            SourceOffset = off
+                        });
                     }
                         Add(new Push(Registers.Eax));
                         break;
@@ -143,7 +155,10 @@ namespace ilc
                     case OpcodeType.AddressArg:
                     {
                         var off = (8 + (int) (uint) opcode.A0);
-                        Add($"lea eax, [ebp{(off < 0 ? "" : "+") + (off)}]");
+                        Add(new Lea(Registers.Eax, Registers.Ebp)
+                        {
+                            SourceOffset = off
+                        });
                     }
                         Add(new Push(Registers.Eax));
                         break;
@@ -264,7 +279,7 @@ namespace ilc
                     {
                         if (!LabelSizes.ContainsKey(opcode.A0.ToString()))
                         {
-                            Add($"extern {opcode.A0}");
+                            Add(new Extern(opcode.A0));
                         }
 
                         var x = ((string[]) opcode.A1);
@@ -292,15 +307,15 @@ namespace ilc
                         }
 
                         // Add($"mov edx, esp");
-                        Add($"call {opcode.A0}");
+                        Add(new Call(opcode.A0));
 
                         if (!LabelSizes.ContainsKey(opcode.A0.ToString()))
                         {
-                            Add($"add esp, {tot}");
+                            Add(new Add(Registers.Esp, tot));
                         }
                         else
                         {
-                            Add($"add esp, {LabelLocalSizes[opcode.A0.ToString()]}");
+                            Add(new Add(Registers.Esp, LabelLocalSizes[opcode.A0.ToString()]));
                         }
 
 
@@ -313,7 +328,7 @@ namespace ilc
 
                     case OpcodeType.Invoke:
                     {
-                         var x = ((string[]) opcode.A1);
+                        var x = ((string[]) opcode.A1);
                         var tot = 0;
 
                         if (x != null)
@@ -337,16 +352,16 @@ namespace ilc
                             }
                         }
 
-                         Add($"pop eax");
-                        Add($"call eax");
+                        Add(new Pop(Registers.Eax));
+                        Add(new Call(Registers.Eax));
 
                         if (!LabelSizes.ContainsKey(opcode.A0.ToString()))
                         {
-                            Add($"add esp, {tot}");
+                            Add(new Add(Registers.Esp, tot));
                         }
                         else
                         {
-                            Add($"add esp, {LabelLocalSizes[opcode.A0.ToString()]}");
+                            Add(new Add(Registers.Esp, LabelLocalSizes[opcode.A0.ToString()]));
                         }
 
 
@@ -362,15 +377,15 @@ namespace ilc
                         if (a % 4 == 0) a++;
 
                         var total = a * 16;
-                        Add($"global {opcode.A0}");
-                        Add($"{opcode.A0}:");
-                        Add($"push ebp");
-                        Add($"mov ebp, esp");
-                        Add($"sub esp, {total}");
+                        Add(new Global(opcode.A0));
+                        Add(new Label(opcode.A0));
+                        Add(new Push(Registers.Ebp));
+                        Add(new Mov(Registers.Ebp, Registers.Esp));
+                        Add(new Sub(Registers.Esp, total));
 
                         break;
                     case OpcodeType.Goto:
-                        Add($"jmp {opcode.A0}");
+                        Add(new Jump(opcode.A0));
                         break;
 
                     case OpcodeType.Jz:
@@ -384,21 +399,21 @@ namespace ilc
                         Add($"cmp Eax, 0");
                         Add($"jne branch{++_gCounter}");
                         Add(new Push(1));
-                        Add($"branch{_gCounter}:");
+                        Add(new Label($"branch{_gCounter}"));
                         break;
                     case OpcodeType.Ifgt:
                         Add(new Pop(Registers.Eax));
                         Add($"cmp Eax, 0");
                         Add($"jl branch{++_gCounter}");
                         Add(new Push(1));
-                        Add($"branch{_gCounter}:");
+                        Add(new Label($"branch{_gCounter}"));
                         break;
                     case OpcodeType.Ifst:
                         Add(new Pop(Registers.Eax));
                         Add($"cmp Eax, 0");
                         Add($"jg branch{++_gCounter}");
                         Add(new Push(1));
-                        Add($"branch{_gCounter}:");
+                        Add(new Label($"branch{_gCounter}"));
                         break;
 
                     default:

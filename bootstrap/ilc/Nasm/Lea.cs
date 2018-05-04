@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace ilc.Nasm
+﻿namespace ilc.Nasm
 {
-    public class Mov
+    public class Lea
     {
         public Registers Destination { get; set; }
         public object Source { get; set; }
@@ -13,7 +11,7 @@ namespace ilc.Nasm
         public bool DestinationDeRef { get; set; }
         public bool SourceOffsetDeRef { get; set; }
 
-        public Mov(Registers destination, object source)
+        public Lea(Registers destination, object source)
         {
             Destination = destination;
             Source = source;
@@ -23,15 +21,15 @@ namespace ilc.Nasm
         {
             if (DestinationOffset != 0 || DestinationDeRef)
             {
-                return $"mov [{Destination}{(DestinationOffset < 0 ? "" : "+") + DestinationOffset}], {Source}";
+                return $"lea [{Destination}{(DestinationOffset < 0 ? "" : "+") + DestinationOffset}], {Source}";
             }
 
             if (SourceOffset != 0 || SourceOffsetDeRef)
             {
-                return $"mov {Destination}, [{Source}{(SourceOffset < 0 ? "" : "+") + SourceOffset}]";
+                return $"lea {Destination}, [{Source}{(SourceOffset < 0 ? "" : "+") + SourceOffset}]";
             }
 
-            return $"mov {Destination}, {Source}";
+            return $"lea {Destination}, {Source}";
         }
     }
 }
