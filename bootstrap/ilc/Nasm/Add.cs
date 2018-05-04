@@ -3,9 +3,9 @@
     public class Add
     {
         public Registers Destination { get; set; }
-        public Registers Source { get; set; }
+        public object Source { get; set; }
 
-        public Add(Registers destination, Registers source)
+        public Add(Registers destination, object source)
         {
             Destination = destination;
             Source = source;

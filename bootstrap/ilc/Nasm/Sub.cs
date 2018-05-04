@@ -3,9 +3,9 @@
     public class Sub
     {
         public Registers Destination { get; set; }
-        public Registers Source { get; set; }
+        public object Source { get; set; }
 
-        public Sub(Registers destination, Registers source)
+        public Sub(Registers destination, object source)
         {
             Destination = destination;
             Source = source;

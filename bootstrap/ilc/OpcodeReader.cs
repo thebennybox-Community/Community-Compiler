@@ -131,7 +131,6 @@ namespace ilc
                         Id = (OpcodeType) id,
                         A0 =  ReadStrArray()
                     };
-
                 case OpcodeType.Label:
                     return new Opcode()
                     {
@@ -152,7 +151,6 @@ namespace ilc
                         Id = (OpcodeType) id,
                         A0 = ReadStr()
                     };
-
                 case OpcodeType.PushU8:
                     return new Opcode()
                     {
@@ -233,8 +231,6 @@ namespace ilc
                 default:
                     return new Opcode() {Id = (OpcodeType) id};
             }
-
-            return null;
         }
 
         public List<Opcode> ReadAll()

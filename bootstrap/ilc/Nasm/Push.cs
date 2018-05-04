@@ -1,4 +1,6 @@
-﻿namespace ilc.Nasm
+﻿using System.Linq;
+
+namespace ilc.Nasm
 {
     public class Push
     {
@@ -11,9 +13,9 @@
 
         public override string ToString()
         {
-            if (Value is string)
+            if (Value is Mov)
             {
-                return $"push \"{Value}\"";
+                return $"push {Value.ToString().Split(',').Last().Trim()}";
             }
             
             return $"push {Value}";
