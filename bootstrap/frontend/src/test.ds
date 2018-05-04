@@ -1,0 +1,33 @@
+// Testing tokens!
+
+var x = 8;
+let y = 21;
+
+fn add(a: i32, b: i32) {
+	return a + b;
+}
+
+dec z = add(x, y);
+
+loop(z < 30) {
+	z++;
+}
+
+4u16e
+4u16
+4i8
+4i86
+
+infix op -(a: i32, b: i32) { a-b } //pointless but get's the point across
+
+infix fn minus(a: i32, b: i32) { a-b }
+
+prefix fn dispose(...) {
+    thing.dispose();
+}
+
+dispose [...];
+
+::
+
+@@
