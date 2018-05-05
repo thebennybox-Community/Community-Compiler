@@ -2,7 +2,7 @@ Comment ::= SingleLineComment | MultilineComment
 
 Literal ::= StringLiteral | NumberLiteral | Boolean
 
-DecStatement ::= DecKeyword Symbol (Colon Type)? (Equal Expr)?
+DecStatement ::= (VarKeyword | LetKeyword) Symbol (Colon Type)? (Equal Expr)?
 
 CodeBlock ::= OpenCurlyBracket grammar* CloseCurlyBracket
 
@@ -21,13 +21,13 @@ SuffixOperator ::= MinusMinus | PlusPlus
 
 Expr ::= OpenParenthesis Expr CloseParenthesis
        | Literal | Symbol
-       | Expr (InfixOperator | Symbol) Expr
-       | (Symbol | PrefixOperator) Expr
-       | Expr (Symbol | SuffixOperator)
        | Invoke
        | CodeBlock
        | Array
        | Fn
+       | Expr (InfixOperator | Symbol) Expr
+       | (Symbol | PrefixOperator) Expr
+       | Expr (Symbol | SuffixOperator)
 
 Params ::= OpenParenthesis (Symbol Colon Type (Comma Symbol Colon Type)*)? CloseParenthesis
 Fn ::= FnKeyword Symbol Params (Colon Type)? CodeBlock
