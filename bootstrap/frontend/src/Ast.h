@@ -12,19 +12,25 @@
     F(AstString), \
     F(AstNumber), \
     F(AstBoolean), \
+    F(AstArray), \
     F(AstDec), \
+    F(AstIf), \
     F(AstFn), \
+    F(AstFnCall), \
     F(AstLoop), \
     F(AstContinue), \
     F(AstBreak), \
-    F(AstGet), \
-    F(AstSet), \
+    F(AstStruct), \
     F(AstImpl), \
     F(AstAttribute), \
-    F(AstOp), \
-    F(AstExpr), \
+    F(AstAffix), \
+    F(AstUnaryExpr), \
+    F(AstBinaryExpr), \
+    F(AstIndex), \
     F(AstType), \
     F(AstSymbol), \
+    F(AstReturn), \
+    F(AstExtern), \
 
 enum class AstNodeType {
     AstNodeTypes(AstNodeType_ENUM)
@@ -33,11 +39,18 @@ static const char *astNodeTypeNames[] = {
     AstNodeTypes(AstNodeType_NAME_ARRAY)
 };
 
+enum class AffixType {
+    Infix,
+    Prefix,
+    Suffix,
+};
+
 struct AstNode {
     int line, column;
     AstNodeType type;
 
     AstNode(AstNodeType type): type(type) {}
+    virtual ~AstNode() {}
 };
 
 struct AstString: public AstNode {
@@ -66,6 +79,12 @@ struct AstBoolean: public AstNode {
     AstBoolean(): AstNode(AstNodeType::AstBoolean) {}
 };
 
+struct AstArray: public AstNode {
+    std::vector<std::unique_ptr<AstNode>> elements;
+
+    AstArray(): AstNode(AstNodeType::AstArray) {}
+};
+
 struct AstSymbol: public AstNode {
     std::string name;
 
@@ -79,7 +98,9 @@ struct AstBlock: public AstNode {
 };
 
 struct AstType: public AstNode {
-
+    std::string name;
+    bool is_array: 1;
+    std::unique_ptr<AstType> subtype;
 
     AstType(): AstNode(AstNodeType::AstType) {}
 };
@@ -93,7 +114,15 @@ struct AstDec: public AstNode {
     AstDec(): AstNode(AstNodeType::AstDec) {}
 };
 
+struct AstIf: public AstNode {
+    std::unique_ptr<AstNode> condition;
+    std::unique_ptr<AstBlock> true_block, false_block;
+
+    AstIf(): AstNode(AstNodeType::AstIf) {}
+};
+
 struct AstFn: public AstNode {
+    std::unique_ptr<AstSymbol> type_self;
     std::unique_ptr<AstSymbol> name;
     std::vector<std::unique_ptr<AstDec>> params;
     std::unique_ptr<AstType> return_type;
@@ -102,8 +131,18 @@ struct AstFn: public AstNode {
     AstFn(): AstNode(AstNodeType::AstFn) {}
 };
 
-struct AstLoop: public AstNode {
+struct AstFnCall: public AstNode {
+    std::unique_ptr<AstSymbol> name;
+    std::vector<std::unique_ptr<AstNode>> args;
 
+    AstFnCall(): AstNode(AstNodeType::AstFnCall) {}
+};
+
+struct AstLoop: public AstNode {
+    bool is_foreach: 1;
+    std::unique_ptr<AstBlock> body;
+    std::unique_ptr<AstSymbol> name;
+    std::unique_ptr<AstNode> expr;
 
     AstLoop(): AstNode(AstNodeType::AstLoop) {}
 };
@@ -116,40 +155,67 @@ struct AstBreak: public AstNode {
     AstBreak(): AstNode(AstNodeType::AstBreak) {}
 };
 
-struct AstGet: public AstNode {
+struct AstStruct: public AstNode {
+    std::unique_ptr<AstSymbol> name;
+    std::unique_ptr<AstBlock> block;
 
-
-    AstGet(): AstNode(AstNodeType::AstGet) {}
-};
-
-struct AstSet: public AstNode {
-
-
-    AstSet(): AstNode(AstNodeType::AstSet) {}
+    AstStruct(): AstNode(AstNodeType::AstStruct) {}
 };
 
 struct AstImpl: public AstNode {
-
+    std::unique_ptr<AstSymbol> name;
+    std::unique_ptr<AstBlock> block;
 
     AstImpl(): AstNode(AstNodeType::AstImpl) {}
 };
 
 struct AstAttribute: public AstNode {
-
+    std::unique_ptr<AstSymbol> name;
+    std::vector<std::unique_ptr<AstNode>> args;
 
     AstAttribute(): AstNode(AstNodeType::AstAttribute) {}
 };
 
-struct AstOp: public AstNode {
+struct AstAffix: public AstNode {
+    std::unique_ptr<AstSymbol> name;
+    std::vector<std::unique_ptr<AstDec>> params;
+    std::unique_ptr<AstType> return_type;
+    std::unique_ptr<AstBlock> body;
+    AffixType affix_type;
 
-
-    AstOp(): AstNode(AstNodeType::AstOp) {}
+    AstAffix(): AstNode(AstNodeType::AstAffix) {}
 };
 
-struct AstExpr: public AstNode {
+struct AstReturn: public AstNode {
+    std::unique_ptr<AstNode> expr;
 
+    AstReturn(): AstNode(AstNodeType::AstReturn) {}
+};
 
-    AstExpr(): AstNode(AstNodeType::AstExpr) {}
+struct AstUnaryExpr: public AstNode {
+    std::string op;
+    std::unique_ptr<AstNode> expr;
+
+    AstUnaryExpr(): AstNode(AstNodeType::AstUnaryExpr) {}
+};
+
+struct AstBinaryExpr: public AstNode {
+    std::string op;
+    std::unique_ptr<AstNode> lhs, rhs;
+
+    AstBinaryExpr(): AstNode(AstNodeType::AstBinaryExpr) {}
+};
+
+struct AstIndex: public AstNode {
+    std::unique_ptr<AstNode> array, expr;
+
+    AstIndex(): AstNode(AstNodeType::AstIndex) {}
+};
+
+struct AstExtern: public AstNode {
+    std::vector<std::unique_ptr<AstFn>> decls;
+
+    AstExtern(): AstNode(AstNodeType::AstExtern) {}
 };
 
 struct Ast {

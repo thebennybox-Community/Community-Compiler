@@ -11,6 +11,8 @@
 #define TokenType_NAME_ARRAY(name) #name
 
 #define TokenTypes(F) \
+    F(End), \
+    \
     F(SingleLineComment), \
     F(MultilineComment), \
     \
@@ -44,35 +46,37 @@
     F(Infix), \
     F(Loop), \
     F(In), \
+    F(Extern), \
     \
     F(Colon), \
     F(SemiColon), \
     F(Comma), \
     F(Dot), \
     F(Equal), \
-    F(Plus), \
-    F(Minus), \
-    F(Mul), \
-    F(Divide), \
-    F(Mod), \
     F(CmpEqual), \
     F(NotEqual), \
     F(GreaterThan), \
     F(GreaterThanEqual), \
     F(LessThan), \
     F(LessThanEqual), \
-    F(Not), \
-    F(And), \
-    F(Or), \
-    F(Xor), \
-    F(BitNot), \
-    F(BitAnd), \
-    F(BitOr), \
-    F(BitXor), \
     F(CustomOperator), \
     \
     F(Symbol), \
     F(Unknown), \
+
+#define token_type_is_operator(t) \
+    ( \
+        t == TokenType::Dot || \
+        t == TokenType::Equal || \
+        t == TokenType::CmpEqual || \
+        t == TokenType::NotEqual || \
+        t == TokenType::GreaterThan || \
+        t == TokenType::GreaterThanEqual || \
+        t == TokenType::LessThan || \
+        t == TokenType::LessThanEqual || \
+        t == TokenType::CustomOperator || \
+        t == TokenType::Symbol \
+    )
 
 enum class TokenType {
     TokenTypes(TokenType_ENUM)

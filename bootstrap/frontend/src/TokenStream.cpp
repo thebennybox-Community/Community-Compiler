@@ -22,9 +22,11 @@ static const std::map<std::string, TokenType> keywords = {
     {"get",      TokenType::Get},
     {"set",      TokenType::Set},
     {"impl",     TokenType::Impl},
+    {"op",       TokenType::Op},
     {"suffix",   TokenType::Suffix},
     {"prefix",   TokenType::Prefix},
     {"infix",    TokenType::Infix},
+    {"extern",   TokenType::Extern},
     {"true",     TokenType::Boolean},
     {"false",    TokenType::Boolean},
 };
@@ -33,25 +35,7 @@ static const std::map<std::string, TokenType> operators = {
     {":",  TokenType::Colon},
     {".",  TokenType::Dot},
     {"=",  TokenType::Equal},
-    {"+",  TokenType::Plus},
-    {"-",  TokenType::Minus},
-    {"*",  TokenType::Mul},
-    {"/",  TokenType::Divide},
-    {"%",  TokenType::Mod},
-    {"==", TokenType::CmpEqual},
-    {"!=", TokenType::NotEqual},
-    {">",  TokenType::GreaterThan},
-    {">=", TokenType::GreaterThanEqual},
-    {"<",  TokenType::LessThan},
-    {"<=", TokenType::LessThanEqual},
-    {"!",  TokenType::Not},
-    {"&&", TokenType::And},
-    {"||", TokenType::Or},
-    {"^^", TokenType::Xor},
-    {"~",  TokenType::BitNot},
-    {"&",  TokenType::BitAnd},
-    {"|",  TokenType::BitOr},
-    {"^",  TokenType::BitXor},
+    {"@",  TokenType::At},
 };
 
 bool is_space(char c) {
@@ -326,4 +310,13 @@ void TokenStream::lex(std::string src) {
             i++; column++;
         }
     }
+
+    Token end_token;
+    end_token.line   = 0;
+    end_token.column = 0;
+    end_token.offset = 0;
+    end_token.raw    = "";
+    end_token.type = TokenType::End;
+
+    this->tokens.push_back(end_token);
 }
