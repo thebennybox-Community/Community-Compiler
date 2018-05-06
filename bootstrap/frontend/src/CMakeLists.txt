@@ -18,4 +18,4 @@ add_executable(
 		Ast.h
 		AstPrettyPrinter.cpp
 		AstPrettyPrinter.h
-)
+		Semantics.cpp Semantics.h)
