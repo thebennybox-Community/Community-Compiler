@@ -3,6 +3,7 @@
 #include "TokenStream.h"
 #include "Parser.h"
 #include "AstPrettyPrinter.h"
+#include "Semantics.h"
 
 std::string load_text_from_file(std::string filepath) {
     std::ifstream stream(filepath);
@@ -69,6 +70,10 @@ int main(int argc, char **argv) {
 
     syntax_highlight_print(file_contents, stream);
     pretty_print_ast(ast);
+
+
+    Semantics sem;
+    sem.pass1(ast);
 
     return 0;
 }
