@@ -87,9 +87,9 @@ static const char *token_type_names[] = {
 
 struct Token {
 public:
-    int line;
-    int column;
-    int offset;
+    unsigned int line;
+    unsigned int column;
+    unsigned int offset;
 
     std::string raw;
 

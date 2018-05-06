@@ -38,12 +38,11 @@ private:
     bool parse_params(std::vector<AstDec*> &result);
     bool parse_args(std::vector<AstNode*> &result);
     bool next_token();
-    bool prev_token();
     bool accept(TokenType type);
     bool expect(TokenType type);
 
     std::vector<Token> tokens;
-    int token_index = 0;
+    size_t token_index = 0;
 };
 
 #endif /* PARSER_H */

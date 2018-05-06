@@ -15,7 +15,7 @@ enum class ErrorType {
 
 class Error {
 public:
-    ErrorType errorType;
+    ErrorType error_type;
     Token token;
 };
 

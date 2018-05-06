@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 
     if(stream.errors.size() != 0) {
         for(Token token : stream.tokens) {
-            printf("type: %-18s line: %-4d col: %-3d offset: %-5d raw: \"%s\"\n",
+            printf("type: %-18s line: %-4u col: %-3u offset: %-5u raw: \"%s\"\n",
                 token_type_names[(int)token.type],
                 token.line,
                 token.column,
@@ -41,8 +41,8 @@ int main(int argc, char **argv) {
 
         for(Error error : stream.errors) {
             printf("Error type: %-4d "
-                "type: %-18s line: %-4d col: %-3d offset: %-5d raw: \"%s\"\n",
-                error.errorType,
+                "type: %-18s line: %-4u col: %-3u offset: %-5u raw: \"%s\"\n",
+                (int)error.error_type,
                 token_type_names[(int)error.token.type],
                 error.token.line,
                 error.token.column,
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     for(Error error : parser.errors) {
         printf("Error type: %-4d "
             "type: %-18s line: %-4d col: %-3d offset: %-5d raw: \"%s\"\n",
-            error.errorType,
+            (int)error.error_type,
             token_type_names[(int)error.token.type],
             error.token.line,
             error.token.column,
