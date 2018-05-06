@@ -2,6 +2,7 @@
 #define AST_H
 
 #include <vector>
+#include <string>
 
 #define AstNodeType_ENUM(name) name
 #define AstNodeType_NAME_ARRAY(name) #name
