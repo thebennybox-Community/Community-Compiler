@@ -2,13 +2,10 @@
 
 #include <map>
 
-#include <stdio.h>
-
 #define cur_tok (this->tokens[this->token_index])
 #define peek_tok (this->tokens[this->token_index + 1])
 
 Ast Parser::parse(const std::vector<Token> &tokens) {
-    printf("Parser::parse\n");
     this->tokens = tokens;
     Ast ast;
     ast.root = new AstBlock();
@@ -26,8 +23,6 @@ Ast Parser::parse(const std::vector<Token> &tokens) {
 }
 
 AstNode *Parser::parse_stmt() {
-    printf("Parser::parse_stmt\n");
-
     switch(cur_tok.type) {
     #define _(type, name) case TokenType::type: return parse_##name()
 
@@ -63,7 +58,6 @@ AstNode *Parser::parse_stmt() {
     case TokenType::SemiColon:         next_token(); return nullptr;
 
     default:
-        printf("Unexpected %s\n", tokenTypeNames[(int)cur_tok.type]);
         next_token();
         this->errors.push_back({ErrorType::UnexpectedToken, cur_tok});
         break;
@@ -97,9 +91,7 @@ AstBlock *Parser::parse_block() {
 }
 
 AstNode *Parser::parse_symbol() {
-    printf("Parser::parse_symbol\n");
     if(peek_tok.type == TokenType::OpenParenthesis) {
-        printf("invoke ");
         // Function call
         AstFnCall *result = new AstFnCall();
 
@@ -116,11 +108,9 @@ AstNode *Parser::parse_symbol() {
             return nullptr;
         }
 
-        printf("\n");
 
         return result;
     } else {
-        printf("plain\n");
 
         AstSymbol *result = new AstSymbol();
 
@@ -135,14 +125,12 @@ AstNode *Parser::parse_symbol() {
 }
 
 AstString *Parser::parse_string() {
-    printf("Parser::parse_string\n");
     AstString *result = new AstString();
 
     result->line   = cur_tok.line;
     result->column = cur_tok.column;
     result->value  = cur_tok.raw;
 
-    printf("\"%s\"\n", result->value.c_str());
 
     next_token();
 
@@ -150,7 +138,6 @@ AstString *Parser::parse_string() {
 }
 
 AstNumber *Parser::parse_number() {
-    printf("Parser::parse_number\n");
     AstNumber *result = new AstNumber();
 
     result->line   = cur_tok.line;
@@ -161,31 +148,23 @@ AstNumber *Parser::parse_number() {
     // f32.
 
     if(cur_tok.type == TokenType::IntegerLiteral) {
-        printf("integer ");
         result->is_float  = false;
         result->is_signed = true;
 
         size_t suffix_start; // u64, f32, etc
 
         if((suffix_start = cur_tok.raw.find("u")) != std::string::npos) {
-            printf("unsigned %s ", cur_tok.raw.substr(0, suffix_start).c_str());
             result->is_signed = false;
             result->value.u = std::stoull(cur_tok.raw.substr(0, suffix_start));
             result->bits = std::stoi(cur_tok.raw.substr(suffix_start + 1));
-            printf("value: %llu ", result->value.u);
         } else if((suffix_start = cur_tok.raw.find("i")) != std::string::npos) {
-            printf("signed %s ", cur_tok.raw.substr(0, suffix_start).c_str());
             result->value.i = std::stoll(cur_tok.raw.substr(0, suffix_start));
             result->bits = std::stoi(cur_tok.raw.substr(suffix_start + 1));
-            printf("value: %lld ", result->value.i);
         } else {
-            printf("signed(default) %s ", cur_tok.raw.c_str());
             result->value.i = std::stoll(cur_tok.raw);
             result->bits = 32;
-            printf("value: %lld ", result->value.i);
         }
     } else if(cur_tok.type == TokenType::FloatLiteral) {
-        printf("float ");
         result->is_float = true;
 
         size_t suffix_start; // u64, f32, etc
@@ -198,10 +177,8 @@ AstNumber *Parser::parse_number() {
             result->bits = 32;
         }
 
-        printf("value: %f ", result->value.f);
     }
 
-    printf("bits: %d\n", result->bits);
 
     next_token();
 
@@ -209,7 +186,6 @@ AstNumber *Parser::parse_number() {
 }
 
 AstBoolean *Parser::parse_boolean() {
-    printf("Parser::parse_boolean\n");
     AstBoolean *result = new AstBoolean();
 
     result->line   = cur_tok.line;
@@ -218,14 +194,11 @@ AstBoolean *Parser::parse_boolean() {
 
     next_token();
 
-    printf("value: %s\n", result->value ? "true" : "false");
 
     return result;
 }
 
 AstArray *Parser::parse_array() {
-    printf("Parser::parse_array\n");
-
     AstArray *result = new AstArray();
 
     result->line   = cur_tok.line;
@@ -254,7 +227,6 @@ AstArray *Parser::parse_array() {
 }
 
 AstType *Parser::parse_type() {
-    printf("Parser::parse_type\n");
     AstType *result = new AstType();
 
     result->line   = cur_tok.line;
@@ -266,10 +238,7 @@ AstType *Parser::parse_type() {
         return nullptr;
     }
 
-    printf("Type name: %s ", result->name.c_str());
-
     while(accept(TokenType::OpenSquareBracket)) {
-        printf("Array ");
         if(!expect(TokenType::CloseSquareBracket)) {
             delete result;
             return nullptr;
@@ -282,13 +251,10 @@ AstType *Parser::parse_type() {
         result = new_result;
     }
 
-    printf("\n");
-
     return result;
 }
 
 AstDec *Parser::parse_dec() {
-    printf("Parser::parse_dec\n");
     AstDec *result = new AstDec();
 
     size_t start = this->token_index;
@@ -298,8 +264,6 @@ AstDec *Parser::parse_dec() {
     result->immutable = cur_tok.raw == "let";
 
     next_token();
-
-    printf("immutable: %i ", (int)result->immutable);
 
     result->name = new AstSymbol();
     result->name->name = cur_tok.raw;
@@ -312,7 +276,6 @@ AstDec *Parser::parse_dec() {
     bool valid = false;
 
     if(accept(TokenType::Colon)) {
-        printf("colon ");
         valid = true;
         result->type = parse_type();
         if(!result->type) {
@@ -322,7 +285,6 @@ AstDec *Parser::parse_dec() {
     }
 
     if(accept(TokenType::Equal)) {
-        printf("equals ");
         valid = true;
         result->value = parse_expr();
         if(!result->value) {
@@ -342,14 +304,10 @@ AstDec *Parser::parse_dec() {
         return nullptr;
     }
 
-    printf("name: %s\n", result->name->name.c_str());
-
     return result;
 }
 
 AstIf *Parser::parse_if() {
-    printf("Parser::parse_if\n");
-
     AstIf *result = new AstIf();
 
     result->line   = cur_tok.line;
@@ -400,7 +358,6 @@ AstIf *Parser::parse_if() {
 }
 
 AstFn *Parser::parse_fn(bool require_body) {
-    printf("Parser::parse_fn\n");
     AstFn *result = new AstFn();
 
     result->line   = cur_tok.line;
@@ -416,8 +373,6 @@ AstFn *Parser::parse_fn(bool require_body) {
         return nullptr;
     }
 
-    printf("%s ", result->name->name.c_str());
-
     if(accept(TokenType::Dot)) {
         result->type_self = result->name;
         result->name = new AstSymbol();
@@ -428,7 +383,6 @@ AstFn *Parser::parse_fn(bool require_body) {
             return nullptr;
         }
 
-        printf(". %s ", result->name->name.c_str());
     }
 
     if(!parse_params(result->params)) {
@@ -436,10 +390,7 @@ AstFn *Parser::parse_fn(bool require_body) {
         return nullptr;
     }
 
-    printf("got %d params\n", (int)result->params.size());
-
     if(accept(TokenType::Colon)) {
-        printf("colon\n");
         if(!(result->return_type = parse_type())) {
             delete result;
             return nullptr;
@@ -455,8 +406,6 @@ AstFn *Parser::parse_fn(bool require_body) {
 }
 
 AstLoop *Parser::parse_loop() {
-    printf("Parser::parse_loop\n");
-
     AstLoop *result = new AstLoop();
 
     result->line   = cur_tok.line;
@@ -531,7 +480,6 @@ AstStruct *Parser::parse_struct() {
         return nullptr; // Internal error
     }
 
-    printf("Parser::parse_struct\n");
     AstStruct *result = new AstStruct();
 
     result->line   = cur_tok.line;
@@ -541,17 +489,14 @@ AstStruct *Parser::parse_struct() {
     result->name->name = cur_tok.raw;
 
     if(!expect(TokenType::Symbol)) {
-        printf("No symbol\n");
         delete result;
         return nullptr;
     }
-    printf("%s ", result->name->name.c_str());
 
     if(!expect(TokenType::OpenCurlyBracket)) {
         delete result;
         return nullptr;
     }
-    printf("{ ");
     while(!accept(TokenType::CloseCurlyBracket)) {
         AstDec *decl = new AstDec();
 
@@ -565,13 +510,11 @@ AstStruct *Parser::parse_struct() {
             return nullptr;
         }
 
-        printf("%s", decl->name->name.c_str());
 
         if(!expect(TokenType::Colon)) {
             delete result;
             return nullptr;
         }
-        printf(":");
         if(!(decl->type = parse_type())) {
             delete result;
             return nullptr;
@@ -584,7 +527,6 @@ AstStruct *Parser::parse_struct() {
 }
 
 AstImpl *Parser::parse_impl() {
-    printf("Parser::parse_impl\n");
     AstImpl *result = new AstImpl();
 
     result->line   = cur_tok.line;
@@ -609,7 +551,6 @@ AstImpl *Parser::parse_impl() {
 }
 
 AstAttribute *Parser::parse_at() {
-    printf("Parser::parse_at\n");
     AstAttribute *result = new AstAttribute();
 
     result->line   = cur_tok.line;
@@ -625,8 +566,6 @@ AstAttribute *Parser::parse_at() {
         return nullptr;
     }
 
-    printf("@%s\n", result->name->name.c_str());
-
     if(cur_tok.type == TokenType::OpenParenthesis) {
         if(!parse_args(result->args)) {
             delete result;
@@ -638,8 +577,6 @@ AstAttribute *Parser::parse_at() {
 }
 
 AstAffix *Parser::parse_affix() {
-    printf("Parser::parse_affix\n");
-
     static const std::map<std::string, AffixType> affix_types = {
         {"infix",  AffixType::Infix},
         {"prefix", AffixType::Prefix},
@@ -655,7 +592,6 @@ AstAffix *Parser::parse_affix() {
     next_token();
 
     if(accept(TokenType::Op)) {
-        printf("op ");
         result->name = new AstSymbol();
         result->name->name = cur_tok.raw;
 
@@ -664,7 +600,6 @@ AstAffix *Parser::parse_affix() {
             return nullptr;
         }
 
-        printf("%s ", result->name->name.c_str());
         if(!parse_params(result->params)) {
             delete result;
             return nullptr;
@@ -680,7 +615,6 @@ AstAffix *Parser::parse_affix() {
             return nullptr;
         }
     } else if(cur_tok.type == TokenType::Fn) {
-        printf("fn ");
         AstFn *fn = parse_fn();
         if(!fn) {
             delete result;
@@ -700,14 +634,10 @@ AstAffix *Parser::parse_affix() {
         return nullptr;
     }
 
-    printf("\n");
-
     return result;
 }
 
 AstReturn *Parser::parse_return() {
-    printf("Parser::parse_return\n");
-
     AstReturn *result = new AstReturn();
 
     result->line   = cur_tok.line;
@@ -733,8 +663,6 @@ AstReturn *Parser::parse_return() {
 }
 
 AstExtern *Parser::parse_extern() {
-    printf("Parser::parse_extern\n");
-
     AstExtern *result = new AstExtern();
 
     result->line   = cur_tok.line;
@@ -772,8 +700,6 @@ AstExtern *Parser::parse_extern() {
 }
 
 AstNode *Parser::parse_expr() {
-    printf("Parser::parse_expr\n");
-
     int line = cur_tok.line, column = cur_tok.column;
 
     AstNode *result = parse_expr_primary();
@@ -785,8 +711,6 @@ AstNode *Parser::parse_expr() {
     if(!token_type_is_operator(cur_tok.type)) {
         return result;
     }
-
-    printf("binary\n");
 
     AstBinaryExpr *expr = new AstBinaryExpr();
 
@@ -802,8 +726,6 @@ AstNode *Parser::parse_expr() {
 }
 
 AstNode *Parser::parse_expr_primary() {
-    printf("Parser::parse_expr_primary\n");
-
     AstNode *result;
 
     switch(cur_tok.type) {
@@ -836,7 +758,6 @@ AstNode *Parser::parse_expr_primary() {
     }
 
     if(accept(TokenType::OpenSquareBracket)) {
-        printf("array\n");
         AstIndex *index = new AstIndex();
 
         index->line   = result->line;
@@ -857,13 +778,11 @@ AstNode *Parser::parse_expr_primary() {
 }
 
 bool Parser::parse_params(std::vector<AstDec*> &result) {
-    printf("Parser::parse_params\n");
     if(!expect(TokenType::OpenParenthesis)) {
         return false;
     }
 
     while(!accept(TokenType::CloseParenthesis)) {
-        printf("param\n");
         AstDec *param = new AstDec();
         param->line   = cur_tok.line;
         param->column = cur_tok.column;
@@ -897,7 +816,6 @@ bool Parser::parse_params(std::vector<AstDec*> &result) {
 }
 
 bool Parser::parse_args(std::vector<AstNode*> &result) {
-    printf("Parser::parse_args\n");
     if(!expect(TokenType::OpenParenthesis)) {
         return false;
     }

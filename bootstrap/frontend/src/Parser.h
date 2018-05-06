@@ -10,6 +10,7 @@
 class Parser {
 public:
     Ast parse(const std::vector<Token> &tokens);
+    std::vector<Error> errors;
 
 private:
     AstNode      *parse_stmt();
@@ -42,7 +43,6 @@ private:
     bool expect(TokenType type);
 
     std::vector<Token> tokens;
-    std::vector<Error> errors;
     int token_index = 0;
 };
 

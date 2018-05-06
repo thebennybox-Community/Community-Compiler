@@ -60,8 +60,8 @@ struct AstString: public AstNode {
 };
 
 struct AstNumber: public AstNode {
-    bool is_float: 1;
-    bool is_signed: 1;
+    bool is_float = false;
+    bool is_signed = true;
     int bits;
 
     union {
@@ -109,7 +109,7 @@ struct AstBlock: public AstNode {
 
 struct AstType: public AstNode {
     std::string name;
-    bool is_array: 1;
+    bool is_array = false;
     AstType *subtype = nullptr;
 
     AstType(): AstNode(AstNodeType::AstType) {}
@@ -122,7 +122,7 @@ struct AstDec: public AstNode {
     AstSymbol *name = nullptr;
     AstType *type = nullptr;
     AstNode *value = nullptr;
-    bool immutable: 1;
+    bool immutable = false;
 
     AstDec(): AstNode(AstNodeType::AstDec) {}
     virtual ~AstDec() {
@@ -177,7 +177,7 @@ struct AstFnCall: public AstNode {
 };
 
 struct AstLoop: public AstNode {
-    bool is_foreach: 1;
+    bool is_foreach = false;
     AstBlock *body = nullptr;
     AstSymbol *name = nullptr;
     AstNode *expr = nullptr;

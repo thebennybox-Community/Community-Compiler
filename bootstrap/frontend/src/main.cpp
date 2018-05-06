@@ -2,6 +2,7 @@
 #include <fstream>
 #include "TokenStream.h"
 #include "Parser.h"
+#include "AstPrettyPrinter.h"
 
 std::string loadTextFromFile(std::string filepath) {
     std::ifstream stream(filepath);
@@ -50,7 +51,21 @@ int main(int argc, char **argv) {
     }
 
     Parser parser;
-    parser.parse(stream.tokens);
+    Ast ast = parser.parse(stream.tokens);
+
+    for(Error error : parser.errors) {
+        printf("Error type: %-4d "
+            "type: %-18s line: %-4d col: %-3d offset: %-5d raw: \"%s\"\n",
+            error.errorType,
+            tokenTypeNames[(int)error.token.type],
+            error.token.line,
+            error.token.column,
+            error.token.offset,
+            error.token.raw.c_str()
+        );
+    }
+
+    pretty_print_ast(ast);
 
     return 0;
 }

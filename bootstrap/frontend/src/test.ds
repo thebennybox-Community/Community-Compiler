@@ -76,6 +76,7 @@ fn test2(a: u32[], b: f64) {
     var thingamabobble: bool[];
     let pi: f32;
 }
+*/
 
 impl vec3 {
     @operator
@@ -117,9 +118,7 @@ struct vec3 {
 var a: vec3;
 
 function_thing(a + b - c + 10 - "haha");
-*/
 
-/*
 fn repeat(self: str, amount: u32): str {
   var result = "";
   loop(amount) {
@@ -132,9 +131,9 @@ fn foo()
 {
 
 }
-*/
 
-/*
+
+
 // We do not need to repeat a string 4 billion times
 //why not?
 // Life isn't about why, it's about why not?
@@ -142,15 +141,15 @@ fn foo()
 infix op *(string: str, amount: u32): str {
   return repeat(string, amount);
 }
-*/
 
-//indexy[more_indexy[a-1]];
-//a + indexy[0]
 
-//let a = [0, 73, 42];
-//var b = [];
+indexy[more_indexy[a-1]];
+a + indexy[0];
 
-/*if(a[0] == 0) {
+let a = [0, 73, 42];
+var b = [];
+
+if(a[0] == 0) {
     // ATHOIE
     do_things();
     b.push(a[1]);
@@ -159,7 +158,6 @@ infix op *(string: str, amount: u32): str {
 } else {
     yay();
 }
-*/
 
 
 
