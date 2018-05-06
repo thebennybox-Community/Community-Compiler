@@ -16,4 +16,6 @@ add_executable(
 		Parser.cpp
 		Parser.h
 		Ast.h
+		AstPrettyPrinter.cpp
+		AstPrettyPrinter.h
 )

@@ -1,8 +1,8 @@
 #ifndef AST_H
 #define AST_H
 
-#include <memory>
 #include <vector>
+#include <string>
 
 #define AstNodeType_ENUM(name) name
 #define AstNodeType_NAME_ARRAY(name) #name
@@ -60,8 +60,8 @@ struct AstString: public AstNode {
 };
 
 struct AstNumber: public AstNode {
-    bool is_float: 1;
-    bool is_signed: 1;
+    bool is_float = false;
+    bool is_signed = true;
     int bits;
 
     union {
@@ -80,9 +80,14 @@ struct AstBoolean: public AstNode {
 };
 
 struct AstArray: public AstNode {
-    std::vector<std::unique_ptr<AstNode>> elements;
+    std::vector<AstNode*> elements;
 
     AstArray(): AstNode(AstNodeType::AstArray) {}
+    virtual ~AstArray() {
+        for(auto p : elements) {
+            delete p;
+        }
+    }
 };
 
 struct AstSymbol: public AstNode {
@@ -92,59 +97,97 @@ struct AstSymbol: public AstNode {
 };
 
 struct AstBlock: public AstNode {
-    std::vector<std::unique_ptr<AstNode>> statements;
+    std::vector<AstNode*> statements;
 
     AstBlock(): AstNode(AstNodeType::AstBlock) {}
+    virtual ~AstBlock() {
+        for(auto *p : statements) {
+            delete p;
+        }
+    }
 };
 
 struct AstType: public AstNode {
     std::string name;
-    bool is_array: 1;
-    std::unique_ptr<AstType> subtype;
+    bool is_array = false;
+    AstType *subtype = nullptr;
 
     AstType(): AstNode(AstNodeType::AstType) {}
+    virtual ~AstType() {
+        if(subtype) delete subtype;
+    }
 };
 
 struct AstDec: public AstNode {
-    std::unique_ptr<AstSymbol> name;
-    std::unique_ptr<AstType> type;
-    std::unique_ptr<AstNode> value;
-    bool immutable: 1;
+    AstSymbol *name = nullptr;
+    AstType *type = nullptr;
+    AstNode *value = nullptr;
+    bool immutable = false;
 
     AstDec(): AstNode(AstNodeType::AstDec) {}
+    virtual ~AstDec() {
+        if(name) delete name;
+        if(type) delete type;
+        if(value) delete value;
+    }
 };
 
 struct AstIf: public AstNode {
-    std::unique_ptr<AstNode> condition;
-    std::unique_ptr<AstBlock> true_block, false_block;
+    AstNode *condition = nullptr;
+    AstBlock *true_block = nullptr, *false_block = nullptr;
 
     AstIf(): AstNode(AstNodeType::AstIf) {}
+    virtual ~AstIf() {
+        if(condition) delete condition;
+        if(true_block) delete true_block;
+        if(false_block) delete false_block;
+    }
 };
 
 struct AstFn: public AstNode {
-    std::unique_ptr<AstSymbol> type_self;
-    std::unique_ptr<AstSymbol> name;
-    std::vector<std::unique_ptr<AstDec>> params;
-    std::unique_ptr<AstType> return_type;
-    std::unique_ptr<AstBlock> body;
+    AstSymbol *type_self = nullptr;
+    AstSymbol *name = nullptr;
+    std::vector<AstDec*> params;
+    AstType *return_type = nullptr;
+    AstBlock *body = nullptr;
 
     AstFn(): AstNode(AstNodeType::AstFn) {}
+    virtual ~AstFn() {
+        if(type_self) delete type_self;
+        if(name) delete name;
+        for(auto *p : params) {
+            delete p;
+        }
+        if(return_type) delete return_type;
+        if(body) delete body;
+    }
 };
 
 struct AstFnCall: public AstNode {
-    std::unique_ptr<AstSymbol> name;
-    std::vector<std::unique_ptr<AstNode>> args;
+    AstSymbol *name = nullptr;
+    std::vector<AstNode*> args;
 
     AstFnCall(): AstNode(AstNodeType::AstFnCall) {}
+    virtual ~AstFnCall() {
+        if(name) delete name;
+        for(auto *p : args) {
+            delete p;
+        }
+    }
 };
 
 struct AstLoop: public AstNode {
-    bool is_foreach: 1;
-    std::unique_ptr<AstBlock> body;
-    std::unique_ptr<AstSymbol> name;
-    std::unique_ptr<AstNode> expr;
+    bool is_foreach = false;
+    AstBlock *body = nullptr;
+    AstSymbol *name = nullptr;
+    AstNode *expr = nullptr;
 
     AstLoop(): AstNode(AstNodeType::AstLoop) {}
+    virtual ~AstLoop() {
+        if(body) delete body;
+        if(name) delete name;
+        if(expr) delete expr;
+    }
 };
 
 struct AstContinue: public AstNode {
@@ -156,70 +199,115 @@ struct AstBreak: public AstNode {
 };
 
 struct AstStruct: public AstNode {
-    std::unique_ptr<AstSymbol> name;
-    std::unique_ptr<AstBlock> block;
+    AstSymbol *name = nullptr;
+    AstBlock *block = nullptr;
 
     AstStruct(): AstNode(AstNodeType::AstStruct) {}
+    virtual ~AstStruct() {
+        if(name) delete name;
+        if(block) delete block;
+    }
 };
 
 struct AstImpl: public AstNode {
-    std::unique_ptr<AstSymbol> name;
-    std::unique_ptr<AstBlock> block;
+    AstSymbol *name = nullptr;
+    AstBlock *block = nullptr;
 
     AstImpl(): AstNode(AstNodeType::AstImpl) {}
+    virtual ~AstImpl() {
+        if(name) delete name;
+        if(block) delete block;
+    }
 };
 
 struct AstAttribute: public AstNode {
-    std::unique_ptr<AstSymbol> name;
-    std::vector<std::unique_ptr<AstNode>> args;
+    AstSymbol *name = nullptr;
+    std::vector<AstNode*> args;
 
     AstAttribute(): AstNode(AstNodeType::AstAttribute) {}
+    virtual ~AstAttribute() {
+        if(name) delete name;
+        for(auto *p : args) {
+            delete p;
+        }
+    }
 };
 
 struct AstAffix: public AstNode {
-    std::unique_ptr<AstSymbol> name;
-    std::vector<std::unique_ptr<AstDec>> params;
-    std::unique_ptr<AstType> return_type;
-    std::unique_ptr<AstBlock> body;
+    AstSymbol *name = nullptr;
+    std::vector<AstDec*> params;
+    AstType *return_type = nullptr;
+    AstBlock *body = nullptr;
     AffixType affix_type;
 
     AstAffix(): AstNode(AstNodeType::AstAffix) {}
+    virtual ~AstAffix() {
+        if(name) delete name;
+        for(auto *p : params) {
+            delete p;
+        }
+        if(return_type) delete return_type;
+        if(body) delete body;
+    }
 };
 
 struct AstReturn: public AstNode {
-    std::unique_ptr<AstNode> expr;
+    AstNode *expr = nullptr;
 
     AstReturn(): AstNode(AstNodeType::AstReturn) {}
+    virtual ~AstReturn() {
+        if(expr) delete expr;
+    }
 };
 
 struct AstUnaryExpr: public AstNode {
     std::string op;
-    std::unique_ptr<AstNode> expr;
+    AstNode *expr = nullptr;
 
     AstUnaryExpr(): AstNode(AstNodeType::AstUnaryExpr) {}
+    virtual ~AstUnaryExpr() {
+        if(expr) delete expr;
+    }
 };
 
 struct AstBinaryExpr: public AstNode {
     std::string op;
-    std::unique_ptr<AstNode> lhs, rhs;
+    AstNode *lhs = nullptr, *rhs = nullptr;
 
     AstBinaryExpr(): AstNode(AstNodeType::AstBinaryExpr) {}
+    virtual ~AstBinaryExpr() {
+        if(lhs) delete lhs;
+        if(rhs) delete rhs;
+    }
 };
 
 struct AstIndex: public AstNode {
-    std::unique_ptr<AstNode> array, expr;
+    AstNode *array = nullptr, *expr = nullptr;
 
     AstIndex(): AstNode(AstNodeType::AstIndex) {}
+    virtual ~AstIndex() {
+        if(array) delete array;
+        if(expr) delete expr;
+    }
 };
 
 struct AstExtern: public AstNode {
-    std::vector<std::unique_ptr<AstFn>> decls;
+    std::vector<AstFn*> decls;
 
     AstExtern(): AstNode(AstNodeType::AstExtern) {}
+    virtual ~AstExtern() {
+        for(auto *p : decls) {
+            delete p;
+        }
+    }
 };
 
 struct Ast {
-    std::unique_ptr<AstBlock> root;
+    AstBlock *root = nullptr;
+
+    ~Ast() {
+        if(root) delete root;
+    }
 };
 
 #endif /* AST_H */
