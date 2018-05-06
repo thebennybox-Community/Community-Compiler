@@ -1,13 +1,21 @@
 #include "Parser.h"
 
+#include <map>
+
+#include <stdio.h>
+
+#define cur_tok (this->tokens[this->token_index])
+#define peek_tok (this->tokens[this->token_index + 1])
+
 Ast Parser::parse(const std::vector<Token> &tokens) {
+    printf("Parser::parse\n");
     this->tokens = tokens;
     Ast ast;
     ast.root = std::make_unique<AstBlock>();
 
-    while(this->token_index < this->tokens.size()) {
+    while(this->token_index < (int)this->tokens.size() - 1) {
         std::unique_ptr<AstNode> statement = parse_stmt();
-        if(this->errors.size() != 0) {
+        if(this->errors.size() != 0 && statement) {
             ast.root->statements.push_back(std::move(statement));
         }
     }
@@ -16,107 +24,895 @@ Ast Parser::parse(const std::vector<Token> &tokens) {
 }
 
 std::unique_ptr<AstNode> Parser::parse_stmt() {
-    const Token &tok = next_token();
+    printf("Parser::parse_stmt\n");
 
-    switch(tok.tokenType) {
-        #define _(type, name) case TokenType::type: return parse_##name()
+    switch(cur_tok.type) {
+    #define _(type, name) case TokenType::type: return parse_##name()
 
-        _(OpenCurlyBracket, block);
-        _(Symbol, symbol);
-        _(StringLiteral, string);
-        _(NumberLiteral, number);
-        _(Boolean, boolean);
-        _(Dec, dec);
-        _(Fn, fn);
-        _(Loop, loop);
-        _(Continue, continue);
-        _(Break, break);
-        _(Get, get);
-        _(Set, set);
-        _(Impl, impl);
-        _(At, at);
-        _(Op, op);
+    case TokenType::Symbol: {
+        auto result = parse_expr();
+        if(!expect(TokenType::SemiColon)) {
+            return nullptr;
+        }
+        return result;
+    }
+    _(OpenCurlyBracket, block);
+    _(StringLiteral, expr);
+    _(IntegerLiteral, expr);
+    _(FloatLiteral, expr);
+    _(Boolean, expr);
+    _(Dec, dec);
+    _(Fn, fn);
+    _(If, if);
+    _(Loop, loop);
+    _(Continue, continue);
+    _(Break, break);
+    _(Struct, struct);
+    _(Impl, impl);
+    _(At, at);
+    _(Suffix, affix);
+    _(Prefix, affix);
+    _(Infix, affix);
+    _(Return, return);
+    _(Extern, extern);
 
-        case TokenType::SemiColon: break; // TODO
+    case TokenType::MultilineComment:  // Fall through
+    case TokenType::SingleLineComment: // Fall through
+    case TokenType::SemiColon:         next_token(); return nullptr;
 
-        default:
-            this->errors.push_back({ErrorType::UnexpectedToken, tok});
-            break;
+    default:
+        printf("Unexpected %s\n", tokenTypeNames[(int)cur_tok.type]);
+        next_token();
+        this->errors.push_back({ErrorType::UnexpectedToken, cur_tok});
+        break;
 
-        #undef _
+    #undef _
     }
 
     return nullptr;
 }
 
-std::unique_ptr<AstBlock> parse_block() {
-    return nullptr; // TODO
+std::unique_ptr<AstBlock> Parser::parse_block() {
+    if(!expect(TokenType::OpenCurlyBracket)) {
+        return nullptr;
+    }
+
+    std::unique_ptr<AstBlock> result = std::make_unique<AstBlock>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+
+    while(!accept(TokenType::CloseCurlyBracket)) {
+        std::unique_ptr<AstNode> statement = parse_stmt();
+        if(!statement) {
+            return nullptr;
+        }
+        result->statements.push_back(std::move(statement));
+    }
+
+    return result;
 }
 
-std::unique_ptr<AstNode> parse_symbol() {
-    return nullptr; // TODO
+std::unique_ptr<AstNode> Parser::parse_symbol() {
+    printf("Parser::parse_symbol\n");
+    if(peek_tok.type == TokenType::OpenParenthesis) {
+        printf("invoke ");
+        // Function call
+        std::unique_ptr<AstFnCall> result = std::make_unique<AstFnCall>();
+
+        result->line   = cur_tok.line;
+        result->column = cur_tok.column;
+
+        result->name = std::make_unique<AstSymbol>();
+        result->name->name = cur_tok.raw;
+
+        next_token();
+
+        if(!parse_args(result->args)) {
+            return nullptr;
+        }
+
+        printf("\n");
+
+        return result;
+    } else {
+        printf("plain\n");
+
+        std::unique_ptr<AstSymbol> result = std::make_unique<AstSymbol>();
+
+        result->line   = cur_tok.line;
+        result->column = cur_tok.column;
+        result->name   = cur_tok.raw;
+
+        next_token();
+
+        return result;
+    }
 }
 
-std::unique_ptr<AstString> parse_string() {
-    return nullptr; // TODO
+std::unique_ptr<AstString> Parser::parse_string() {
+    printf("Parser::parse_string\n");
+    std::unique_ptr<AstString> result = std::make_unique<AstString>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+    result->value  = cur_tok.raw;
+
+    printf("\"%s\"\n", result->value.c_str());
+
+    next_token();
+
+    return result;
 }
 
-std::unique_ptr<AstNumber> parse_number() {
-    return nullptr; // TODO
+std::unique_ptr<AstNumber> Parser::parse_number() {
+    printf("Parser::parse_number\n");
+    std::unique_ptr<AstNumber> result = std::make_unique<AstNumber>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+
+    // Extract everything before the suffix, convert to integer, everything
+    // after suffix is number of bits. Default integer is i32, default float is
+    // f32.
+
+    if(cur_tok.type == TokenType::IntegerLiteral) {
+        printf("integer ");
+        result->is_float  = false;
+        result->is_signed = true;
+
+        size_t suffix_start; // u64, f32, etc
+
+        if((suffix_start = cur_tok.raw.find("u")) != std::string::npos) {
+            printf("unsigned %s ", cur_tok.raw.substr(0, suffix_start).c_str());
+            result->is_signed = false;
+            result->value.u = std::stoull(cur_tok.raw.substr(0, suffix_start));
+            result->bits = std::stoi(cur_tok.raw.substr(suffix_start + 1));
+            printf("value: %llu ", result->value.u);
+        } else if((suffix_start = cur_tok.raw.find("i")) != std::string::npos) {
+            printf("signed %s ", cur_tok.raw.substr(0, suffix_start).c_str());
+            result->value.i = std::stoll(cur_tok.raw.substr(0, suffix_start));
+            result->bits = std::stoi(cur_tok.raw.substr(suffix_start + 1));
+            printf("value: %lld ", result->value.i);
+        } else {
+            printf("signed(default) %s ", cur_tok.raw.c_str());
+            result->value.i = std::stoll(cur_tok.raw);
+            result->bits = 32;
+            printf("value: %lld ", result->value.i);
+        }
+    } else if(cur_tok.type == TokenType::FloatLiteral) {
+        printf("float ");
+        result->is_float = true;
+
+        size_t suffix_start; // u64, f32, etc
+
+        if((suffix_start = cur_tok.raw.find("f")) != std::string::npos) {
+            result->value.f = std::stod(cur_tok.raw.substr(0, suffix_start));
+            result->bits = std::stoi(cur_tok.raw.substr(suffix_start + 1));
+        } else {
+            result->value.f = std::stod(cur_tok.raw);
+            result->bits = 32;
+        }
+
+        printf("value: %f ", result->value.f);
+    }
+
+    printf("bits: %d\n", result->bits);
+
+    next_token();
+
+    return result;
 }
 
-std::unique_ptr<AstBoolean> parse_boolean() {
-    return nullptr; // TODO
+std::unique_ptr<AstBoolean> Parser::parse_boolean() {
+    printf("Parser::parse_boolean\n");
+    std::unique_ptr<AstBoolean> result = std::make_unique<AstBoolean>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+    result->value  = cur_tok.raw == "true";
+
+    next_token();
+
+    printf("value: %s\n", result->value ? "true" : "false");
+
+    return result;
 }
 
-std::unique_ptr<AstDec> parse_dec() {
-    return nullptr; // TODO
+std::unique_ptr<AstArray> Parser::parse_array() {
+    printf("Parser::parse_array\n");
+
+    std::unique_ptr<AstArray> result = std::make_unique<AstArray>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+
+    next_token();
+
+    while(!accept(TokenType::CloseSquareBracket)) {
+        std::unique_ptr<AstNode> element = parse_expr();
+        if(!element) {
+            return nullptr;
+        }
+        result->elements.push_back(std::move(element));
+
+        if(!accept(TokenType::Comma)) {
+            if(!expect(TokenType::CloseSquareBracket)) {
+                return nullptr;
+            }
+            break;
+        }
+    }
+
+    return result;
 }
 
-std::unique_ptr<AstFn> parse_fn() {
-    return nullptr; // TODO
+std::unique_ptr<AstType> Parser::parse_type() {
+    printf("Parser::parse_type\n");
+    std::unique_ptr<AstType> result = std::make_unique<AstType>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+    result->name   = cur_tok.raw;
+
+    if(!expect(TokenType::Symbol)) {
+        return nullptr;
+    }
+
+    printf("Type name: %s ", result->name.c_str());
+
+    while(accept(TokenType::OpenSquareBracket)) {
+        printf("Array ");
+        if(!expect(TokenType::CloseSquareBracket)) {
+            return nullptr;
+        }
+        std::unique_ptr<AstType> new_result = std::make_unique<AstType>();
+        new_result->line     = result->line;
+        new_result->column   = result->column;
+        new_result->is_array = true;
+        new_result->subtype  = std::move(result);
+        result = std::move(new_result);
+    }
+
+    printf("\n");
+
+    return result;
 }
 
-std::unique_ptr<AstLoop> parse_loop() {
-    return nullptr; // TODO
+std::unique_ptr<AstDec> Parser::parse_dec() {
+    printf("Parser::parse_dec\n");
+    std::unique_ptr<AstDec> result = std::make_unique<AstDec>();
+
+    size_t start = this->token_index;
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+    result->immutable = cur_tok.raw == "let";
+
+    next_token();
+
+    printf("immutable: %i ", (int)result->immutable);
+
+    result->name = std::make_unique<AstSymbol>();
+    result->name->name = cur_tok.raw;
+
+    if(!expect(TokenType::Symbol)) {
+        return nullptr;
+    }
+
+    bool valid = false;
+
+    if(accept(TokenType::Colon)) {
+        printf("colon ");
+        valid = true;
+        result->type = parse_type();
+        if(!result->type) {
+            return nullptr;
+        }
+    }
+
+    if(accept(TokenType::Equal)) {
+        printf("equals ");
+        valid = true;
+        result->value = parse_expr();
+        if(!result->value) {
+            return nullptr;
+        }
+    }
+
+    if(!valid) {
+        this->errors.push_back({ErrorType::InvalidDec, this->tokens[start]});
+    }
+
+    if(!expect(TokenType::SemiColon)) {
+        return nullptr;
+    }
+
+    printf("name: %s\n", result->name->name.c_str());
+
+    return result;
 }
 
-std::unique_ptr<AstContinue> parse_continue() {
-    return nullptr; // TODO
+std::unique_ptr<AstIf> Parser::parse_if() {
+    printf("Parser::parse_if\n");
+
+    std::unique_ptr<AstIf> result = std::make_unique<AstIf>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+
+    next_token();
+
+    if(!expect(TokenType::OpenParenthesis)) {
+        return nullptr;
+    }
+    if(!(result->condition = parse_expr())) {
+        return nullptr;
+    }
+    if(!expect(TokenType::CloseParenthesis)) {
+        return nullptr;
+    }
+
+    if(!(result->true_block = parse_block())) {
+        return nullptr;
+    }
+
+    if(accept(TokenType::Else)) {
+        if(cur_tok.type == TokenType::If) {
+            result->false_block = std::make_unique<AstBlock>();
+            result->false_block->line   = cur_tok.line;
+            result->false_block->column = cur_tok.column;
+
+            std::unique_ptr<AstIf> next_if = parse_if();
+            if(!next_if) {
+                return nullptr;
+            }
+
+            result->false_block->statements.push_back(std::move(next_if));
+        } else {
+            if(!(result->false_block = parse_block())) {
+                return nullptr;
+            }
+        }
+    }
+
+    return result;
 }
 
-std::unique_ptr<AstBreak> parse_break() {
-    return nullptr; // TODO
+std::unique_ptr<AstFn> Parser::parse_fn(bool require_body) {
+    printf("Parser::parse_fn\n");
+    std::unique_ptr<AstFn> result = std::make_unique<AstFn>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+
+    next_token();
+
+    result->name = std::make_unique<AstSymbol>();
+    result->name->name = cur_tok.raw;
+
+    if(!expect(TokenType::Symbol)) {
+        return nullptr;
+    }
+
+    printf("%s ", result->name->name.c_str());
+
+    if(accept(TokenType::Dot)) {
+        result->type_self = std::move(result->name);
+        result->name = std::make_unique<AstSymbol>();
+        result->name->name = cur_tok.raw;
+
+        if(!expect(TokenType::Symbol)) {
+            return nullptr;
+        }
+
+        printf(". %s ", result->name->name.c_str());
+    }
+
+    if(!parse_params(result->params)) {
+        return nullptr;
+    }
+
+    printf("got %d params\n", (int)result->params.size());
+
+    if(accept(TokenType::Colon)) {
+        printf("colon\n");
+        if(!(result->return_type = parse_type())) {
+            return nullptr;
+        }
+    }
+
+    if(require_body && !(result->body = parse_block())) {
+        printf("Body failed\n");
+        return nullptr;
+    }
+
+    return result;
 }
 
-std::unique_ptr<AstGet> parse_get() {
-    return nullptr; // TODO
+std::unique_ptr<AstLoop> Parser::parse_loop() {
+    printf("Parser::parse_loop\n");
+
+    std::unique_ptr<AstLoop> result = std::make_unique<AstLoop>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+    result->is_foreach = false;
+
+    next_token();
+
+    if(!expect(TokenType::OpenParenthesis)) {
+        return nullptr;
+    }
+
+    if(cur_tok.type == TokenType::Symbol && peek_tok.type == TokenType::In) {
+        result->is_foreach = true;
+        result->name = std::make_unique<AstSymbol>();
+        result->name->name = cur_tok.raw;
+
+        accept(TokenType::Symbol);
+        accept(TokenType::In);
+    }
+
+    if(!(result->expr = parse_expr())) {
+        return nullptr;
+    }
+
+    if(!expect(TokenType::CloseParenthesis)) {
+        return nullptr;
+    }
+    if(!(result->body = parse_block())) {
+        return nullptr;
+    }
+
+    return result;
 }
 
-std::unique_ptr<AstSet> parse_set() {
-    return nullptr; // TODO
+std::unique_ptr<AstContinue> Parser::parse_continue() {
+    std::unique_ptr<AstContinue> result = std::make_unique<AstContinue>();
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+
+    next_token();
+
+    if(!expect(TokenType::SemiColon)) {
+        return nullptr;
+    }
+
+    return result;
 }
 
-std::unique_ptr<AstImpl> parse_impl() {
-    return nullptr; // TODO
+std::unique_ptr<AstBreak> Parser::parse_break() {
+    std::unique_ptr<AstBreak> result = std::make_unique<AstBreak>();
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+
+    next_token();
+
+    if(!expect(TokenType::SemiColon)) {
+        return nullptr;
+    }
+
+    return result;
 }
 
-std::unique_ptr<AstAttribute> parse_at() {
-    return nullptr; // TODO
+std::unique_ptr<AstStruct> Parser::parse_struct() {
+    if(!expect(TokenType::Struct)) {
+        return nullptr; // Internal error
+    }
+
+    printf("Parser::parse_struct\n");
+    std::unique_ptr<AstStruct> result = std::make_unique<AstStruct>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+    result->block  = std::make_unique<AstBlock>();
+    result->name   = std::make_unique<AstSymbol>();
+    result->name->name = cur_tok.raw;
+
+    if(!expect(TokenType::Symbol)) {
+        printf("No symbol\n");
+        return nullptr;
+    }
+    printf("%s ", result->name->name.c_str());
+
+    if(!expect(TokenType::OpenCurlyBracket)) {
+        return nullptr;
+    }
+    printf("{ ");
+    while(!accept(TokenType::CloseCurlyBracket)) {
+        std::unique_ptr<AstDec> decl = std::make_unique<AstDec>();
+
+        decl->line   = cur_tok.line;
+        decl->column = cur_tok.column;
+        decl->name   = std::make_unique<AstSymbol>();
+        decl->name->name = cur_tok.raw;
+
+        if(!expect(TokenType::Symbol)) {
+            return nullptr;
+        }
+
+        printf("%s", decl->name->name.c_str());
+
+        if(!expect(TokenType::Colon)) {
+            return nullptr;
+        }
+        printf(":");
+        if(!(decl->type = parse_type())) {
+            return nullptr;
+        }
+
+        result->block->statements.push_back(std::move(decl));
+    }
+
+    return result;
 }
 
-std::unique_ptr<AstOp> parse_op() {
-    return nullptr; // TODO
+std::unique_ptr<AstImpl> Parser::parse_impl() {
+    printf("Parser::parse_impl\n");
+    std::unique_ptr<AstImpl> result = std::make_unique<AstImpl>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+
+    next_token();
+
+    result->name = std::make_unique<AstSymbol>();
+    result->name->name = cur_tok.raw;
+
+    if(!expect(TokenType::Symbol)) {
+        return nullptr;
+    }
+
+    if(!(result->block = parse_block())) {
+        return nullptr;
+    }
+
+    return result;
 }
 
-std::unique_ptr<AstExpr> parse_expr() {
-    return nullptr; // TODO
+std::unique_ptr<AstAttribute> Parser::parse_at() {
+    printf("Parser::parse_at\n");
+    std::unique_ptr<AstAttribute> result = std::make_unique<AstAttribute>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+
+    next_token();
+
+    result->name = std::make_unique<AstSymbol>();
+    result->name->name = cur_tok.raw;
+
+    if(!expect(TokenType::Symbol)) {
+        return nullptr;
+    }
+
+    printf("@%s\n", result->name->name.c_str());
+
+    if(cur_tok.type == TokenType::OpenParenthesis) {
+        if(!parse_args(result->args)) {
+            return nullptr;
+        }
+    }
+
+    return result;
 }
 
-const Token &Parser::next_token() {
-    while(this->tokens[this->token_index].tokenType == TokenType::SingleLineComment ||
-          this->tokens[this->token_index].tokenType == TokenType::MultilineComment) {
+std::unique_ptr<AstAffix> Parser::parse_affix() {
+    printf("Parser::parse_affix\n");
+
+    static const std::map<std::string, AffixType> affix_types = {
+        {"infix",  AffixType::Infix},
+        {"prefix", AffixType::Prefix},
+        {"suffix", AffixType::Suffix},
+    };
+
+    std::unique_ptr<AstAffix> result = std::make_unique<AstAffix>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+    result->affix_type = affix_types.at(cur_tok.raw);
+
+    next_token();
+
+    if(accept(TokenType::Op)) {
+        printf("op ");
+        result->name = std::make_unique<AstSymbol>();
+        result->name->name = cur_tok.raw;
+
+        if(!expect(TokenType::CustomOperator)) {
+            return nullptr;
+        }
+
+        printf("%s ", result->name->name.c_str());
+        if(!parse_params(result->params)) {
+            return nullptr;
+        }
+        if(accept(TokenType::Colon)) {
+            if(!(result->return_type = parse_type())) {
+                return nullptr;
+            }
+        }
+        if(!(result->body = parse_block())) {
+            return nullptr;
+        }
+    } else if(cur_tok.type == TokenType::Fn) {
+        printf("fn ");
+        std::unique_ptr<AstFn> fn = parse_fn();
+        if(!fn) {
+            return nullptr;
+        }
+        result->name = std::move(fn->name);
+        result->params = std::move(fn->params);
+        result->return_type = std::move(fn->return_type);
+        result->body = std::move(fn->body);
+    } else {
+        return nullptr;
+    }
+
+    printf("\n");
+
+    return result;
+}
+
+std::unique_ptr<AstReturn> Parser::parse_return() {
+    printf("Parser::parse_return\n");
+
+    std::unique_ptr<AstReturn> result = std::make_unique<AstReturn>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+
+    next_token();
+
+    if(accept(TokenType::SemiColon)) {
+        return result;
+    }
+
+    if(!(result->expr = parse_expr())) {
+        return nullptr;
+    }
+
+    if(!expect(TokenType::SemiColon)) {
+        return nullptr;
+    }
+
+    return result;
+}
+
+std::unique_ptr<AstExtern> Parser::parse_extern() {
+    printf("Parser::parse_extern\n");
+
+    std::unique_ptr<AstExtern> result = std::make_unique<AstExtern>();
+
+    result->line   = cur_tok.line;
+    result->column = cur_tok.column;
+
+    next_token();
+
+    if(accept(TokenType::OpenCurlyBracket)) {
+        while(!accept(TokenType::CloseCurlyBracket)) {
+            std::unique_ptr<AstFn> decl = parse_fn(false);
+            if(!decl) {
+                return nullptr;
+            }
+            if(!expect(TokenType::SemiColon)) {
+                return nullptr;
+            }
+            result->decls.push_back(std::move(decl));
+        }
+    } else {
+        std::unique_ptr<AstFn> decl = parse_fn(false);
+        if(!decl) {
+            return nullptr;
+        }
+        if(!expect(TokenType::SemiColon)) {
+            return nullptr;
+        }
+        result->decls.push_back(std::move(decl));
+    }
+
+    return result;
+}
+
+std::unique_ptr<AstNode> Parser::parse_expr() {
+    printf("Parser::parse_expr\n");
+
+    int line = cur_tok.line, column = cur_tok.column;
+
+    std::unique_ptr<AstNode> result = parse_expr_primary();
+    if(!result) {
+        return nullptr;
+    }
+
+    if(!token_type_is_operator(cur_tok.type)) {
+        return result;
+    }
+
+    printf("binary\n");
+
+    std::unique_ptr<AstBinaryExpr> expr = std::make_unique<AstBinaryExpr>();
+
+    expr->line   = line;
+    expr->column = column;
+
+    next_token();
+
+    expr->lhs = std::move(result);
+    expr->rhs = parse_expr();
+
+    return expr;
+}
+
+std::unique_ptr<AstNode> Parser::parse_expr_primary() {
+    printf("Parser::parse_expr_primary\n");
+
+    std::unique_ptr<AstNode> result;
+
+    switch(cur_tok.type) {
+    case TokenType::Symbol:
+        result = parse_symbol();
+        break;
+    case TokenType::StringLiteral:
+        result = parse_string();
+        break;
+    case TokenType::FloatLiteral: // Fall through
+    case TokenType::IntegerLiteral:
+        result = parse_number();
+        break;
+    case TokenType::Boolean:
+        result = parse_boolean();
+        break;
+    case TokenType::OpenSquareBracket:
+        result = parse_array();
+        break;
+    case TokenType::OpenParenthesis:
+        accept(TokenType::OpenParenthesis);
+        result = parse_expr();
+        if(!expect(TokenType::CloseParenthesis)) {
+            return nullptr;
+        }
+        break;
+
+    default: return nullptr;
+    }
+
+    if(accept(TokenType::OpenSquareBracket)) {
+        printf("array\n");
+        std::unique_ptr<AstIndex> index = std::make_unique<AstIndex>();
+
+        index->line   = result->line;
+        index->column = result->column;
+
+        index->array = std::move(result);
+        index->expr = parse_expr();
+
+        if(!expect(TokenType::CloseSquareBracket)) {
+            return nullptr;
+        }
+
+        return index;
+    }
+
+    return result;
+}
+
+bool Parser::parse_params(std::vector<std::unique_ptr<AstDec>> &result) {
+    printf("Parser::parse_params\n");
+    if(!expect(TokenType::OpenParenthesis)) {
+        return false;
+    }
+
+    while(!accept(TokenType::CloseParenthesis)) {
+        printf("param\n");
+        std::unique_ptr<AstDec> param = std::make_unique<AstDec>();
+        param->line   = cur_tok.line;
+        param->column = cur_tok.column;
+
+        param->name = std::make_unique<AstSymbol>();
+        param->name->name = cur_tok.raw;
+
+        if(!expect(TokenType::Symbol)) {
+            return false;
+        }
+
+        if(!expect(TokenType::Colon)) {
+            return false;
+        }
+
+        if(!(param->type = parse_type())) {
+            return false;
+        }
+
+        result.push_back(std::move(param));
+
+        if(!accept(TokenType::Comma)) {
+            if(!expect(TokenType::CloseParenthesis)) {
+                return false;
+            }
+            break;
+        }
+    }
+
+    return true;
+}
+
+bool Parser::parse_args(std::vector<std::unique_ptr<AstNode>> &result) {
+    printf("Parser::parse_args\n");
+    if(!expect(TokenType::OpenParenthesis)) {
+        return false;
+    }
+
+    while(!accept(TokenType::CloseParenthesis)) {
+        std::unique_ptr<AstNode> expr = parse_expr();
+        if(!expr) {
+            return false;
+        }
+
+        result.push_back(std::move(expr));
+
+        if(accept(TokenType::CloseParenthesis)) {
+            break;
+        }
+        if(!expect(TokenType::Comma)) {
+            return false;
+        }
+    }
+}
+
+bool Parser::next_token() {
+    if(this->token_index == this->tokens.size() - 1) {
+        return false;
+    }
+    this->token_index++;
+
+    while(
+        this->tokens[this->token_index].type == TokenType::SingleLineComment ||
+        this->tokens[this->token_index].type == TokenType::MultilineComment
+    ) {
+        if(this->token_index == this->tokens.size() - 1) {
+            return false;
+        }
         this->token_index++;
     }
-    return this->tokens[this->token_index++];
+
+    return true;
+}
+
+bool Parser::prev_token() {
+    if(this->token_index == 0) {
+        return false;
+    }
+    this->token_index--;
+
+    while(
+        this->tokens[this->token_index].type == TokenType::SingleLineComment ||
+        this->tokens[this->token_index].type == TokenType::MultilineComment
+    ) {
+        if(this->token_index == 0) {
+            return false;
+        }
+        this->token_index--;
+    }
+
+    return true;
+}
+
+bool Parser::accept(TokenType type) {
+    if(cur_tok.type == type) {
+        next_token();
+        return true;
+    }
+
+    return false;
+}
+
+bool Parser::expect(TokenType type) {
+    if(cur_tok.type == type) {
+        next_token();
+        return true;
+    }
+
+    this->errors.push_back({ErrorType::UnexpectedToken, cur_tok});
+    return false;
 }

@@ -8,8 +8,8 @@
 #include <map>
 
 static const std::map<std::string, TokenType> keywords = {
-    {"var",      TokenType::Var},
-    {"let",      TokenType::Let},
+    {"var",      TokenType::Dec},
+    {"let",      TokenType::Dec},
     {"fn",       TokenType::Fn},
     {"loop",     TokenType::Loop},
     {"in",       TokenType::In},
@@ -22,34 +22,20 @@ static const std::map<std::string, TokenType> keywords = {
     {"get",      TokenType::Get},
     {"set",      TokenType::Set},
     {"impl",     TokenType::Impl},
+    {"op",       TokenType::Op},
     {"suffix",   TokenType::Suffix},
     {"prefix",   TokenType::Prefix},
     {"infix",    TokenType::Infix},
+    {"extern",   TokenType::Extern},
+    {"true",     TokenType::Boolean},
+    {"false",    TokenType::Boolean},
 };
 
 static const std::map<std::string, TokenType> operators = {
     {":",  TokenType::Colon},
     {".",  TokenType::Dot},
     {"=",  TokenType::Equal},
-    {"+",  TokenType::Plus},
-    {"-",  TokenType::Minus},
-    {"*",  TokenType::Mul},
-    {"/",  TokenType::Divide},
-    {"%",  TokenType::Mod},
-    {"==", TokenType::CmpEqual},
-    {"!=", TokenType::NotEqual},
-    {">",  TokenType::GreaterThan},
-    {">=", TokenType::GreaterThanEqual},
-    {"<",  TokenType::LessThan},
-    {"<=", TokenType::LessThanEqual},
-    {"!",  TokenType::Not},
-    {"&&", TokenType::And},
-    {"||", TokenType::Or},
-    {"^^", TokenType::Xor},
-    {"~",  TokenType::BitNot},
-    {"&",  TokenType::BitAnd},
-    {"|",  TokenType::BitOr},
-    {"^",  TokenType::BitXor},
+    {"@",  TokenType::At},
 };
 
 bool is_space(char c) {
@@ -118,13 +104,43 @@ void TokenStream::lex(std::string src) {
 
             this->tokens.push_back(std::move(token));
         } else if(is_digit(src[i])) {
-            // TODO: Float parsing
+
+            token.type = TokenType::IntegerLiteral;
             int start = i;
             while(is_digit(src[i])) {
                 i++; column++;
             }
 
-            if(src[i] == 'i' || src[i] == 'u') {
+            if(src[i] == '.') {
+                // Floating point
+                token.type = TokenType::FloatLiteral;
+                i++; column++;
+                while(is_digit(src[i])) {
+                    i++; column++;
+                }
+
+                if(src[i] == 'e' || src[i] == 'E') {
+                    // Exponent
+                    i++; column++;
+
+                    // Check for sign of exponent
+                    if(src[i] == '+' || src[i] == '-') {
+                        i++; column++;
+                    }
+
+                    while(is_digit(src[i])) {
+                        i++; column++;
+                    }
+                }
+            }
+
+            if(
+                (
+                    (src[i] == 'i' || src[i] == 'u') &&
+                    token.type == TokenType::IntegerLiteral
+                ) ||
+                src[i] == 'f'
+            ) {
                 int saved_i = i;
                 int saved_column = column;
                 i++; column++;
@@ -137,13 +153,15 @@ void TokenStream::lex(std::string src) {
                         src.substr(saved_i + 1, i - (saved_i + 1));
 
                     if(!(
-                        bits == "8" ||
-                        bits == "16" ||
+                        (bits == "8"  && src[saved_i] != 'f') ||
+                        (bits == "16" && src[saved_i] != 'f') ||
                         bits == "32" ||
                         bits == "64"
                     )) {
                         i = saved_i; // Invalid suffix, backtrack
                         column = saved_column;
+                    } else if(src[saved_i] == 'f') {
+                        token.type = TokenType::FloatLiteral;
                     }
                 } else {
                     i = saved_i; // Invalid suffix, backtrack
@@ -153,7 +171,39 @@ void TokenStream::lex(std::string src) {
 
             int length = i - start;
 
-            token.type = TokenType::NumberLiteral;
+            token.raw = src.substr(start, length);
+
+            this->tokens.push_back(std::move(token));
+        } else if(src[i] == '"') {
+            i++; column++; // Skip opening "
+
+            int start = i;
+            while(src[i] != '"') {
+                if(src[i] == '\\') {
+                    i++; column++;
+                } else if(src[i] == '\n') {
+                    // TODO: Should we stop parsing a string here?
+                    this->errors.push_back({
+                        ErrorType::UnexpectedCharacter,
+                        {
+                            line, column, i,
+                            "\n", TokenType::Unknown
+                        }
+                    });
+                    line++;
+                    i++;
+                    column = 1;
+                    continue;
+                }
+
+                i++; column++;
+            }
+
+            int length = i - start;
+
+            i++; column++; // Skip closing "
+
+            token.type = TokenType::StringLiteral;
             token.raw = src.substr(start, length);
 
             this->tokens.push_back(std::move(token));
@@ -260,4 +310,13 @@ void TokenStream::lex(std::string src) {
             i++; column++;
         }
     }
+
+    Token end_token;
+    end_token.line   = 0;
+    end_token.column = 0;
+    end_token.offset = 0;
+    end_token.raw    = "";
+    end_token.type = TokenType::End;
+
+    this->tokens.push_back(end_token);
 }

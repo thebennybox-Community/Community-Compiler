@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "TokenStream.h"
+#include "Parser.h"
 
 std::string loadTextFromFile(std::string filepath) {
     std::ifstream stream(filepath);
@@ -37,15 +38,19 @@ int main(int argc, char **argv) {
     }
 
     for (Error error : stream.errors) {
-        printf("ErrorType:%d, Type:%d, Raw: %s, Col: %d, Row: %d, Offset: %d\n",
+        printf("Error type: %-4d "
+            "type: %-18s line: %-4d col: %-3d offset: %-5d raw: \"%s\"\n",
             error.errorType,
-            error.token.type,
-            error.token.raw.c_str(),
-            error.token.column,
+            tokenTypeNames[(int)error.token.type],
             error.token.line,
-            error.token.offset
+            error.token.column,
+            error.token.offset,
+            error.token.raw.c_str()
         );
     }
+
+    Parser parser;
+    parser.parse(stream.tokens);
 
     return 0;
 }

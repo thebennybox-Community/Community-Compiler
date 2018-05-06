@@ -8,7 +8,9 @@
 #include "Token.h"
 
 enum class ErrorType {
-    UnexpectedCharacter
+    UnexpectedCharacter,
+    UnexpectedToken,
+    InvalidDec,
 };
 
 class Error {
