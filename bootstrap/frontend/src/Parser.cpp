@@ -10,7 +10,7 @@ Ast Parser::parse(const std::vector<Token> &tokens) {
     Ast ast;
     ast.root = new AstBlock();
 
-    while(this->token_index < (int)this->tokens.size() - 1) {
+    while(this->token_index < this->tokens.size() - 1) {
         AstNode *statement = parse_stmt();
         if(this->errors.size() == 0 && statement) {
             ast.root->statements.push_back(statement);
@@ -700,7 +700,7 @@ AstExtern *Parser::parse_extern() {
 }
 
 AstNode *Parser::parse_expr() {
-    int line = cur_tok.line, column = cur_tok.column;
+    unsigned int line = cur_tok.line, column = cur_tok.column;
 
     AstNode *result = parse_expr_primary();
     if(!result) {
@@ -836,6 +836,8 @@ bool Parser::parse_args(std::vector<AstNode*> &result) {
             return false;
         }
     }
+
+    return true;
 }
 
 bool Parser::next_token() {
@@ -852,25 +854,6 @@ bool Parser::next_token() {
             return false;
         }
         this->token_index++;
-    }
-
-    return true;
-}
-
-bool Parser::prev_token() {
-    if(this->token_index == 0) {
-        return false;
-    }
-    this->token_index--;
-
-    while(
-        this->tokens[this->token_index].type == TokenType::SingleLineComment ||
-        this->tokens[this->token_index].type == TokenType::MultilineComment
-    ) {
-        if(this->token_index == 0) {
-            return false;
-        }
-        this->token_index--;
     }
 
     return true;

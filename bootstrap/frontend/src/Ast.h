@@ -46,10 +46,10 @@ enum class AffixType {
 };
 
 struct AstNode {
-    int line, column;
-    AstNodeType type;
+    unsigned int line, column;
+    AstNodeType node_type;
 
-    AstNode(AstNodeType type): type(type) {}
+    AstNode(AstNodeType node_type): node_type(node_type) {}
     virtual ~AstNode() {}
 };
 
