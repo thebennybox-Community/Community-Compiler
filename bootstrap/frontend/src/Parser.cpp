@@ -15,7 +15,7 @@ Ast Parser::parse(const std::vector<Token> &tokens) {
 
     while(this->token_index < (int)this->tokens.size() - 1) {
         AstNode *statement = parse_stmt();
-        if(this->errors.size() != 0 && statement) {
+        if(this->errors.size() == 0 && statement) {
             ast.root->statements.push_back(statement);
         } else {
             if(statement) delete statement;
