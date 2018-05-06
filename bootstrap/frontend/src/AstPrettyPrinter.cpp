@@ -1,6 +1,7 @@
 #include "AstPrettyPrinter.h"
 
 #include <stdio.h>
+#include <inttypes.h>
 #include <string>
 #include "Token.h"
 
@@ -70,75 +71,75 @@ void pretty_print_return(const AstReturn *node, std::string indent);
 void pretty_print_extern(const AstExtern *node, std::string indent);
 
 void pretty_print_node(const AstNode *node, std::string indent) {
-    switch(node->type) {
+    switch(node->node_type) {
     case AstNodeType::AstBlock:
-        pretty_print_block((AstBlock*)node, indent);
+        pretty_print_block((const AstBlock*)node, indent);
         break;
     case AstNodeType::AstString:
-        pretty_print_string((AstString*)node, indent);
+        pretty_print_string((const AstString*)node, indent);
         break;
     case AstNodeType::AstNumber:
-        pretty_print_number((AstNumber*)node, indent);
+        pretty_print_number((const AstNumber*)node, indent);
         break;
     case AstNodeType::AstBoolean:
-        pretty_print_bool((AstBoolean*)node, indent);
+        pretty_print_bool((const AstBoolean*)node, indent);
         break;
     case AstNodeType::AstArray:
-        pretty_print_array((AstArray*)node, indent);
+        pretty_print_array((const AstArray*)node, indent);
         break;
     case AstNodeType::AstDec:
-        pretty_print_dec((AstDec*)node, indent);
+        pretty_print_dec((const AstDec*)node, indent);
         break;
     case AstNodeType::AstIf:
-        pretty_print_if((AstIf*)node, indent);
+        pretty_print_if((const AstIf*)node, indent);
         break;
     case AstNodeType::AstFn:
-        pretty_print_fn((AstFn*)node, indent);
+        pretty_print_fn((const AstFn*)node, indent);
         break;
     case AstNodeType::AstFnCall:
-        pretty_print_fn_call((AstFnCall*)node, indent);
+        pretty_print_fn_call((const AstFnCall*)node, indent);
         break;
     case AstNodeType::AstLoop:
-        pretty_print_loop((AstLoop*)node, indent);
+        pretty_print_loop((const AstLoop*)node, indent);
         break;
     case AstNodeType::AstContinue:
-        pretty_print_continue((AstContinue*)node, indent);
+        pretty_print_continue((const AstContinue*)node, indent);
         break;
     case AstNodeType::AstBreak:
-        pretty_print_break((AstBreak*)node, indent);
+        pretty_print_break((const AstBreak*)node, indent);
         break;
     case AstNodeType::AstStruct:
-        pretty_print_struct((AstStruct*)node, indent);
+        pretty_print_struct((const AstStruct*)node, indent);
         break;
     case AstNodeType::AstImpl:
-        pretty_print_impl((AstImpl*)node, indent);
+        pretty_print_impl((const AstImpl*)node, indent);
         break;
     case AstNodeType::AstAttribute:
-        pretty_print_attribute((AstAttribute*)node, indent);
+        pretty_print_attribute((const AstAttribute*)node, indent);
         break;
     case AstNodeType::AstAffix:
-        pretty_print_affix((AstAffix*)node, indent);
+        pretty_print_affix((const AstAffix*)node, indent);
         break;
     case AstNodeType::AstUnaryExpr:
-        pretty_print_unary((AstUnaryExpr*)node, indent);
+        pretty_print_unary((const AstUnaryExpr*)node, indent);
         break;
     case AstNodeType::AstBinaryExpr:
-        pretty_print_binary((AstBinaryExpr*)node, indent);
+        pretty_print_binary((const AstBinaryExpr*)node, indent);
         break;
     case AstNodeType::AstIndex:
-        pretty_print_index((AstIndex*)node, indent);
+        pretty_print_index((const AstIndex*)node, indent);
         break;
     case AstNodeType::AstType:
-        pretty_print_type((AstType*)node, indent);
+        pretty_print_type((const AstType*)node, indent);
         break;
     case AstNodeType::AstSymbol:
-        pretty_print_symbol((AstSymbol*)node, indent);
+        pretty_print_symbol((const AstSymbol*)node, indent);
         break;
     case AstNodeType::AstReturn:
-        pretty_print_return((AstReturn*)node, indent);
+        pretty_print_return((const AstReturn*)node, indent);
         break;
     case AstNodeType::AstExtern:
-        pretty_print_extern((AstExtern*)node, indent);
+        pretty_print_extern((const AstExtern*)node, indent);
         break;
     default: printf("Uh what\n"); break;
     }
@@ -178,9 +179,9 @@ void pretty_print_number(const AstNumber *node, std::string indent) {
     if(node->is_float) {
         printf("%f\n", node->value.f);
     } else if(node->is_signed) {
-        printf("%lld\n", node->value.i);
+        printf("%" PRId64 "\n", node->value.i);
     } else {
-        printf("%llu\n", node->value.u);
+        printf("%" PRIu64 "\n", node->value.u);
     }
 }
 

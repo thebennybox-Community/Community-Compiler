@@ -71,9 +71,9 @@ bool is_operator(char c) {
 }
 
 void TokenStream::lex(std::string src) {
-    int line = 1, column = 1;
+    unsigned int line = 1, column = 1;
 
-    for(int i = 0; i < src.size(); (void)0) {
+    for(unsigned int i = 0; i < src.size(); (void)0) {
         Token token;
         token.line = line;
         token.column = column;
@@ -89,11 +89,11 @@ void TokenStream::lex(std::string src) {
             i++; column++;
             continue;
         } else if(is_identifier_start(src[i])) {
-            int start = i;
+            unsigned int start = i;
             while(is_identifier(src[i])) {
                 i++; column++;
             }
-            int length = i - start;
+            unsigned int length = i - start;
 
             token.type = TokenType::Symbol;
             token.raw = src.substr(start, length);
@@ -105,7 +105,7 @@ void TokenStream::lex(std::string src) {
             this->tokens.push_back(std::move(token));
         } else if(is_digit(src[i])) {
             token.type = TokenType::IntegerLiteral;
-            int start = i;
+            unsigned int start = i;
             while(is_digit(src[i])) {
                 i++; column++;
             }
@@ -140,8 +140,8 @@ void TokenStream::lex(std::string src) {
                 ) ||
                 src[i] == 'f'
             ) {
-                int saved_i = i;
-                int saved_column = column;
+                unsigned int saved_i = i;
+                unsigned int saved_column = column;
                 i++; column++;
                 while(is_digit(src[i])) {
                     i++; column++;
@@ -168,7 +168,7 @@ void TokenStream::lex(std::string src) {
                 }
             }
 
-            int length = i - start;
+            unsigned int length = i - start;
 
             token.raw = src.substr(start, length);
 
@@ -176,7 +176,7 @@ void TokenStream::lex(std::string src) {
         } else if(src[i] == '"') {
             i++; column++; // Skip opening "
 
-            int start = i;
+            unsigned int start = i;
             while(src[i] != '"') {
                 if(src[i] == '\\') {
                     i++; column++;
@@ -198,7 +198,7 @@ void TokenStream::lex(std::string src) {
                 i++; column++;
             }
 
-            int length = i - start;
+            unsigned int length = i - start;
 
             i++; column++; // Skip closing "
 
@@ -208,11 +208,11 @@ void TokenStream::lex(std::string src) {
             this->tokens.push_back(std::move(token));
         } else if(src[i] == '/' && src[i + 1] == '/') {
             i += 2; // Skip //
-            int start = i;
+            unsigned int start = i;
             while(src[i] != '\n') {
                 i++; column++;
             }
-            int length = i - start;
+            unsigned int length = i - start;
 
             token.type = TokenType::SingleLineComment;
             token.raw = src.substr(start, length);
@@ -220,7 +220,7 @@ void TokenStream::lex(std::string src) {
             this->tokens.push_back(std::move(token));
         } else if(src[i] == '/' && src[i + 1] == '*') {
             i += 2; // Skip /*
-            int start = i;
+            unsigned int start = i;
             while(!(src[i] == '*' && src[i + 1] == '/')) {
                 if(src[i] == '\n') {
                     line++;
@@ -230,7 +230,7 @@ void TokenStream::lex(std::string src) {
                 }
                 i++;
             }
-            int length = i - start;
+            unsigned int length = i - start;
             i += 2; // Skip */
 
             token.type = TokenType::MultilineComment;
@@ -238,11 +238,11 @@ void TokenStream::lex(std::string src) {
 
             this->tokens.push_back(std::move(token));
         } else if(is_operator(src[i])) {
-            int start = i;
+            unsigned int start = i;
             while(is_operator(src[i])) {
                 i++; column++;
             }
-            int length = i - start;
+            unsigned int length = i - start;
 
             token.type = TokenType::CustomOperator;
             token.raw = src.substr(start, length);
