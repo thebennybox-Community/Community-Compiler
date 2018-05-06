@@ -296,7 +296,6 @@ struct AstExtern: public AstNode {
 
     AstExtern(): AstNode(AstNodeType::AstExtern) {}
     virtual ~AstExtern() {
-        printf("Deleting extern fns\n");
         for(auto *p : decls) {
             delete p;
         }

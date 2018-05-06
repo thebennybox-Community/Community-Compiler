@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string>
+#include "Token.h"
 
 #define INDENT_CHARS "  "
 
@@ -36,6 +37,13 @@ static constexpr const char *term_bold      = "\x1B[1m";
 static constexpr const char *term_dim       = "\x1B[2m";
 static constexpr const char *term_underline = "\x1B[4m";
 static constexpr const char *term_reverse   = "\x1B[7m";
+
+std::string type_to_string(const AstType *node) {
+    if(node->is_array) {
+        return type_to_string(node->subtype) + "[]";
+    }
+    return node->name;
+}
 
 void pretty_print_block(const AstBlock *node, std::string indent);
 void pretty_print_string(const AstString *node, std::string indent);
@@ -138,14 +146,18 @@ void pretty_print_node(const AstNode *node, std::string indent) {
 
 void pretty_print_block(const AstBlock *node, std::string indent) {
     printf(
-        "%s%sblock%s - %zu statements\n",
+        "%s%sblock%s %s%s(%zu statements)%s %s{%s\n",
         indent.c_str(),
         term_fg[TermColour::Yellow], term_reset,
-        node->statements.size()
+        term_dim, term_fg[TermColour::White],
+        node->statements.size(),
+        term_reset,
+        term_fg[TermColour::Grey], term_reset
     );
     for(unsigned int i = 0; i < node->statements.size(); i++) {
         pretty_print_node(node->statements[i], indent + INDENT_CHARS);
     }
+    printf("%s%s}%s\n", indent.c_str(), term_fg[TermColour::Grey], term_reset);
 }
 
 void pretty_print_string(const AstString *node, std::string indent) {
@@ -159,15 +171,17 @@ void pretty_print_string(const AstString *node, std::string indent) {
 
 void pretty_print_number(const AstNumber *node, std::string indent) {
     printf(
-        "%s%snumber%s - %s\n",
+        "%s%snumber%s - ",
         indent.c_str(),
-        term_fg[TermColour::Yellow], term_reset,
-        std::to_string(
-            node->is_float ? node->value.f :
-            node->is_signed ? node->value.i :
-            node->value.u
-        ).c_str()
+        term_fg[TermColour::Yellow], term_reset
     );
+    if(node->is_float) {
+        printf("%f\n", node->value.f);
+    } else if(node->is_signed) {
+        printf("%lld\n", node->value.i);
+    } else {
+        printf("%llu\n", node->value.u);
+    }
 }
 
 void pretty_print_bool(const AstBoolean *node, std::string indent) {
@@ -189,15 +203,24 @@ void pretty_print_array(const AstArray *node, std::string indent) {
 
 void pretty_print_dec(const AstDec *node, std::string indent) {
     printf(
-        "%s%sdec%s - immutable:%s\n",
+        "%s%s%s%s %s%s%s",
         indent.c_str(),
-        term_fg[TermColour::Yellow], term_reset,
-        node->immutable ? "true" : "false"
+        term_fg[TermColour::Yellow],
+        node->immutable ? "let" : "var",
+        term_reset,
+        term_fg[TermColour::Red],
+        node->name->name.c_str(),
+        term_reset
     );
-    pretty_print_symbol(node->name, indent + INDENT_CHARS);
     if(node->type) {
-        pretty_print_type(node->type, indent + INDENT_CHARS);
+        printf(
+            ": %s%s%s",
+            term_fg[TermColour::Magenta],
+            type_to_string(node->type).c_str(),
+            term_reset
+        );
     }
+    printf("\n");
     if(node->value) {
         pretty_print_node(node->value, indent + INDENT_CHARS);
     }
@@ -218,14 +241,20 @@ void pretty_print_if(const AstIf *node, std::string indent) {
 
 void pretty_print_fn(const AstFn *node, std::string indent) {
     printf(
-        "%s%sfn%s\n",
+        "%s%sfn%s %s%s%s",
         indent.c_str(),
-        term_fg[TermColour::Yellow], term_reset
+        term_fg[TermColour::Yellow], term_reset,
+        term_fg[TermColour::Blue], node->name->name.c_str(), term_reset
     );
-    pretty_print_symbol(node->name, indent + INDENT_CHARS);
     if(node->return_type) {
-        pretty_print_type(node->return_type, indent + INDENT_CHARS);
+        printf(
+            ": %s%s%s",
+            term_fg[TermColour::Magenta],
+            type_to_string(node->return_type).c_str(),
+            term_reset
+        );
     }
+    printf("\n");
     for(auto param : node->params) {
         printf(
             "%s%sparam%s - %s\n",
@@ -306,11 +335,25 @@ void pretty_print_attribute(const AstAttribute *node, std::string indent) {
 }
 
 void pretty_print_affix(const AstAffix *node, std::string indent) {
-    printf(
-        "%s%saffix%s\n",
-        indent.c_str(),
-        term_fg[TermColour::Yellow], term_reset
-    );
+    if(node->affix_type == AffixType::Prefix) {
+        printf(
+            "%s%sprefix%s\n",
+            indent.c_str(),
+            term_fg[TermColour::Yellow], term_reset
+        );
+    } else if(node->affix_type == AffixType::Infix) {
+        printf(
+            "%s%sinfix%s\n",
+            indent.c_str(),
+            term_fg[TermColour::Yellow], term_reset
+        );
+    } else {
+        printf(
+            "%s%ssuffix%s\n",
+            indent.c_str(),
+            term_fg[TermColour::Yellow], term_reset
+        );
+    }
     if(node->return_type) {
         pretty_print_type(node->return_type, indent + INDENT_CHARS);
     }
@@ -323,6 +366,7 @@ void pretty_print_affix(const AstAffix *node, std::string indent) {
             param->name->name.c_str()
         );
     }
+    pretty_print_block(node->body, indent + INDENT_CHARS);
 }
 
 void pretty_print_unary(const AstUnaryExpr *node, std::string indent) {
@@ -335,10 +379,16 @@ void pretty_print_unary(const AstUnaryExpr *node, std::string indent) {
 
 void pretty_print_binary(const AstBinaryExpr *node, std::string indent) {
     printf(
-        "%s%sbinary expr%s\n",
+        "%s%s%s (binary expr)%s\n",
         indent.c_str(),
-        term_fg[TermColour::Yellow], term_reset
+        term_fg[TermColour::Yellow],
+        node->op.c_str(),
+        term_reset
     );
+    pretty_print_node(node->lhs, indent + INDENT_CHARS);
+    if(node->rhs) {
+        pretty_print_node(node->rhs, indent + INDENT_CHARS);
+    }
 }
 
 void pretty_print_index(const AstIndex *node, std::string indent) {
@@ -347,6 +397,8 @@ void pretty_print_index(const AstIndex *node, std::string indent) {
         indent.c_str(),
         term_fg[TermColour::Yellow], term_reset
     );
+    pretty_print_node(node->array, indent + INDENT_CHARS);
+    pretty_print_node(node->expr, indent + INDENT_CHARS);
 }
 
 void pretty_print_type(const AstType *node, std::string indent) {
@@ -394,8 +446,73 @@ void pretty_print_extern(const AstExtern *node, std::string indent) {
         indent.c_str(),
         term_fg[TermColour::Yellow], term_reset
     );
+    for(auto decl : node->decls) {
+        pretty_print_fn(decl, indent + INDENT_CHARS);
+    }
 }
 
 void pretty_print_ast(const Ast &ast) {
     pretty_print_block(ast.root, "");
+}
+
+static void set_colour(unsigned int i, const TokenStream &tokens) {
+    for(unsigned int j = 0; j < tokens.tokens.size(); j++) {
+        const auto &token = tokens.tokens[j];
+
+        if(token.offset <= i && token.offset + token.raw.size() > i) {
+            switch(token.type) {
+            case TokenType::If:
+            case TokenType::Else:
+            case TokenType::Continue:
+            case TokenType::Break:
+            case TokenType::Loop:
+            case TokenType::In:
+            case TokenType::Fn:
+            case TokenType::Op:
+            case TokenType::Infix:
+            case TokenType::Prefix:
+            case TokenType::Suffix:
+            case TokenType::Extern:
+            case TokenType::Struct:
+            case TokenType::Impl:
+            case TokenType::Dec:
+            case TokenType::Return:
+                printf("%s", term_fg[TermColour::Magenta]);
+                break;
+
+            case TokenType::IntegerLiteral:
+            case TokenType::FloatLiteral:
+            case TokenType::StringLiteral:
+            case TokenType::Boolean:
+                printf("%s", term_fg[TermColour::Green]);
+                break;
+
+            case TokenType::SingleLineComment:
+            case TokenType::MultilineComment:
+                printf("%s", term_fg[TermColour::Grey]);
+                break;
+
+            case TokenType::Symbol:
+                if(tokens.tokens[j+1].type == TokenType::OpenParenthesis) {
+                    // Function
+                    printf("%s", term_fg[TermColour::Blue]);
+                } else if(tokens.tokens[j-1].type == TokenType::Colon) {
+                    // Type
+                    printf("%s", term_fg[TermColour::Red]);
+                } else {
+                    printf("%s", term_reset);
+                }
+                break;
+
+            default: printf("%s", term_reset); break;
+            }
+        }
+    }
+}
+
+void syntax_highlight_print(const std::string &source, const TokenStream &tokens) {
+    for(unsigned int i = 0; i < source.size(); i++) {
+        set_colour(i, tokens);
+        putchar(source[i]);
+    }
 }

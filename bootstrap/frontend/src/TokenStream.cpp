@@ -104,7 +104,6 @@ void TokenStream::lex(std::string src) {
 
             this->tokens.push_back(std::move(token));
         } else if(is_digit(src[i])) {
-
             token.type = TokenType::IntegerLiteral;
             int start = i;
             while(is_digit(src[i])) {

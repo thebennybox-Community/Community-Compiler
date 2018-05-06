@@ -60,23 +60,22 @@ u32
 45.67e+2f64
 
 extern {
-    fn thingy();
-    fn other_thing();
+    fn thingy(): f64;
+    fn other_thing(): vec3;
 }
 
-extern fn do_maths(a: u32, b: u32);
+extern fn do_maths(a: u32, b: u32): u32;
 */
 
-/*
 var a: u32[];
-let b: f64;
+let b: f64 = 8f32;
 
+/*
 fn test() {}
 fn test2(a: u32[], b: f64) {
     var thingamabobble: bool[];
     let pi: f32;
 }
-*/
 
 impl vec3 {
     @operator
@@ -172,3 +171,4 @@ loop (true == true) {
 loop (item in list) {
     // Foreach loop
 }
+*/

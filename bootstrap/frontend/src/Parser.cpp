@@ -716,6 +716,7 @@ AstNode *Parser::parse_expr() {
 
     expr->line   = line;
     expr->column = column;
+    expr->op = cur_tok.raw;
 
     next_token();
 

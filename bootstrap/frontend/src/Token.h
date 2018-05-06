@@ -81,7 +81,7 @@
 enum class TokenType {
     TokenTypes(TokenType_ENUM)
 };
-static const char *tokenTypeNames[] = {
+static const char *token_type_names[] = {
     TokenTypes(TokenType_NAME_ARRAY)
 };
 
