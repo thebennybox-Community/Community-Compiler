@@ -74,6 +74,8 @@ int main(int argc, char **argv) {
 
     Semantics sem;
     sem.pass1(ast);
+    sem.pass2(ast);
+    sem.pass3(ast);
 
     return 0;
 }

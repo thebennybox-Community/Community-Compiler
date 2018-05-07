@@ -11,18 +11,62 @@
 class Semantics {
 
 public:
-    void pass1(const Ast &ast);
+    void pass1(Ast &ast);
+
+    void pass2(Ast &ast);
+
+    void pass3(Ast &ast);
 
 private:
-    std::vector<AstSymbol*> p1_funcs;
-    std::vector<AstSymbol*> p1_structs;
+    std::vector<AstSymbol *> p1_funcs;
+    std::vector<AstSymbol *> p1_structs;
+
+    bool p1_hasSymbol(AstSymbol *z) {
+        for (auto x : p1_funcs) {
+            if (x->name == z->name) return true;
+        }
+
+        for (auto x : p1_structs) {
+            if (x->name == z->name) return true;
+        }
+
+        return false;
+    }
 
 
-    void pass1_node(const AstNode *node);
+    bool p1_hasSymbol(AstType *y) {
 
-    void p1_struct(const AstStruct *node);
+        if(y == nullptr) return false;
 
-    void p1_fn(const AstFn *node);
+        for (auto x : p1_funcs) {
+            if (x->name == y->name) return true;
+            if (p1_hasSymbol(y->subtype)) return true;
+        }
+
+        for (auto x : p1_structs) {
+//            printf(x->name.c_str());
+            if (x->name == y->name) return true;
+            if (p1_hasSymbol(y->subtype)) return true;
+        }
+
+        return false;
+    }
+
+    std::vector<AstFn *> p2_funcs;
+    std::vector<AstStruct *> p2_structs;
+
+
+    void pass1_node(AstNode *node);
+
+    void p1_struct(AstStruct *node);
+
+    void p1_fn(AstFn *node);
+
+    void pass2_node(AstNode *node);
+
+    void p2_struct(AstStruct *node);
+
+    void p2_fn(AstFn *node);
 };
 
 
