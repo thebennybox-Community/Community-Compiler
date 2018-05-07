@@ -8,47 +8,54 @@
 #include "Ast.h"
 
 class Semantics {
-  public:
+public:
     void pass1(Ast &ast);
     void pass2(Ast &ast);
     void pass3(Ast &ast);
 
-  private:
-    bool                        nest_flag = false;
+    bool nest_flag = false;
     std::vector<AstAttribute *> nested_attributes;
 
     std::vector<AstSymbol *> p1_funcs;
     std::vector<AstSymbol *> p1_structs;
 
+private:
     bool p1_hasSymbol(AstSymbol *z) {
         for(auto x : p1_funcs) {
-            if(x->name == z->name) return true;
+            if(x->name == z->name)
+                return true;
         }
 
         for(auto x : p1_structs) {
-            if(x->name == z->name) return true;
+            if(x->name == z->name)
+                return true;
         }
 
         return false;
     }
 
     bool p1_hasSymbol(AstType *y) {
-        if(y == nullptr) return false;
+        if(y == nullptr)
+            return false;
 
         for(auto x : p1_funcs) {
-            if(x->name == y->name) return true;
-            if(p1_hasSymbol(y->subtype)) return true;
+            if(x->name == y->name)
+                return true;
+            if(p1_hasSymbol(y->subtype))
+                return true;
         }
 
         for(auto x : p1_structs) {
-            if(x->name == y->name) return true;
-            if(p1_hasSymbol(y->subtype)) return true;
+            if(x->name == y->name)
+                return true;
+            if(p1_hasSymbol(y->subtype))
+                return true;
         }
 
         return false;
     }
 
-    std::vector<AstFn *>     p2_funcs;
+    std::vector<AstFn *> p2_funcs;
     std::vector<AstStruct *> p2_structs;
 
     void pass1_node(AstNode *node);

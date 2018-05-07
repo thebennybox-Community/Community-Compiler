@@ -1,20 +1,41 @@
-struct i32 {
+start();
+return;
 
+struct i32 {
 }
+
+
+impl i32
+{
+    fn test(a: i32): i32
+    {
+        printf("%d, %d", self, a);
+        putchar(new_line()); 
+    }
+}
+
+struct u8 {
+}
+
 
 struct u32 {
 }
 
-@test
-prefix op ++(a: u32)
-{
 
+struct str {
 }
 
 
-@one
-@two
-infix op +(a: u32, b:u32): u32
-{
+extern {
+    fn putchar(ch: u8) : i32;
+    fn printf(x: str, i : u32);
+}
 
+fn new_line() : u8
+{
+    10
+}
+
+fn start() {
+    i32_test(10, 5);
 }
