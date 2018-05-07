@@ -21,25 +21,25 @@ namespace TermColour {
     };
 }
 
-static constexpr const char *term_fg[] = {
+static constexpr const char *const term_fg[] = {
     "\x1B[30m", "\x1B[31m", "\x1B[32m", "\x1B[33m",
     "\x1B[34m", "\x1B[35m", "\x1B[36m", "\x1B[37m",
     "\x1B[90m",
 };
 
-static constexpr const char *term_bg[] = {
+static constexpr const char *const term_bg[] = {
     "\x1B[40m", "\x1B[41m", "\x1B[42m", "\x1B[43m",
     "\x1B[44m", "\x1B[45m", "\x1B[46m", "\x1B[47m",
     "",
 };
 
-static constexpr const char *term_reset     = "\x1B[0m";
-static constexpr const char *term_bold      = "\x1B[1m";
-static constexpr const char *term_dim       = "\x1B[2m";
-static constexpr const char *term_underline = "\x1B[4m";
-static constexpr const char *term_reverse   = "\x1B[7m";
+static constexpr const char *const term_reset     = "\x1B[0m";
+static constexpr const char *const term_bold      = "\x1B[1m";
+static constexpr const char *const term_dim       = "\x1B[2m";
+static constexpr const char *const term_underline = "\x1B[4m";
+static constexpr const char *const term_reverse   = "\x1B[7m";
 
-std::string type_to_string(const AstType *node) {
+static std::string type_to_string(const AstType *node) {
     if(node->is_array) {
         return type_to_string(node->subtype) + "[]";
     }
@@ -200,6 +200,9 @@ void pretty_print_array(const AstArray *node, std::string indent) {
         indent.c_str(),
         term_fg[TermColour::Yellow], term_reset
     );
+    for(auto element : node->elements) {
+        pretty_print_node(element, indent + INDENT_CHARS);
+    }
 }
 
 void pretty_print_dec(const AstDec *node, std::string indent) {
@@ -292,6 +295,8 @@ void pretty_print_loop(const AstLoop *node, std::string indent) {
 }
 
 void pretty_print_continue(const AstContinue *node, std::string indent) {
+    (void)node;
+
     printf(
         "%s%scontinue%s\n",
         indent.c_str(),
@@ -300,6 +305,8 @@ void pretty_print_continue(const AstContinue *node, std::string indent) {
 }
 
 void pretty_print_break(const AstBreak *node, std::string indent) {
+    (void)node;
+
     printf(
         "%s%sbreak%s\n",
         indent.c_str(),
@@ -371,6 +378,8 @@ void pretty_print_affix(const AstAffix *node, std::string indent) {
 }
 
 void pretty_print_unary(const AstUnaryExpr *node, std::string indent) {
+    (void)node;
+
     printf(
         "%s%sunary expr%s\n",
         indent.c_str(),
