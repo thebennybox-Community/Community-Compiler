@@ -20,5 +20,7 @@ add_executable(
 		AstPrettyPrinter.h
 		Semantics.cpp
 		Semantics.h
-		ILemmiter.cpp
-		ILemmiter.h)
+		CodeGen.cpp
+		CodeGen.h
+		ILemitter.cpp
+		ILemitter.h)
