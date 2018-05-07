@@ -5,7 +5,7 @@ void CodeGen::generateIL(AstNode *node) {
     switch(node->node_type) {
     case AstNodeType::AstBlock: {
         auto x = (AstBlock *)node;
-
+        for(auto y : x->statements) { generateIL(y); }
         break;
     }
     case AstNodeType::AstString: {

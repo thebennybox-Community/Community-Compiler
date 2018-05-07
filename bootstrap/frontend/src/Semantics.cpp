@@ -140,7 +140,6 @@ void Semantics::p2_struct(AstStruct *node) {
 
 /*
  * expretion type cheacking
- * nest attributes
  * flat structs
  * inlineing
  * inline assembly
@@ -151,6 +150,7 @@ void Semantics::pass3(Ast &ast) {
     pass3_nest_att(ast.root);
     pass3_node(ast.root);
 }
+
 void Semantics::pass3_nest_att(AstNode *node) {
     if(node->node_type == AstNodeType::AstAttribute) {
         nest_flag = true;
