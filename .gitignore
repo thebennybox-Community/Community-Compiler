@@ -1,6 +1,7 @@
 # Build files
 build
 .idea
+.directory
 
 # Prerequisites
 *.d
@@ -121,3 +122,4 @@ _UpgradeReport_Files/
 Thumbs.db
 Desktop.ini
 .DS_Store
+bootstrap/frontend/.directory
