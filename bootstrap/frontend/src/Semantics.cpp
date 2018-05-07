@@ -2,164 +2,252 @@
 // Created by myvar on 5/6/18.
 //
 
-#include "Ast.h"
 #include "Semantics.h"
+#include "Ast.h"
 
-void Semantics::p1_fn(AstFn * node) {
+void Semantics::p1_fn(AstFn *node) {
     p1_funcs.push_back(node->name);
 }
 
-void Semantics::p1_struct(AstStruct * node) {
+void Semantics::p1_struct(AstStruct *node) {
     p1_structs.push_back(node->name);
 }
 
-
 void Semantics::pass1_node(AstNode *node) {
-    switch (node->node_type) {
-        case AstNodeType::AstFn:
-            p1_fn((AstFn *) node);
-            break;
-        case AstNodeType::AstStruct:
-            p1_struct((AstStruct *) node);
-            break;
-        case AstNodeType::AstBlock:
-            for (auto x: ((AstBlock *) node)->statements) {
-                pass1_node(x);
-            }
-            break;
-        case AstNodeType::AstImpl: {
-            for (auto s:((AstImpl *) node)->block->statements) {
-                if (s->node_type == AstNodeType::AstFn) {
-                    AstSymbol * p = new AstSymbol();
-                    p->name = ((AstImpl *) node)->name->name;
-                    ((AstFn *) s)->type_self = p;
-                }
-            }
-
-            pass1_node(((AstImpl *) node)->block);
-        }
-            break;
-        case AstNodeType::AstExtern: {
-            for (auto x: ((AstExtern *) node)->decls) {
-                pass1_node(x);
+    switch(node->node_type) {
+    case AstNodeType::AstFn: p1_fn((AstFn *)node); break;
+    case AstNodeType::AstStruct: p1_struct((AstStruct *)node); break;
+    case AstNodeType::AstBlock:
+        for(auto x : ((AstBlock *)node)->statements) { pass1_node(x); }
+        break;
+    case AstNodeType::AstImpl: {
+        for(auto s : ((AstImpl *)node)->block->statements) {
+            if(s->node_type == AstNodeType::AstFn) {
+                AstSymbol *p            = new AstSymbol();
+                p->name                 = ((AstImpl *)node)->name->name;
+                ((AstFn *)s)->type_self = p;
             }
         }
-            break;
 
+        pass1_node(((AstImpl *)node)->block);
+    } break;
+    case AstNodeType::AstExtern: {
+        for(auto x : ((AstExtern *)node)->decls) { pass1_node(x); }
+    } break;
     }
 }
 
 void Semantics::pass1(Ast &ast) {
     pass1_node(ast.root);
-
-    for (auto x: p1_funcs) {
-        //printf("%s\n", x->name.c_str());
+    for(auto x : p1_funcs) {
+        // printf("%s\n", x->name.c_str());
     }
 }
 
 void Semantics::pass2(Ast &ast) {
     pass2_node(ast.root);
 
-    for (auto x: p2_funcs) {
-        if (x->type_self != nullptr) {
+    for(auto x : p2_funcs) {
+        if(x->type_self != nullptr) {
             printf("%s.%s ", x->type_self->name.c_str(), x->name->name.c_str());
         } else {
             printf("%s ", x->name->name.c_str());
         }
 
-        for (auto a: x->params) {
+        for(auto a : x->params) {
             printf("%s: %s, ", a->name->name.c_str(), a->type->name.c_str());
         }
         printf("\n");
     }
 }
 
-
 void Semantics::pass2_node(AstNode *node) {
-    switch (node->node_type) {
-        case AstNodeType::AstFn:
-            p2_fn((AstFn *) node);
-              break;
-        case AstNodeType::AstStruct:
-            p2_struct((AstStruct *) node);
-            break;
-        case AstNodeType::AstBlock:
-            for (auto x: ((AstBlock *) node)->statements) {
-                pass2_node(x);
-            }
-            break;
-        case AstNodeType::AstImpl: {
-            pass2_node(((AstImpl *) node)->block);
-        }
-            break;
-        case AstNodeType::AstExtern: {
-            for (auto x: ((AstExtern *) node)->decls) {
-                pass2_node(x);
-            }
-        }
-            break;
-
+    switch(node->node_type) {
+    case AstNodeType::AstFn: p2_fn((AstFn *)node); break;
+    case AstNodeType::AstStruct: p2_struct((AstStruct *)node); break;
+    case AstNodeType::AstBlock:
+        for(auto x : ((AstBlock *)node)->statements) { pass2_node(x); }
+        break;
+    case AstNodeType::AstImpl: {
+        pass2_node(((AstImpl *)node)->block);
+    } break;
+    case AstNodeType::AstExtern: {
+        for(auto x : ((AstExtern *)node)->decls) { pass2_node(x); }
+    } break;
     }
 }
 
-void Semantics::p2_fn(AstFn * node) {
-    if (node->type_self != nullptr) {
-        if (!p1_hasSymbol(node->type_self)) {
-            printf("The type \"%s\" does not exist\n", node->type_self->name.c_str());
+static std::string type_to_string(const AstType *node) {
+    if(node->is_array) { return type_to_string(node->subtype) + "Arr"; }
+    return node->name;
+}
+
+void Semantics::p2_fn(AstFn *node) {
+    if(node->type_self != nullptr) {
+        if(!p1_hasSymbol(node->type_self)) {
+            printf("The type \"%s\" does not exist\n",
+                   node->type_self->name.c_str());
             return;
         }
 
-        //we need to add implicit self
-        AstDec * self = new AstDec();
-        self->name = new AstSymbol();
+        // we need to add implicit self
+        AstDec *self     = new AstDec();
+        self->name       = new AstSymbol();
         self->name->name = "self";
 
-        self->type = new AstType();
+        self->type       = new AstType();
         self->type->name = node->type_self->name;
 
         node->params.insert(node->params.begin(), self);
-
     }
 
-    if (node->return_type != nullptr) {
-        if (!p1_hasSymbol(node->return_type)) {
-            printf("The type \"%s\" does not exist\n", node->return_type->name.c_str());
+    if(node->return_type != nullptr) {
+        if(!p1_hasSymbol(node->return_type)) {
+            printf("The type \"%s\" does not exist\n",
+                   node->return_type->name.c_str());
             return;
         }
-
     }
 
-
-    for (auto a: node->params) {
-        if (a->type != nullptr) {
-            if (!p1_hasSymbol(a->type)) {
-                printf("The type \"%s\" does not exist\n", a->type->name.c_str());
+    for(auto a : node->params) {
+        if(a->type != nullptr) {
+            if(!p1_hasSymbol(a->type)) {
+                printf("The type \"%s\" does not exist\n",
+                       a->type->name.c_str());
                 return;
             }
-
         }
     }
 
-    p2_funcs.push_back(node);
+    for(auto a : node->params) { node->name->name += type_to_string(a->type); }
 
+    p2_funcs.push_back(node);
 }
 
-void Semantics::p2_struct(AstStruct * node) {
-
-    for (auto b: node->block->statements) {
-        if (b->node_type == AstNodeType::AstDec) {
-            if (((AstDec *) b)->type != nullptr) {
-                if (!p1_hasSymbol(((AstDec *) b)->type)) {
-                    printf("The type \"%s\" does not exist\n", ((AstDec *) b)->type->name.c_str());
+void Semantics::p2_struct(AstStruct *node) {
+    for(auto b : node->block->statements) {
+        if(b->node_type == AstNodeType::AstDec) {
+            if(((AstDec *)b)->type != nullptr) {
+                if(!p1_hasSymbol(((AstDec *)b)->type)) {
+                    printf("The type \"%s\" does not exist\n",
+                           ((AstDec *)b)->type->name.c_str());
                     return;
                 }
             }
         }
     }
-
 }
 
-
+/*
+ * expretion type cheacking
+ * nest attributes
+ * flat structs
+ * inlineing
+ * inline assembly
+ *
+ * lost exprestion is rteurn type move it into a return ast
+ */
 void Semantics::pass3(Ast &ast) {
+    pass3_nest_att(ast.root);
+    pass3_node(ast.root);
+}
+void Semantics::pass3_nest_att(AstNode *node) {
+    if(node->node_type == AstNodeType::AstAttribute) {
+        nest_flag = true;
+        nested_attributes.push_back((AstAttribute *)node);
+    } else {
+        if(nest_flag) {
+            nest_flag = false;
 
+            for(auto e : nested_attributes) {
+                node->nested_attributes.push_back(e);
+            }
+            nested_attributes.clear();
+        }
+    }
+
+    switch(node->node_type) {
+    case AstNodeType::AstBlock: {
+        auto x = (AstBlock *)node;
+        for(auto e : x->statements) { pass3_nest_att(e); }
+        break;
+    }
+
+    case AstNodeType::AstStruct: {
+        auto x = (AstStruct *)node;
+        for(auto e : x->block->statements) { pass3_nest_att(e); }
+        break;
+    }
+    case AstNodeType::AstImpl: {
+        auto x = (AstImpl *)node;
+        for(auto e : x->block->statements) { pass3_nest_att(e); }
+        break;
+    }
+    }
+}
+
+void Semantics::pass3_node(AstNode *node) {
+    switch(node->node_type) {
+    case AstNodeType::AstFn: p3_fn((AstFn *)node); break;
+    case AstNodeType::AstAffix: p3_affix((AstAffix *)node); break;
+    case AstNodeType::AstStruct: p3_struct((AstStruct *)node); break;
+    case AstNodeType::AstBlock:
+        for(auto x : ((AstBlock *)node)->statements) { pass3_node(x); }
+        break;
+    case AstNodeType::AstImpl: {
+        pass3_node(((AstImpl *)node)->block);
+    } break;
+    case AstNodeType::AstExtern: {
+        for(auto x : ((AstExtern *)node)->decls) { pass3_node(x); }
+    } break;
+    }
+}
+
+void Semantics::p3_struct(AstStruct *node) {}
+
+void Semantics::p3_fn(AstFn *node) {
+    // duplicates and overloading
+
+    for(auto a : p2_funcs) {
+        if(a != node && a->name->name == node->name->name) {
+            printf("Duplicite fn decleration found for \"%s\"\n",
+                   a->name->name.c_str());
+            return;
+        }
+    }
+
+    //
+}
+
+/*
+ * prefex may onlyhave one arg
+ * suffix may only have one arg
+ * infix must have 2 args and any return type
+ */
+void Semantics::p3_affix(AstAffix *node) {
+    switch(node->affix_type) {
+    case AffixType::Prefix:
+        if(node->params.size() != 1) {
+            printf("The Prefix \"%s\" must have only one parameter\n",
+                   node->name->name.c_str());
+        }
+        break;
+    case AffixType::Suffix:
+        if(node->params.size() != 1) {
+            printf("The Suffix \"%s\" must have only one parameter\n",
+                   node->name->name.c_str());
+        }
+        break;
+    case AffixType::Infix:
+        if(node->params.size() != 2) {
+            printf("The Infix \"%s\" must have only two parameters\n",
+                   node->name->name.c_str());
+        }
+
+        if(node->return_type == nullptr) {
+            printf("The Infix \"%s\" must have an return type\n",
+                   node->name->name.c_str());
+        }
+        break;
+    }
 }

@@ -110,7 +110,7 @@ impl Terminal {
     }
 
     fn setPos(x: u16, y: u16) {
-        //print("\033[" + x + ";" y + "H");
+        print("\033[" + x + ";" + y + "H");
     }
 }
 
