@@ -13,7 +13,7 @@ fn main()
 
     let x: u8 = 10;
 
-    printf("x = %d", x);    
+    printf("10 + 10  = %d", 10i32 + 10i32);    
 
     putchar(10);
 }

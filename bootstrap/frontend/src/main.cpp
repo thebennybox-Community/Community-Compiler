@@ -73,6 +73,8 @@ int main(int argc, char **argv) {
             return 1;
         }
 
+        printf(argv[i]);
+
         TokenStream stream;
         stream.lex(file_contents);
         toks.push_back(stream);

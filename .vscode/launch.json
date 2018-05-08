@@ -10,6 +10,7 @@
             "request": "launch",
             "program": "${workspaceRoot}/bootstrap/frontend/build/frontend",
             "args": [
+                "./il.ds",
                 "./bool.ds",
                 "./f32.ds",
                 "./f64.ds",
