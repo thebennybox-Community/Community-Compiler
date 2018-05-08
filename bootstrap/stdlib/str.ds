@@ -13,3 +13,9 @@ struct str
     strcat(result, s2);
     return result;
 }*/
+
+@inline
+infix op +(a: str, b: str) : str
+{
+    a;
+}

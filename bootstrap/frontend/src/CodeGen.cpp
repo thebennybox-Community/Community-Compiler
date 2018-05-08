@@ -247,8 +247,10 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
         auto fn  = sem.p2_get_fn(x->name);
         auto buf = x->name->name;
 
-        for(auto a : fn->params) {
-            x->name->name += type_to_string(a->type);
+        if(fn->body != nullptr) {
+            for(auto a : fn->params) {
+                x->name->name += type_to_string(a->type);
+            }
         }
 
         if(fn->nested_attributes.size() == 0) {

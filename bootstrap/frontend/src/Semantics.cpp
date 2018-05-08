@@ -525,7 +525,7 @@ void Semantics::pass3_node(AstNode *node) {
                 for(auto a : nm->params) {
                     x->op += type_to_string(a->type);
 
-           }
+                }
             }
         }
 
@@ -643,6 +643,10 @@ AstNode *Semantics::inline_if_need_be(AstNode *node) {
 
 AstType *Semantics::determin_type(AstNode *node) {
 
+    if(node == nullptr) {
+        return nullptr;
+    }
+
     switch(node->node_type) {
     case AstNodeType::AstBlock: {
         auto x = (AstBlock *)node;
@@ -718,8 +722,7 @@ AstType *Semantics::determin_type(AstNode *node) {
             if(z != nullptr) {
                 return z;
             }
-
-   }
+        }
         {
             auto z = determin_type(p2_get_affix(x->name));
 
@@ -882,3 +885,4 @@ AstType *Semantics::determin_type(AstNode *node) {
 
     return nullptr;
 }
+
