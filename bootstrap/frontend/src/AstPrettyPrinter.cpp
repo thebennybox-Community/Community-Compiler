@@ -537,7 +537,8 @@ static void set_colour(unsigned int i, const TokenStream &tokens) {
             case TokenType::Extern:
             case TokenType::Struct:
             case TokenType::Impl:
-            case TokenType::Dec:
+            case TokenType::Var:
+            case TokenType::Let:
             case TokenType::Return:
                 printf("%s", term_fg[TermColour::Magenta]);
                 break;

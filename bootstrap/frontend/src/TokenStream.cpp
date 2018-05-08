@@ -1,29 +1,34 @@
-//
-// Created by myvar on 4/29/18.
-//
-
 #include "TokenStream.h"
 
 #include <cstdint>
 #include <map>
 
 static const std::map<std::string, TokenType> keywords = {
-    {"var", TokenType::Dec},       {"let", TokenType::Dec},
-    {"fn", TokenType::Fn},         {"loop", TokenType::Loop},
-    {"in", TokenType::In},         {"continue", TokenType::Continue},
-    {"break", TokenType::Break},   {"if", TokenType::If},
-    {"else", TokenType::Else},     {"return", TokenType::Return},
-    {"struct", TokenType::Struct}, {"get", TokenType::Get},
-    {"set", TokenType::Set},       {"impl", TokenType::Impl},
-    {"op", TokenType::Op},         {"suffix", TokenType::Suffix},
-    {"prefix", TokenType::Prefix}, {"infix", TokenType::Infix},
-    {"extern", TokenType::Extern}, {"true", TokenType::Boolean},
-    {"false", TokenType::Boolean},
+    {"var",      TokenType::Var},
+    {"let",      TokenType::Let},
+    {"fn",       TokenType::Fn},
+    {"loop",     TokenType::Loop},
+    {"in",       TokenType::In},
+    {"continue", TokenType::Continue},
+    {"break",    TokenType::Break},
+    {"if",       TokenType::If},
+    {"else",     TokenType::Else},
+    {"return",   TokenType::Return},
+    {"struct",   TokenType::Struct},
+    {"get",      TokenType::Get},
+    {"set",      TokenType::Set},
+    {"impl",     TokenType::Impl},
+    {"op",       TokenType::Op},
+    {"suffix",   TokenType::Suffix},
+    {"prefix",   TokenType::Prefix},
+    {"infix",    TokenType::Infix},
+    {"extern",   TokenType::Extern},
+    {"true",     TokenType::Boolean},
+    {"false",    TokenType::Boolean},
 };
 
 static const std::map<std::string, TokenType> operators = {
     {":", TokenType::Colon},
-    {".", TokenType::Dot},
     {"=", TokenType::Equal},
     {"@", TokenType::At},
 };
@@ -74,17 +79,19 @@ void TokenStream::lex(std::string src) {
             i++;
             line++;
             column = 1;
+
             continue;
         } else if(is_space(src[i])) {
-            i++;
-            column++;
+            i++; column++;
+
             continue;
         } else if(is_identifier_start(src[i])) {
             unsigned int start = i;
+
             while(is_identifier(src[i])) {
-                i++;
-                column++;
+                i++; column++;
             }
+
             unsigned int length = i - start;
 
             token.type = TokenType::Symbol;
@@ -96,60 +103,63 @@ void TokenStream::lex(std::string src) {
 
             this->tokens.push_back(std::move(token));
         } else if(is_digit(src[i])) {
-            token.type         = TokenType::IntegerLiteral;
+            token.type = TokenType::IntegerLiteral;
+
             unsigned int start = i;
+
             while(is_digit(src[i])) {
-                i++;
-                column++;
+                i++; column++;
             }
 
             if(src[i] == '.') {
                 // Floating point
                 token.type = TokenType::FloatLiteral;
-                i++;
-                column++;
+
+                i++; column++;
+
                 while(is_digit(src[i])) {
-                    i++;
-                    column++;
+                    i++; column++;
                 }
 
                 if(src[i] == 'e' || src[i] == 'E') {
                     // Exponent
-                    i++;
-                    column++;
+                    i++; column++;
 
                     // Check for sign of exponent
                     if(src[i] == '+' || src[i] == '-') {
-                        i++;
-                        column++;
+                        i++; column++;
                     }
 
                     while(is_digit(src[i])) {
-                        i++;
-                        column++;
+                        i++; column++;
                     }
                 }
             }
 
-            if(((src[i] == 'i' || src[i] == 'u')
-                && token.type == TokenType::IntegerLiteral)
-               || src[i] == 'f') {
+            if(src[i] == 'f' ||
+                (
+                    (src[i] == 'i' || src[i] == 'u') &&
+                    token.type == TokenType::IntegerLiteral
+                )
+            ) {
                 unsigned int saved_i      = i;
                 unsigned int saved_column = column;
-                i++;
-                column++;
+
+                i++; column++;
+
                 while(is_digit(src[i])) {
-                    i++;
-                    column++;
+                    i++; column++;
                 }
 
                 if(!is_identifier(src[i])) {
                     std::string bits =
                         src.substr(saved_i + 1, i - (saved_i + 1));
 
-                    if(!((bits == "8" && src[saved_i] != 'f')
-                         || (bits == "16" && src[saved_i] != 'f')
-                         || bits == "32" || bits == "64")) {
+                    if(!(
+                        (bits == "8" && src[saved_i] != 'f') ||
+                        (bits == "16" && src[saved_i] != 'f') ||
+                        bits == "32" || bits == "64")
+                    ) {
                         i      = saved_i; // Invalid suffix, backtrack
                         column = saved_column;
                     } else if(src[saved_i] == 'f') {
@@ -167,33 +177,30 @@ void TokenStream::lex(std::string src) {
 
             this->tokens.push_back(std::move(token));
         } else if(src[i] == '"') {
-            i++;
-            column++; // Skip opening "
+            i++; column++; // Skip opening "
 
             unsigned int start = i;
+
             while(src[i] != '"') {
                 if(src[i] == '\\') {
-                    i++;
-                    column++;
+                    i++; column++;
                 } else if(src[i] == '\n') {
                     // TODO: Should we stop parsing a string here?
-                    this->errors.push_back(
-                        {ErrorType::UnexpectedCharacter,
-                         {line, column, i, "\n", TokenType::Unknown}});
+                    this->errors.push_back({
+                        ErrorType::UnexpectedCharacter,
+                        {line, column, i, "\n", TokenType::Unknown}
+                    });
                     line++;
-                    i++;
-                    column = 1;
+                    i++; column = 1;
                     continue;
                 }
 
-                i++;
-                column++;
+                i++; column++;
             }
 
             unsigned int length = i - start;
 
-            i++;
-            column++; // Skip closing "
+            i++; column++; // Skip closing "
 
             token.type = TokenType::StringLiteral;
             token.raw  = src.substr(start, length);
@@ -201,11 +208,13 @@ void TokenStream::lex(std::string src) {
             this->tokens.push_back(std::move(token));
         } else if(src[i] == '/' && src[i + 1] == '/') {
             i += 2; // Skip //
+
             unsigned int start = i;
+
             while(src[i] != '\n') {
-                i++;
-                column++;
+                i++; column++;
             }
+
             unsigned int length = i - start;
 
             token.type = TokenType::SingleLineComment;
@@ -224,7 +233,9 @@ void TokenStream::lex(std::string src) {
                 }
                 i++;
             }
+
             unsigned int length = i - start;
+
             i += 2; // Skip */
 
             token.type = TokenType::MultilineComment;
@@ -233,10 +244,11 @@ void TokenStream::lex(std::string src) {
             this->tokens.push_back(std::move(token));
         } else if(is_operator(src[i])) {
             unsigned int start = i;
+
             while(is_operator(src[i])) {
-                i++;
-                column++;
+                i++; column++;
             }
+
             unsigned int length = i - start;
 
             token.type = TokenType::CustomOperator;
@@ -248,78 +260,73 @@ void TokenStream::lex(std::string src) {
 
             this->tokens.push_back(std::move(token));
         } else if(src[i] == ',') {
-            i++;
-            column++;
+            i++; column++;
             token.type = TokenType::Comma;
             token.raw  = ",";
 
             this->tokens.push_back(std::move(token));
+        } else if(src[i] == '.') {
+            i++; column++;
+            token.type = TokenType::Dot;
+            token.raw  = ".";
+
+            this->tokens.push_back(std::move(token));
         } else if(src[i] == ';') {
-            i++;
-            column++;
+            i++; column++;
             token.type = TokenType::SemiColon;
             token.raw  = ";";
 
             this->tokens.push_back(std::move(token));
         } else if(src[i] == '(') {
-            i++;
-            column++;
+            i++; column++;
             token.type = TokenType::OpenParenthesis;
             token.raw  = "(";
 
             this->tokens.push_back(std::move(token));
         } else if(src[i] == ')') {
-            i++;
-            column++;
+            i++; column++;
             token.type = TokenType::CloseParenthesis;
             token.raw  = ")";
 
             this->tokens.push_back(std::move(token));
         } else if(src[i] == '{') {
-            i++;
-            column++;
+            i++; column++;
             token.type = TokenType::OpenCurlyBracket;
             token.raw  = "{";
 
             this->tokens.push_back(std::move(token));
         } else if(src[i] == '}') {
-            i++;
-            column++;
+            i++; column++;
             token.type = TokenType::CloseCurlyBracket;
             token.raw  = "}";
 
             this->tokens.push_back(std::move(token));
         } else if(src[i] == '[') {
-            i++;
-            column++;
+            i++; column++;
             token.type = TokenType::OpenSquareBracket;
             token.raw  = "[";
 
             this->tokens.push_back(std::move(token));
         } else if(src[i] == ']') {
-            i++;
-            column++;
+            i++; column++;
             token.type = TokenType::CloseSquareBracket;
             token.raw  = "]";
 
             this->tokens.push_back(std::move(token));
         } else {
-            this->errors.push_back({ErrorType::UnexpectedCharacter,
-                                    {line,
-                                     column,
-                                     i,
-                                     std::string(1, src[i]),
-                                     TokenType::Unknown}});
+            this->errors.push_back({
+                ErrorType::UnexpectedCharacter,
+                {line, column, i, std::string(1, src[i]), TokenType::Unknown}
+            });
 
-            i++;
-            column++;
+            i++; column++;
         }
     }
 
     Token end_token;
-    end_token.line   = 0;
-    end_token.column = 0;
-    end_token.offset = 0;
+    end_token.line   = line;
+    end_token.column = column;
+    end_token.offset = (unsigned int)src.size();
     end_token.raw    = "";
     end_token.type   = TokenType::End;
 

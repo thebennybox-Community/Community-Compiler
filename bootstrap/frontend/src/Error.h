@@ -1,7 +1,3 @@
-//
-// Created by myvar on 4/29/18.
-//
-
 #ifndef SRC_ERROR_H
 #define SRC_ERROR_H
 
@@ -16,7 +12,7 @@ enum class ErrorType {
 class Error {
 public:
     ErrorType error_type;
-    Token token;
+    Token     token;
 };
 
-#endif //SRC_ERROR_H
+#endif // SRC_ERROR_H

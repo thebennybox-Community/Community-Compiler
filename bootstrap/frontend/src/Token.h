@@ -1,7 +1,3 @@
-//
-// Created by myvar on 4/29/18.
-//
-
 #ifndef SRC_TOKEN_H
 #define SRC_TOKEN_H
 
@@ -28,7 +24,8 @@
     F(OpenSquareBracket), \
     F(CloseSquareBracket), \
     \
-    F(Dec), \
+    F(Var), \
+    F(Let), \
     F(Fn), \
     F(Continue), \
     F(Break), \
@@ -96,4 +93,4 @@ public:
     TokenType type;
 };
 
-#endif //SRC_TOKEN_H
+#endif // SRC_TOKEN_H

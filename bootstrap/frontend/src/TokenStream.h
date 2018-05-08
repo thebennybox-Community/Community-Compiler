@@ -1,7 +1,3 @@
-//
-// Created by myvar on 4/29/18.
-//
-
 #ifndef SRC_TOKENSTREAM_H
 #define SRC_TOKENSTREAM_H
 
@@ -11,11 +7,18 @@
 
 class TokenStream {
 public:
-    std::vector<Error> errors;
+    /** The list of tokens created by the lexer */
     std::vector<Token> tokens;
 
+    /** The list of errors generated while lexing */
+    std::vector<Error> errors;
+
+    /**
+     * Lexes a string into a list of tokens.
+     *
+     * @param src The source code to lex
+     */
     void lex(std::string src);
 };
 
-
-#endif //SRC_TOKENSTREAM_H
+#endif // SRC_TOKENSTREAM_H
