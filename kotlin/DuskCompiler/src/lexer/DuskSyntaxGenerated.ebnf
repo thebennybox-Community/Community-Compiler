@@ -1,0 +1,55 @@
+singleLineComment = "//", ? except new line ?,  { ? except new line ? }, "\n";
+
+multilineComment = "/*", ? except */ ?,  { ? except */ ? }, "*/";
+
+comment = singleLineComment | multilineComment;
+
+whitespace = (? whitespace ? | comment),  { ? whitespace ? | comment };
+
+possWhitespace = [ whitespace ];
+
+booleanLiteral = "true" | "false";
+
+numberType = ("i" | "u" | "f"), ("8" | "16" | "32" | "64");
+
+numberLiteral = number, [ numberType ];
+
+stringLiteral = '"',  { ? except unescaped quotation marks ? }, '"';
+
+literal = booleanLiteral | numberLiteral | stringLiteral;
+
+decKeyword = "var" | "let";
+
+affixKeywords = "infix" | "prefix" | "suffix";
+
+keywords = ("return" | "continue" | "break" | "fn" | decKeyword | affixKeywords), whitespace;
+
+identifier = ? identifiers except keywords ?;
+
+arrayIdentifier = "[", [ numberLiteral ], "]";
+
+symbol = identifier, possWhitespace, [ "<", possWhitespace, ? symbol ?,  { possWhitespace, ",", ? symbol ? }, possWhitespace, ">" ],  { arrayIdentifier };
+
+operator = ? operatorChar ?,  { ? operatorChar ? };
+
+infixFunction = (? affixLessExpression ?, whitespace, symbol, whitespace, ? expression ?) | (? affixLessExpression ?, possWhitespace, operator, possWhitespace, ? expression ?);
+
+prefixFunction = (symbol, whitespace, ? expression ?) | (operator, possWhitespace, ? expression ?);
+
+suffixFunction = (? affixLessExpression ?, whitespace, symbol) | (? affixLessExpression ?, possWhitespace, operator);
+
+invocation = symbol, possWhitespace, "(", [ possWhitespace, ? expression ?,  { possWhitespace, ",", possWhitespace, ? expression ? } ], possWhitespace, ")";
+
+affixLessExpression = invocation | literal | symbol | ? codeBlock ? | ("(", possWhitespace, ? expression ?, possWhitespace, ")");
+
+expression = invocation | literal | symbol | infixFunction | suffixFunction | prefixFunction | ? codeBlock ? | ("(", possWhitespace, ? expression ?, possWhitespace, ")");
+
+explicitReturnStatement = "return", whitespace, expression, possWhitespace, ";";
+
+returnStatement = explicitReturnStatement | expression;
+
+decStatement = decKeyword, whitespace, symbol, [ possWhitespace, ":", possWhitespace, symbol ], [ possWhitespace, "=", possWhitespace, expression ];
+
+functionStatement = [ affixKeywords, whitespace ], "fn", whitespace, symbol, possWhitespace, "(", possWhitespace, [ symbol, possWhitespace, ":", possWhitespace, symbol, possWhitespace,  { ",", possWhitespace, symbol, possWhitespace, ":", possWhitespace, symbol, possWhitespace } ], ")", possWhitespace, ":", possWhitespace, symbol, possWhitespace, ? codeBlock ?;
+
+codeBlock = "{", possWhitespace,  { (decStatement | explicitReturnStatement | expression), possWhitespace, ";", possWhitespace }, [ returnStatement, possWhitespace ], "}";
