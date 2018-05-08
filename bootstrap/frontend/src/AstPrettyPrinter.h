@@ -5,8 +5,9 @@
 
 #include "TokenStream.h"
 
-void pretty_print_ast(const Ast &ast);
+void pretty_print_ast(Ast &ast);
 
-void syntax_highlight_print(const std::string &source, const TokenStream &tokens);
+void syntax_highlight_print(
+    const std::string &source, const TokenStream &tokens);
 
 #endif /* AST_PRETTY_PRINTER_H */

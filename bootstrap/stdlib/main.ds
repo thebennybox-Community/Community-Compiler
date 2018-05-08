@@ -1,19 +1,18 @@
 
 extern {
     fn putchar(ch: u8) : i32;
+    fn gets(x: str);
     fn printf(x: str);
+}
+
+fn println(x: str)
+{
+    printf("%s", x);
+    putchar(10);
 }
 
 
 fn main()
 {
-    printf("Hello World!");
-
-    putchar(10);
-
-    let x: u8 = 10;
-
-    printf("10 + 10  = %d", 10i32 + 10i32);    
-
-    putchar(10);
+    println("Hello World");  
 }

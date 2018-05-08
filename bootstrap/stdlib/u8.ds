@@ -2,3 +2,27 @@ struct u8
 {
     
 }
+
+@inline
+infix op +(a: u8, b: u8) : u8
+{
+    i_add();
+}
+
+@inline
+infix op -(a: u8, b: u8) : u8
+{
+    i_sub();
+}
+
+@inline
+infix op *(a: u8, b: u8) : u8
+{
+    i_mul();
+}
+
+@inline
+infix op /(a: u8, b: u8) : u8
+{
+    i_div();
+}

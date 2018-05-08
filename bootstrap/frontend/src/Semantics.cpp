@@ -18,6 +18,11 @@ void Semantics::pass1_node(AstNode *node) {
     case AstNodeType::AstFn:
         p1_fn((AstFn *)node);
         break;
+    case AstNodeType::AstAffix: {
+        auto x = (AstAffix *)node;
+        p1_funcs.push_back(x->name);
+
+    } break;
     case AstNodeType::AstStruct:
         p1_struct((AstStruct *)node);
         break;
@@ -61,6 +66,10 @@ void Semantics::pass2_node(AstNode *node) {
     case AstNodeType::AstFn:
         p2_fn((AstFn *)node);
         break;
+    case AstNodeType::AstAffix: {
+        auto x = (AstAffix *)node;
+        p2_affix((AstAffix *)node);
+    } break;
     case AstNodeType::AstStruct:
         p2_struct((AstStruct *)node);
         break;
@@ -85,6 +94,33 @@ static std::string type_to_string(const AstType *node) {
         return type_to_string(node->subtype) + "Arr";
     }
     return node->name;
+}
+
+void Semantics::p2_affix(AstAffix *node) {
+    if(node->return_type != nullptr) {
+        if(!p1_hasSymbol(node->return_type)) {
+            printf(
+                "The type \"%s\" does not exist\n",
+                node->return_type->name.c_str());
+            return;
+        }
+    }
+
+    for(auto a : node->params) {
+        if(a->type != nullptr) {
+            if(!p1_hasSymbol(a->type)) {
+                printf(
+                    "The type \"%s\" does not exist\n", a->type->name.c_str());
+                return;
+            }
+        }
+    }
+    if(node->body != nullptr) {
+        for(auto a : node->params) {
+            // node->name->name += type_to_string(a->type);
+        }
+    }
+    p2_affixs.push_back(node);
 }
 
 void Semantics::p2_fn(AstFn *node) {
@@ -125,11 +161,11 @@ void Semantics::p2_fn(AstFn *node) {
             }
         }
     }
-
-    for(auto a : node->params) {
-        //   node->name->name += type_to_string(a->type);
+    if(node->body != nullptr) {
+        for(auto a : node->params) {
+            // node->name->name += type_to_string(a->type);
+        }
     }
-
     p2_funcs.push_back(node);
 }
 
@@ -203,48 +239,285 @@ void Semantics::pass3_nest_att(AstNode *node) {
 }
 
 void Semantics::pass3_node(AstNode *node) {
+    for(auto y : node->nested_attributes) {
+        if(y->name->name == "il") {
+            node->emit = false;
+        }
+    }
+
     switch(node->node_type) {
-    case AstNodeType::AstFn:
-        p3_fn((AstFn *)node);
-        break;
-    case AstNodeType::AstAffix:
-        p3_affix((AstAffix *)node);
-        break;
-    case AstNodeType::AstStruct:
-        p3_struct((AstStruct *)node);
-        break;
-    case AstNodeType::AstBlock:
-        for(auto x : ((AstBlock *)node)->statements) {
-            pass3_node(x);
+    case AstNodeType::AstBlock: {
+        auto x = (AstBlock *)node;
+
+        for(auto i : x->statements) {
+            pass3_node(i);
+            i = inline_if_need_be(i);
         }
         break;
+    }
+    case AstNodeType::AstString: {
+        auto x = (AstString *)node;
+
+        break;
+    }
+    case AstNodeType::AstNumber: {
+        auto x = (AstNumber *)node;
+
+        break;
+    }
+    case AstNodeType::AstBoolean: {
+        auto x = (AstBoolean *)node;
+
+        break;
+    }
+    case AstNodeType::AstArray: {
+        auto x = (AstArray *)node;
+
+        break;
+    }
+    case AstNodeType::AstDec: {
+        auto x = (AstDec *)node;
+
+        if(x->type == nullptr) {
+            x->type == determin_type(x->value);
+        } else {
+            /*if(x->type->name != determin_type(x->value)->name) {
+                printf(
+                    "you cant assign an \"%s\" to an \"%s\"\n",
+                    determin_type(x->value)->name.c_str(),
+                    x->type->name.c_str());
+            }*/
+        }
+
+        pass3_node(x->value);
+
+        x->value = inline_if_need_be(x->value);
+        break;
+    }
+    case AstNodeType::AstIf: {
+        auto x = (AstIf *)node;
+
+        pass3_node(x->condition);
+        x->condition = inline_if_need_be(x->condition);
+
+        for(auto i : x->true_block->statements) {
+            pass3_node(i);
+            i = inline_if_need_be(i);
+        }
+
+        if(x->false_block != nullptr) {
+            for(auto i : x->false_block->statements) {
+                i = inline_if_need_be(i);
+            }
+        }
+        break;
+    }
+    case AstNodeType::AstFn: {
+        auto x = (AstFn *)node;
+
+        for(auto a : p2_funcs) {
+            if(a != x && a->name->name == x->name->name) {
+                printf(
+                    "Duplicite fn decleration found for \"%s\"\n",
+                    a->name->name.c_str());
+                return;
+            }
+        }
+        if(x->body != nullptr) {
+            for(auto i : x->body->statements) {
+                i = inline_if_need_be(i);
+                pass3_node(x->body);
+            }
+        }
+        break;
+    }
+    case AstNodeType::AstFnCall: {
+        auto x = (AstFnCall *)node;
+
+        {
+            auto mn = p2_get_fn(x->name);
+            if(mn->nested_attributes.size() == 0) {
+                for(auto a : x->nested_attributes) {
+                    if(a->name->name == "inline") {
+                        x->emit = false;
+                    }
+                }
+            }
+        }
+
+        {
+            auto nm = p2_get_fn(x->name);
+            if(nm != nullptr && nm->body != nullptr) {
+                if(nm->params.size() > x->args.size()) {
+                    printf("to mean arguments provide\n");
+                } else if(nm->params.size() < x->args.size()) {
+                    printf("to few arguments provide\n");
+                } else {
+                    for(int i = 0; i < nm->params.size(); i++) {
+                        auto a = determin_type(nm->params.at(i));
+                        auto b = determin_type(x->args.at(i));
+                        if(a->name != b->name) {
+                            printf(
+                                "expecting type \"%s\" at argument %d, \"%s\" "
+                                "provided\n",
+                                a->name.c_str(),
+                                i + 1,
+                                b->name.c_str());
+                        }
+                    }
+                }
+            }
+        }
+
+        for(auto i : x->args) {
+            i = inline_if_need_be(i);
+            pass3_node(i);
+        }
+
+        break;
+    }
+    case AstNodeType::AstLoop: {
+        auto x = (AstLoop *)node;
+
+        pass3_node(x->expr);
+
+        x->expr = inline_if_need_be(x->expr);
+
+        for(auto i : x->body->statements) {
+            i = inline_if_need_be(i);
+        }
+
+        break;
+    }
+    case AstNodeType::AstContinue: {
+        auto x = (AstContinue *)node;
+
+        break;
+    }
+    case AstNodeType::AstBreak: {
+        auto x = (AstBreak *)node;
+
+        break;
+    }
+    case AstNodeType::AstStruct: {
+        auto x = (AstStruct *)node;
+
+        break;
+    }
+
     case AstNodeType::AstImpl: {
-        pass3_node(((AstImpl *)node)->block);
-    } break;
-    case AstNodeType::AstExtern: {
-        for(auto x : ((AstExtern *)node)->decls) {
-            pass3_node(x);
+        auto x = (AstImpl *)node;
+
+        for(auto i : x->block->statements) {
+            pass3_node(i);
+            i = inline_if_need_be(i);
         }
-    } break;
+
+        break;
+    }
+    case AstNodeType::AstAttribute: {
+        auto x = (AstAttribute *)node;
+
+        break;
+    }
+    case AstNodeType::AstAffix: {
+        auto x = (AstAffix *)node;
+
+        p3_affix(x);
+
+        for(auto i : x->body->statements) {
+            pass3_node(i);
+            i = inline_if_need_be(i);
+        }
+        break;
+    }
+    case AstNodeType::AstUnaryExpr: {
+        auto x = (AstUnaryExpr *)node;
+
+        {
+            auto nm = p2_get_fn(x->op);
+            if(nm != nullptr && nm->body != nullptr) {
+                for(auto a : nm->params) {
+                    x->op += type_to_string(a->type);
+                }
+            }
+        }
+
+        {
+            auto nm = p2_get_affix(x->op);
+            if(nm != nullptr && nm->body != nullptr) {
+                for(auto a : nm->params) {
+                    x->op += type_to_string(a->type);
+                }
+            }
+        }
+
+        pass3_node(x->expr);
+        x->expr = inline_if_need_be(x->expr);
+        break;
+    }
+    case AstNodeType::AstBinaryExpr: {
+        auto x = (AstBinaryExpr *)node;
+
+        {
+            auto nm = p2_get_fn(x->op);
+            if(nm != nullptr && nm->body != nullptr) {
+                for(auto a : nm->params) {
+                    x->op += type_to_string(a->type);
+                }
+            }
+        }
+
+        {
+            auto nm = p2_get_affix(x->op);
+            if(nm != nullptr && nm->body != nullptr) {
+                for(auto a : nm->params) {
+                    x->op += type_to_string(a->type);
+                }
+            }
+        }
+
+        pass3_node(x->lhs);
+        pass3_node(x->rhs);
+
+        x->lhs = inline_if_need_be(x->lhs);
+        x->rhs = inline_if_need_be(x->rhs);
+        break;
+    }
+    case AstNodeType::AstIndex: {
+        auto x = (AstIndex *)node;
+
+        break;
+    }
+    case AstNodeType::AstType: {
+        auto x = (AstType *)node;
+
+        break;
+    }
+    case AstNodeType::AstSymbol: {
+        auto x = (AstSymbol *)node;
+
+        break;
+    }
+    case AstNodeType::AstReturn: {
+        auto x = (AstReturn *)node;
+        pass3_node(x->expr);
+        x->expr = inline_if_need_be(x->expr);
+        break;
+    }
+    case AstNodeType::AstExtern: {
+        auto x = (AstExtern *)node;
+
+        for(auto i : x->decls) {
+            pass3_node(i);
+        }
+
+        break;
+    }
     }
 }
 
 void Semantics::p3_struct(AstStruct *node) {}
-
-void Semantics::p3_fn(AstFn *node) {
-    // duplicates and overloading
-
-    for(auto a : p2_funcs) {
-        if(a != node && a->name->name == node->name->name) {
-            printf(
-                "Duplicite fn decleration found for \"%s\"\n",
-                a->name->name.c_str());
-            return;
-        }
-    }
-
-    //
-}
 
 /*
  * prefex may onlyhave one arg
@@ -281,4 +554,223 @@ void Semantics::p3_affix(AstAffix *node) {
         }
         break;
     }
+}
+
+AstNode *Semantics::inline_if_need_be(AstNode *node) {
+    bool flag = false;
+
+    if(node->nested_attributes.size() == 0) {
+        for(auto a : node->nested_attributes) {
+            if(a->name->name == "inline") {
+                flag = true;
+                break;
+            }
+        }
+    }
+    if(!flag || node->node_type != AstNodeType::AstFnCall) {
+        return node;
+    }
+
+    auto x = (AstFnCall *)node;
+
+    printf(x->name->name.c_str());
+
+    return node;
+}
+
+AstType *Semantics::determin_type(AstNode *node) {
+
+    switch(node->node_type) {
+    case AstNodeType::AstBlock: {
+        auto x = (AstBlock *)node;
+
+        for(auto z : x->statements) {
+            auto b = determin_type(z);
+            if(b != nullptr) {
+                return b;
+            }
+        }
+
+        break;
+    }
+    case AstNodeType::AstString: {
+        auto x    = (AstString *)node;
+        auto ret  = new AstType();
+        ret->name = "str";
+        return ret;
+    }
+    case AstNodeType::AstNumber: {
+        auto x   = (AstNumber *)node;
+        auto ret = new AstType();
+
+        if(x->is_float) {
+            ret->name = "f" + std::to_string(x->bits);
+        } else if(x->is_signed) {
+            ret->name = "i" + std::to_string(x->bits);
+        } else {
+            ret->name = "u" + std::to_string(x->bits);
+        }
+        return ret;
+    }
+    case AstNodeType::AstBoolean: {
+        auto x    = (AstBoolean *)node;
+        auto ret  = new AstType();
+        ret->name = "bool";
+        return ret;
+    }
+    case AstNodeType::AstArray: {
+        auto x = (AstArray *)node;
+        // fml
+        break;
+    }
+    case AstNodeType::AstDec: {
+        auto x = (AstDec *)node;
+        return x->type;
+    }
+    case AstNodeType::AstIf: {
+        auto x = (AstIf *)node;
+        printf("wtf, a if cant evaluate");
+        break;
+    }
+    case AstNodeType::AstFn: {
+        auto x = (AstFn *)node;
+        return x->return_type;
+    }
+    case AstNodeType::AstFnCall: {
+        auto x = (AstFnCall *)node;
+
+        {
+            auto z = determin_type(p2_get_fn(x->name));
+            if(z != nullptr)
+                return z;
+        }
+        {
+            auto z = determin_type(p2_get_affix(x->name));
+            if(z != nullptr)
+                return z;
+        }
+
+        break;
+    }
+    case AstNodeType::AstLoop: {
+        auto x = (AstLoop *)node;
+        printf("wtf, a loop cant evaluate");
+        break;
+    }
+    case AstNodeType::AstContinue: {
+        auto x = (AstContinue *)node;
+        printf("wtf, an continue cant evaluate");
+        break;
+    }
+    case AstNodeType::AstBreak: {
+        auto x = (AstBreak *)node;
+        printf("wtf, an break cant evaluate");
+        break;
+    }
+    case AstNodeType::AstStruct: {
+        auto x    = (AstStruct *)node;
+        auto ret  = new AstType();
+        ret->name = x->name->name;
+        return ret;
+        break;
+    }
+    case AstNodeType::AstImpl: {
+        auto x = (AstImpl *)node;
+        printf("wtf, an impl cant evaluate");
+        break;
+    }
+    case AstNodeType::AstAttribute: {
+        auto x = (AstAttribute *)node;
+        printf("wtf, an attribute cant evaluate");
+        break;
+    }
+    case AstNodeType::AstAffix: {
+        auto x = (AstAffix *)node;
+
+        {
+            auto z = determin_type(p2_get_fn(x->name));
+            if(z != nullptr)
+                return z;
+        }
+        {
+            auto z = determin_type(p2_get_affix(x->name));
+            if(z != nullptr)
+                return z;
+        }
+        break;
+    }
+    case AstNodeType::AstUnaryExpr: {
+        auto x = (AstUnaryExpr *)node;
+
+        {
+            auto z = determin_type(p2_get_fn(x->op));
+            if(z != nullptr)
+                return z;
+        }
+        {
+            auto z = determin_type(p2_get_affix(x->op));
+            if(z != nullptr)
+                return z;
+        }
+        break;
+    }
+    case AstNodeType::AstBinaryExpr: {
+        auto x = (AstBinaryExpr *)node;
+        {
+            auto z = determin_type(p2_get_fn(x->op));
+            if(z != nullptr)
+                return z;
+        }
+        {
+            auto z = determin_type(p2_get_affix(x->op));
+            if(z != nullptr)
+                return z;
+        }
+        break;
+    }
+    case AstNodeType::AstIndex: {
+        auto x = (AstIndex *)node;
+        return determin_type(x->expr);
+    }
+    case AstNodeType::AstType: {
+        auto x = (AstType *)node;
+        return x;
+    }
+    case AstNodeType::AstSymbol: {
+        auto x = (AstSymbol *)node;
+
+        {
+            auto z = p2_get_fn(x->name);
+            if(z != nullptr) {
+                return z->return_type;
+            }
+        }
+        {
+            auto z = p2_get_affix(x->name);
+            if(z != nullptr) {
+                return z->return_type;
+            }
+        }
+
+        {
+            auto z = p2_get_dec(x->name);
+            if(z != nullptr) {
+                return determin_type(z->value);
+            }
+        }
+
+        break;
+    }
+    case AstNodeType::AstReturn: {
+        auto x = (AstReturn *)node;
+        printf("wtf, an return cant evaluate");
+        break;
+    }
+    case AstNodeType::AstExtern: {
+        auto x = (AstExtern *)node;
+        printf("wtf, an extern cant evaluate");
+        break;
+    }
+    }
+    return nullptr;
 }

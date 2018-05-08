@@ -1,6 +1,72 @@
-
 @il
 fn i_add()
 {
-    0x70
+    112
+}
+
+@il
+fn i_sub()
+{
+    113
+}
+
+@il
+fn i_mul()
+{
+    114
+}
+
+@il
+fn i_div()
+{
+    115
+}
+
+
+@il
+fn cmpe()
+{
+    48
+}
+
+@il
+fn cmpg()
+{
+    49
+}
+
+@il
+fn cpge()
+{
+    50
+}
+
+@il
+fn cmpl()
+{
+    51
+}
+
+@il
+fn cple()
+{
+    52
+}
+
+@il
+fn cpne()
+{
+    53
+}
+
+@il
+fn i_neg()
+{
+    117
+}
+
+@il
+fn addr_loc()
+{
+    98
 }

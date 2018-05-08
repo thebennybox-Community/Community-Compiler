@@ -1,6 +1,8 @@
 #ifndef SRC_ILEMMITER_H
 #define SRC_ILEMMITER_H
 
+#include "Ast.h"
+#include <map>
 #include <stdio.h>
 #include <string.h>
 #include <vector>
@@ -72,20 +74,58 @@
 #define BWOR (unsigned char)0x93
 #define BXOR (unsigned char)0x94
 
+#define EXFN (unsigned char)0xE0
+#define INFN (unsigned char)0xE1
+#define FPRM (unsigned char)0xE2
+#define FLOC (unsigned char)0xE3
+#define GLOB (unsigned char)0xE4
+#define DATA (unsigned char)0xE5
+
 // DataType Encoding
-#define U8 0b0000
-#define U16 0b0001
-#define U32 0b0010
-#define U64 0b0011
-#define I8 0b0100
-#define I16 0b0101
-#define I32 0b0110
-#define I64 0b0111
-#define F32 0b1000
-#define F64 0b1001
-#define BOOL 0b1010
-#define STR 0b1011
-#define PTR 0b1100
+#define U8 (unsigned char)0x0
+#define U16 (unsigned char)0x1
+#define U32 (unsigned char)0x2
+#define U64 (unsigned char)0x3
+#define I8 (unsigned char)0x4
+#define I16 (unsigned char)0x5
+#define I32 (unsigned char)0x6
+#define I64 (unsigned char)0x7
+#define F32 (unsigned char)0x8
+#define F64 (unsigned char)0x9
+#define STR (unsigned char)0xA
+#define PTR (unsigned char)0xB
+#define VOID (unsigned char)0xF
+
+static const std::map<std::string, unsigned char> type_map =
+
+{   {"u8", U8},
+    {"u16", U16},
+    {"u32", U32},
+    {"u64", U64},
+    {"i8", I8},
+    {"i16", I16},
+    {"i32", I32},
+    {"i64", I64},
+    {"f32", F32},
+    {"f64", F64},
+    {"str", STR},
+    {"ptr", PTR},
+    {"void", VOID}
+};
+
+static unsigned char to_IL_type(AstType *x) {
+
+    if(x == nullptr) {
+        return VOID;
+    }
+
+    if(x->is_array) {
+        return to_IL_type(x->subtype);
+    }
+
+    auto z = type_map.at(x->name);
+    return z;
+}
 
 class ILemitter {
 public:
@@ -158,7 +198,18 @@ public:
     void bitwise_or();
     void bitwise_xor();
 
-private:
+    void ExternalFunction(
+        const char *name,
+        unsigned char type,
+        unsigned int total_args,
+        unsigned char args[]);
+
+    void InternalFunction(const char *name, unsigned char type);
+    void FunctionParameter(const char *func, const char *name, unsigned char type);
+    void FunctionLocal(const char *func, const char *name, unsigned char type);
+    void Global(const char *name, unsigned char type);
+    void Data(const char *name, const char *data);
+
     void w(unsigned char x) {
         stream.push_back(x);
         // printf("%hhu ", x);
@@ -194,6 +245,7 @@ private:
     void w(const char *x) {
         unsigned int z = strlen(x);
         w(z);
+
         for(int i = 0; i < z; i++) {
             w((unsigned char)x[i]);
         }
@@ -232,6 +284,7 @@ private:
 
     void w(double x) {
         unsigned char const *p = reinterpret_cast<unsigned char const *>(&x);
+
         for(int i = 0; i != sizeof(double); ++i) {
             w(p[i]);
         }

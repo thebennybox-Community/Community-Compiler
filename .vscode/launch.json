@@ -10,6 +10,8 @@
             "request": "launch",
             "program": "${workspaceRoot}/bootstrap/frontend/build/frontend",
             "args": [
+                "./bin/out.fil",
+                "./main.ds",
                 "./il.ds",
                 "./bool.ds",
                 "./f32.ds",
@@ -17,7 +19,6 @@
                 "./i16.ds",
                 "./i32.ds",
                 "./i8.ds",
-                "./main.ds",
                 "./str.ds",
                 "./u16.ds",
                 "./u32.ds",

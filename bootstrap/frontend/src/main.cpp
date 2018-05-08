@@ -68,12 +68,13 @@ int main(int argc, char **argv) {
     for(int i = 2; i < argc; i++) {
 
         std::string file_contents = load_text_from_file(argv[i]);
+
         if(file_contents.empty()) {
-            printf("Error reading file: %s\n", argv[i]);
-            return 1;
+            // printf("Error reading file: %s\n", argv[i]);
+            // return 1;
         }
 
-        printf(argv[i]);
+        // printf("%s\n", argv[i]);
 
         TokenStream stream;
         stream.lex(file_contents);
@@ -101,10 +102,12 @@ int main(int argc, char **argv) {
 
     for(auto a : asts) {
         gen.generateIL(a->root, il);
-        // pretty_print_ast(ast);
+        // pretty_print_ast(*a);
     }
 
-    FILE *file = fopen(argv[1], "wb");
+    auto o     = argv[1];
+    FILE *file = fopen(o, "wb");
+
     if(file == NULL) {
         // Some error thing here
     }
@@ -116,5 +119,6 @@ int main(int argc, char **argv) {
     for(auto a : asts) {
         delete a;
     }
+
     return 0;
 }

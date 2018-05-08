@@ -2,3 +2,27 @@ struct u32
 {
     
 }
+
+@inline
+infix op +(a: u32, b: u32) : u32
+{
+    i_add();
+}
+
+@inline
+infix op -(a: u32, b: u32) : u32
+{
+    i_sub();
+}
+
+@inline
+infix op *(a: u32, b: u32) : u32
+{
+    i_mul();
+}
+
+@inline
+infix op /(a: u32, b: u32) : u32
+{
+    i_div();
+}
