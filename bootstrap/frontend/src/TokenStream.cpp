@@ -33,41 +33,158 @@ static const std::map<std::string, TokenType> operators = {
     {"@", TokenType::At},
 };
 
-bool is_space(char c) {
-    return c == ' ' || c == '\t';
+static constexpr const unsigned char SPACE       = 1 << 0;
+static constexpr const unsigned char ALPHA       = 1 << 1;
+static constexpr const unsigned char IDENT_START = 1 << 2;
+static constexpr const unsigned char IDENT       = 1 << 3;
+static constexpr const unsigned char DEC         = 1 << 4;
+static constexpr const unsigned char HEX         = 1 << 5;
+static constexpr const unsigned char OPERATOR    = 1 << 6;
+
+static constexpr const unsigned char char_info[] = {
+    /* 0   NUL   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 1   SOH   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 2   STX   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 3   ETX   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 4   EOT   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 5   ENQ   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 6   ACK   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 7   BEL   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 8   BS    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 9   TAB   */ SPACE | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 10  LF    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 11  VT    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 12  FF    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 13  CR    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 14  SO    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 15  SI    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 16  DLE   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 17  DC1   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 18  DC2   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 19  DC3   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 20  DC4   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 21  NAK   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 22  SYN   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 23  ETB   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 24  CAN   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 25  EM    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 26  SUB   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 27  ESC   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 28  FS    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 29  GS    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 30  RS    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 31  US    */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 32  Space */ SPACE | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 33  !     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 34  "     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 35  #     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 36  $     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 37  %     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 38  &     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 39  '     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 40  (     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 41  )     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 42  *     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 43  +     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 44  ,     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 45  -     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 46  .     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 47  /     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 48  0     */ 0     | 0     | 0           | IDENT | DEC | HEX | 0,
+    /* 49  1     */ 0     | 0     | 0           | IDENT | DEC | HEX | 0,
+    /* 50  2     */ 0     | 0     | 0           | IDENT | DEC | HEX | 0,
+    /* 51  3     */ 0     | 0     | 0           | IDENT | DEC | HEX | 0,
+    /* 52  4     */ 0     | 0     | 0           | IDENT | DEC | HEX | 0,
+    /* 53  5     */ 0     | 0     | 0           | IDENT | DEC | HEX | 0,
+    /* 54  6     */ 0     | 0     | 0           | IDENT | DEC | HEX | 0,
+    /* 55  7     */ 0     | 0     | 0           | IDENT | DEC | HEX | 0,
+    /* 56  8     */ 0     | 0     | 0           | IDENT | DEC | HEX | 0,
+    /* 57  9     */ 0     | 0     | 0           | IDENT | DEC | HEX | 0,
+    /* 58  :     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 59  ;     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 60  <     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 61  =     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 62  >     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 63  ?     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 64  @     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 65  A     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 66  B     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 67  C     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 68  D     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 69  E     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 70  F     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 71  G     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 72  H     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 73  I     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 74  J     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 75  K     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 76  L     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 77  M     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 78  N     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 79  O     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 80  P     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 81  Q     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 82  R     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 83  S     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 84  T     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 85  U     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 86  V     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 87  W     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 88  X     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 89  Y     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 90  Z     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 91  [     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 92  \     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 93  ]     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 94  ^     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 95  _     */ 0     | 0     | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 96  `     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 97  a     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 98  b     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 99  c     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 100 d     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 101 e     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 102 f     */ 0     | ALPHA | IDENT_START | IDENT | 0   | HEX | 0,
+    /* 103 g     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 104 h     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 105 i     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 106 j     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 107 k     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 108 l     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 109 m     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 110 n     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 111 o     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 112 p     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 113 q     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 114 r     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 115 s     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 116 t     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 117 u     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 118 v     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 119 w     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 120 x     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 121 y     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 122 z     */ 0     | ALPHA | IDENT_START | IDENT | 0   | 0   | 0,
+    /* 123 {     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 124 |     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 125 }     */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+    /* 126 ~     */ 0     | 0     | 0           | 0     | 0   | 0   | OPERATOR,
+    /* 127 DEL   */ 0     | 0     | 0           | 0     | 0   | 0   | 0,
+};
+
+static inline bool is_digit(char c) {
+    return char_info[(unsigned char)c] & DEC;
 }
 
-bool is_lower(char c) {
-    return c >= 'a' && c <= 'z';
+static inline bool is_identifier(char c) {
+    return char_info[(unsigned char)c] & IDENT;
 }
 
-bool is_upper(char c) {
-    return c >= 'A' && c <= 'Z';
-}
-
-bool is_digit(char c) {
-    return c >= '0' && c <= '9';
-}
-
-bool is_alpha(char c) {
-    return is_lower(c) || is_upper(c);
-}
-
-bool is_identifier_start(char c) {
-    return is_alpha(c) || c == '_';
-}
-
-bool is_identifier(char c) {
-    return is_identifier_start(c) || is_digit(c);
-}
-
-bool is_operator(char c) {
-    return std::string("~!@#$%^&*+-=|\\/<>?:").find(c) != std::string::npos;
+static inline bool is_operator(char c) {
+    return char_info[(unsigned char)c] & OPERATOR;
 }
 
 void TokenStream::lex(std::string src) {
-    unsigned int line = 1, column = 1;
-
     for(unsigned int i = 0; i < src.size(); (void)0) {
         Token token;
         token.line   = line;
@@ -75,21 +192,37 @@ void TokenStream::lex(std::string src) {
         token.offset = i;
         token.type   = TokenType::Unknown;
 
-        if(src[i] == '\n') {
+        switch(src[i]) {
+        case '\n': {
             i++;
             line++;
             column = 1;
 
             continue;
-        } else if(is_space(src[i])) {
-            i++; column++;
+        }
+
+        case ' ':
+        case '\t': {
+            i++, column++;
 
             continue;
-        } else if(is_identifier_start(src[i])) {
+        }
+
+        case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+        case 'G': case 'H': case 'I': case 'J': case 'K': case 'L':
+        case 'M': case 'N': case 'O': case 'P': case 'Q': case 'R':
+        case 'S': case 'T': case 'U': case 'V': case 'W': case 'X':
+        case 'Y': case 'Z':
+        case '_':
+        case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+        case 'g': case 'h': case 'i': case 'j': case 'k': case 'l':
+        case 'm': case 'n': case 'o': case 'p': case 'q': case 'r':
+        case 's': case 't': case 'u': case 'v': case 'w': case 'x':
+        case 'y': case 'z': {
             unsigned int start = i;
 
             while(is_identifier(src[i])) {
-                i++; column++;
+                i++, column++;
             }
 
             unsigned int length = i - start;
@@ -101,37 +234,40 @@ void TokenStream::lex(std::string src) {
                 token.type = keywords.at(token.raw);
             }
 
-            this->tokens.push_back(std::move(token));
-        } else if(is_digit(src[i])) {
+            break;
+        }
+
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9': {
             token.type = TokenType::IntegerLiteral;
 
             unsigned int start = i;
 
             while(is_digit(src[i])) {
-                i++; column++;
+                i++, column++;
             }
 
             if(src[i] == '.') {
                 // Floating point
                 token.type = TokenType::FloatLiteral;
 
-                i++; column++;
+                i++, column++;
 
                 while(is_digit(src[i])) {
-                    i++; column++;
+                    i++, column++;
                 }
 
                 if(src[i] == 'e' || src[i] == 'E') {
                     // Exponent
-                    i++; column++;
+                    i++, column++;
 
                     // Check for sign of exponent
                     if(src[i] == '+' || src[i] == '-') {
-                        i++; column++;
+                        i++, column++;
                     }
 
                     while(is_digit(src[i])) {
-                        i++; column++;
+                        i++, column++;
                     }
                 }
             }
@@ -142,31 +278,29 @@ void TokenStream::lex(std::string src) {
                     token.type == TokenType::IntegerLiteral
                 )
             ) {
-                unsigned int saved_i      = i;
+                unsigned int start        = i;
                 unsigned int saved_column = column;
 
-                i++; column++;
+                i++, column++;
 
                 while(is_digit(src[i])) {
-                    i++; column++;
+                    i++, column++;
                 }
 
                 if(!is_identifier(src[i])) {
                     std::string bits =
-                        src.substr(saved_i + 1, i - (saved_i + 1));
+                        src.substr(start + 1, i - (start + 1));
 
-                    if(!(
-                        (bits == "8" && src[saved_i] != 'f') ||
-                        (bits == "16" && src[saved_i] != 'f') ||
-                        bits == "32" || bits == "64")
+                    if(!(((bits == "8" || bits == "16") && src[start] != 'f') ||
+                         bits == "32" || bits == "64")
                     ) {
-                        i      = saved_i; // Invalid suffix, backtrack
+                        i      = start; // Invalid suffix, backtrack
                         column = saved_column;
-                    } else if(src[saved_i] == 'f') {
+                    } else if(src[start] == 'f') {
                         token.type = TokenType::FloatLiteral;
                     }
                 } else {
-                    i      = saved_i; // Invalid suffix, backtrack
+                    i      = start; // Invalid suffix, backtrack
                     column = saved_column;
                 }
             }
@@ -175,78 +309,108 @@ void TokenStream::lex(std::string src) {
 
             token.raw = src.substr(start, length);
 
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == '"') {
-            i++; column++; // Skip opening "
+            break;
+        }
 
-            unsigned int start = i;
+        case ',':
+            i++, column++;
+            token.type = TokenType::Comma;
+            token.raw  = ",";
+            break;
+        case '.':
+            i++, column++;
+            token.type = TokenType::Dot;
+            token.raw  = ".";
+            break;
+        case ';':
+            i++, column++;
+            token.type = TokenType::SemiColon;
+            token.raw  = ";";
+            break;
+        case '(':
+            i++, column++;
+            token.type = TokenType::OpenParenthesis;
+            token.raw  = "(";
+            break;
+        case ')':
+            i++, column++;
+            token.type = TokenType::CloseParenthesis;
+            token.raw  = ")";
+            break;
+        case '{':
+            i++, column++;
+            token.type = TokenType::OpenCurlyBracket;
+            token.raw  = "{";
+            break;
+        case '}':
+            i++, column++;
+            token.type = TokenType::CloseCurlyBracket;
+            token.raw  = "}";
+            break;
+        case '[':
+            i++, column++;
+            token.type = TokenType::OpenSquareBracket;
+            token.raw  = "[";
+            break;
+        case ']':
+            i++, column++;
+            token.type = TokenType::CloseSquareBracket;
+            token.raw  = "]";
+            break;
 
-            while(src[i] != '"') {
-                if(src[i] == '\\') {
-                    i++; column++;
-                } else if(src[i] == '\n') {
-                    // TODO: Should we stop parsing a string here?
-                    this->errors.push_back({
-                        ErrorType::UnexpectedCharacter,
-                        {line, column, i, "\n", TokenType::Unknown}
-                    });
-                    line++;
-                    i++; column = 1;
-                    continue;
+        case '/':
+            if(src[i + 1] == '/') {
+                i += 2; // Skip //
+
+                unsigned int start = i;
+
+                while(i < src.size() && src[i] != '\n') {
+                    i++, column++;
                 }
 
-                i++; column++;
-            }
+                unsigned int length = i - start;
 
-            unsigned int length = i - start;
+                token.type = TokenType::SingleLineComment;
+                token.raw  = src.substr(start, length);
 
-            i++; column++; // Skip closing "
+                break;
+            } else if(src[i + 1] == '*') {
+                i += 2; // Skip /*
 
-            token.type = TokenType::StringLiteral;
-            token.raw  = src.substr(start, length);
+                unsigned int start = i;
 
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == '/' && src[i + 1] == '/') {
-            i += 2; // Skip //
+                while(
+                    i + 1 < src.size() &&
+                    !(src[i] == '*' && src[i + 1] == '/')
+                ) {
+                    if(src[i] == '\n') {
+                        line++;
+                        column = 1;
+                    } else {
+                        column++;
+                    }
 
-            unsigned int start = i;
-
-            while(src[i] != '\n') {
-                i++; column++;
-            }
-
-            unsigned int length = i - start;
-
-            token.type = TokenType::SingleLineComment;
-            token.raw  = src.substr(start, length);
-
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == '/' && src[i + 1] == '*') {
-            i += 2; // Skip /*
-            unsigned int start = i;
-            while(!(src[i] == '*' && src[i + 1] == '/')) {
-                if(src[i] == '\n') {
-                    line++;
-                    column = 1;
-                } else {
-                    column++;
+                    i++;
                 }
-                i++;
+
+                unsigned int length = i - start;
+
+                i += 2; // Skip */
+
+                token.type = TokenType::MultilineComment;
+                token.raw  = src.substr(start, length);
+
+                break;
             }
+            // Fall through
 
-            unsigned int length = i - start;
-
-            i += 2; // Skip */
-
-            token.type = TokenType::MultilineComment;
-            token.raw  = src.substr(start, length);
-
-            this->tokens.push_back(std::move(token));
-        } else if(is_operator(src[i])) {
+        case '!': case '#': case '$': case '%': case '&': case '*':
+        case '+': case '-': case ':': case '<': case '=': case '>':
+        case '?': case '@': case '~': case '^': case '|': case '\\': {
             unsigned int start = i;
 
             while(is_operator(src[i])) {
-                i++; column++;
+                i++, column++;
             }
 
             unsigned int length = i - start;
@@ -258,69 +422,59 @@ void TokenStream::lex(std::string src) {
                 token.type = operators.at(token.raw);
             }
 
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == ',') {
-            i++; column++;
-            token.type = TokenType::Comma;
-            token.raw  = ",";
+            break;
+        }
 
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == '.') {
-            i++; column++;
-            token.type = TokenType::Dot;
-            token.raw  = ".";
+        case '"': {
+            i++, column++; // Skip opening "
 
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == ';') {
-            i++; column++;
-            token.type = TokenType::SemiColon;
-            token.raw  = ";";
+            unsigned int start = i;
 
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == '(') {
-            i++; column++;
-            token.type = TokenType::OpenParenthesis;
-            token.raw  = "(";
+            while(i < src.size() && src[i] != '"') {
+                if(src[i] == '\\') {
+                    i++, column++;
+                } else if(src[i] == '\n') {
+                    // TODO: Should we stop parsing a string here?
+                    this->errors.push_back({
+                        ErrorType::UnexpectedCharacter,
+                        {line, column, i, "\n", TokenType::Unknown},
+                        "Unexpected new line in string"
+                    });
 
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == ')') {
-            i++; column++;
-            token.type = TokenType::CloseParenthesis;
-            token.raw  = ")";
+                    i++;
+                    line++;
+                    column = 1;
 
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == '{') {
-            i++; column++;
-            token.type = TokenType::OpenCurlyBracket;
-            token.raw  = "{";
+                    continue;
+                }
 
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == '}') {
-            i++; column++;
-            token.type = TokenType::CloseCurlyBracket;
-            token.raw  = "}";
+                i++, column++;
+            }
 
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == '[') {
-            i++; column++;
-            token.type = TokenType::OpenSquareBracket;
-            token.raw  = "[";
+            unsigned int length = i - start;
 
-            this->tokens.push_back(std::move(token));
-        } else if(src[i] == ']') {
-            i++; column++;
-            token.type = TokenType::CloseSquareBracket;
-            token.raw  = "]";
+            i++, column++; // Skip closing "
 
-            this->tokens.push_back(std::move(token));
-        } else {
+            token.type = TokenType::StringLiteral;
+            token.raw  = src.substr(start, length);
+
+            break;
+        }
+
+        default: {
             this->errors.push_back({
                 ErrorType::UnexpectedCharacter,
-                {line, column, i, std::string(1, src[i]), TokenType::Unknown}
+                {line, column, i, std::string(1, src[i]), TokenType::Unknown},
+                "Unrecognised character in input"
             });
 
-            i++; column++;
+            i++, column++;
+
+            continue;
         }
+        }
+
+        this->tokens.push_back(std::move(token));
     }
 
     Token end_token;

@@ -19,6 +19,13 @@ public:
      * @param src The source code to lex
      */
     void lex(std::string src);
+
+private:
+    /** The current line number of the lexer */
+    unsigned int line = 1;
+
+    /** The current column number of the lexer */
+    unsigned int column = 1;
 };
 
 #endif // SRC_TOKENSTREAM_H
