@@ -525,7 +525,7 @@ void Semantics::pass3_node(AstNode *node) {
                 for(auto a : nm->params) {
                     x->op += type_to_string(a->type);
 
-           }
+                }
             }
         }
 
@@ -718,8 +718,7 @@ AstType *Semantics::determin_type(AstNode *node) {
             if(z != nullptr) {
                 return z;
             }
-
-   }
+        }
         {
             auto z = determin_type(p2_get_affix(x->name));
 
@@ -882,3 +881,4 @@ AstType *Semantics::determin_type(AstNode *node) {
 
     return nullptr;
 }
+

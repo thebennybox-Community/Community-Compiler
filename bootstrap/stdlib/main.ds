@@ -1,7 +1,5 @@
-
 extern {
     fn putchar(ch: u8) : i32;
-    fn gets(x: str);
     fn printf(x: str);
 }
 
@@ -11,8 +9,15 @@ fn println(x: str)
     putchar(10);
 }
 
+fn print_num(x: i32)
+{
+    printf("%d", x);
+    putchar(10);
+}
+
+
 
 fn main()
 {
-    println("Hello World");  
+    println("Hello World!"); 
 }
