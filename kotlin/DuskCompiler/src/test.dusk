@@ -1,0 +1,19 @@
+fn repeat(self: str, amount: u32): str {
+  var result = "";
+  // Do we allow `loop` without brackets?
+  loop(amount)
+    result += self;
+  return result;
+}
+
+// We do not need to repeat a string 4 billion times
+// why not?
+// Life isn't about why, it's about why not!
+// They spent so much time asking why not, they forgot to ask why
+infix op *(string: str, amount: u32): str {
+  return repeat(string, amount);
+}
+
+fn max(a: i32, b: i32): i32 {
+    return if(a > b) a else b;
+}
