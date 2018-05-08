@@ -131,7 +131,6 @@ AstString *Parser::parse_string() {
     result->column = cur_tok.column;
     result->value  = cur_tok.raw;
 
-
     next_token();
 
     return result;
@@ -179,7 +178,6 @@ AstNumber *Parser::parse_number() {
 
     }
 
-
     next_token();
 
     return result;
@@ -193,7 +191,6 @@ AstBoolean *Parser::parse_boolean() {
     result->value  = cur_tok.raw == "true";
 
     next_token();
-
 
     return result;
 }
