@@ -1,0 +1,7 @@
+EXFN printf i32 [str i32]
+PI32 8
+PI32 4
+IADD
+
+PSTR "8 + 4 = %d\n"
+CALL printf
