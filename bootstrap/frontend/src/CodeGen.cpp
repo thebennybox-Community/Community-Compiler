@@ -1,5 +1,5 @@
-
 #include "CodeGen.h"
+
 #include <algorithm>
 
 static std::string type_to_string(const AstType *node) {
@@ -177,7 +177,9 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
             unsigned char args[x->params.size()];
 
             for(int i = 0; i < x->params.size(); i++) {
-                auto b  = (x->params.at(i)->type);
+                auto b  = (x->params.at(i
+
+                                       )->type);
                 args[i] = to_IL_type(b);
             }
 
@@ -329,7 +331,8 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
     }
 
     case AstNodeType::AstBreak: {
-        auto x = (AstBreak *)node;
+
+    auto x = (AstBreak *)node;
         auto lblout =
             (std::string("lblout") + std::to_string(g_counter)).c_str();
         il.jump(lblout);

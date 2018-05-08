@@ -12,11 +12,11 @@ Ast *Parser::parse(const std::vector<Token> &tokens) {
 
     while(this->token_index < this->tokens.size() - 1) {
         AstNode *statement = parse_stmt();
+
         if(this->errors.size() == 0 && statement) {
             ast->root->statements.push_back(statement);
         } else {
-            if(statement)
-                delete statement;
+            delete statement;
         }
     }
 
@@ -25,36 +25,49 @@ Ast *Parser::parse(const std::vector<Token> &tokens) {
 
 AstNode *Parser::parse_stmt() {
     switch(cur_tok.type) {
-#define _(type, name)                                                          \
-    case TokenType::type:                                                      \
-        return parse_##name()
-
     case TokenType::Symbol: {
         auto result = parse_expr();
+
         if(!expect(TokenType::SemiColon)) {
             return nullptr;
         }
+
         return result;
     }
-        _(OpenCurlyBracket, block);
-        _(StringLiteral, expr);
-        _(IntegerLiteral, expr);
-        _(FloatLiteral, expr);
-        _(Boolean, expr);
-        _(Dec, dec);
-        _(Fn, fn);
-        _(If, if);
-        _(Loop, loop);
-        _(Continue, continue);
-        _(Break, break);
-        _(Struct, struct);
-        _(Impl, impl);
-        _(At, at);
-        _(Suffix, affix);
-        _(Prefix, affix);
-        _(Infix, affix);
-        _(Return, return );
-        _(Extern, extern);
+
+    case TokenType::OpenCurlyBracket:  return parse_block();
+
+    case TokenType::StringLiteral:     // Fall through
+    case TokenType::IntegerLiteral:    // Fall through
+    case TokenType::FloatLiteral:      // Fall through
+    case TokenType::Boolean:           return parse_expr();
+
+    case TokenType::Var:               // Fall through
+    case TokenType::Let:               return parse_decl();
+
+    case TokenType::Fn:                return parse_fn();
+
+    case TokenType::If:                return parse_if();
+
+    case TokenType::Loop:              return parse_loop();
+
+    case TokenType::Continue:          return parse_continue();
+
+    case TokenType::Break:             return parse_break();
+
+    case TokenType::Struct:            return parse_struct();
+
+    case TokenType::Impl:              return parse_impl();
+
+    case TokenType::At:                return parse_attr();
+
+    case TokenType::Suffix:            // Fall through
+    case TokenType::Prefix:            // Fall through
+    case TokenType::Infix:             return parse_affix();
+
+    case TokenType::Return:            return parse_return();
+
+    case TokenType::Extern:            return parse_extern();
 
     case TokenType::MultilineComment:  // Fall through
     case TokenType::SingleLineComment: // Fall through
@@ -63,11 +76,9 @@ AstNode *Parser::parse_stmt() {
         return nullptr;
 
     default:
-        next_token();
         this->errors.push_back({ErrorType::UnexpectedToken, cur_tok});
+        next_token();
         break;
-
-#undef _
     }
 
     return nullptr;
@@ -78,17 +89,16 @@ AstBlock *Parser::parse_block() {
         return nullptr;
     }
 
-    AstBlock *result = new AstBlock();
-
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
+    AstBlock *result = new AstBlock(cur_tok.line, cur_tok.column);
 
     while(!accept(TokenType::CloseCurlyBracket)) {
         AstNode *statement = parse_stmt();
+
         if(!statement) {
             delete result;
             return nullptr;
         }
+
         result->statements.push_back(statement);
     }
 
@@ -98,12 +108,9 @@ AstBlock *Parser::parse_block() {
 AstNode *Parser::parse_symbol() {
     if(peek_tok.type == TokenType::OpenParenthesis) {
         // Function call
-        AstFnCall *result = new AstFnCall();
+        AstFnCall *result = new AstFnCall(cur_tok.line, cur_tok.column);
 
-        result->line   = cur_tok.line;
-        result->column = cur_tok.column;
-
-        result->name       = new AstSymbol();
+        result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
         result->name->name = cur_tok.raw;
 
         next_token();
@@ -115,12 +122,9 @@ AstNode *Parser::parse_symbol() {
 
         return result;
     } else {
+        AstSymbol *result = new AstSymbol(cur_tok.line, cur_tok.column);
 
-        AstSymbol *result = new AstSymbol();
-
-        result->line   = cur_tok.line;
-        result->column = cur_tok.column;
-        result->name   = cur_tok.raw;
+        result->name = cur_tok.raw;
 
         next_token();
 
@@ -129,11 +133,9 @@ AstNode *Parser::parse_symbol() {
 }
 
 AstString *Parser::parse_string() {
-    AstString *result = new AstString();
+    AstString *result = new AstString(cur_tok.line, cur_tok.column);
 
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
-    result->value  = cur_tok.raw;
+    result->value = cur_tok.raw;
 
     next_token();
 
@@ -141,10 +143,7 @@ AstString *Parser::parse_string() {
 }
 
 AstNumber *Parser::parse_number() {
-    AstNumber *result = new AstNumber();
-
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
+    AstNumber *result = new AstNumber(cur_tok.line, cur_tok.column);
 
     // Extract everything before the suffix, convert to integer, everything
     // after suffix is number of bits. Default integer is i32, default float is
@@ -158,6 +157,7 @@ AstNumber *Parser::parse_number() {
 
         if((suffix_start = cur_tok.raw.find("u")) != std::string::npos) {
             result->is_signed = false;
+
             result->value.u = std::stoull(cur_tok.raw.substr(0, suffix_start));
             result->bits    = std::stoi(cur_tok.raw.substr(suffix_start + 1));
         } else if((suffix_start = cur_tok.raw.find("i")) != std::string::npos) {
@@ -187,11 +187,9 @@ AstNumber *Parser::parse_number() {
 }
 
 AstBoolean *Parser::parse_boolean() {
-    AstBoolean *result = new AstBoolean();
+    AstBoolean *result = new AstBoolean(cur_tok.line, cur_tok.column);
 
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
-    result->value  = cur_tok.raw == "true";
+    result->value = cur_tok.raw == "true";
 
     next_token();
 
@@ -199,19 +197,18 @@ AstBoolean *Parser::parse_boolean() {
 }
 
 AstArray *Parser::parse_array() {
-    AstArray *result = new AstArray();
-
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
+    AstArray *result = new AstArray(cur_tok.line, cur_tok.column);
 
     next_token();
 
     while(!accept(TokenType::CloseSquareBracket)) {
         AstNode *element = parse_expr();
+
         if(!element) {
             delete result;
             return nullptr;
         }
+
         result->elements.push_back(element);
 
         if(!accept(TokenType::Comma)) {
@@ -219,6 +216,7 @@ AstArray *Parser::parse_array() {
                 delete result;
                 return nullptr;
             }
+
             break;
         }
     }
@@ -227,11 +225,9 @@ AstArray *Parser::parse_array() {
 }
 
 AstType *Parser::parse_type() {
-    AstType *result = new AstType();
+    AstType *result = new AstType(cur_tok.line, cur_tok.column);
 
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
-    result->name   = cur_tok.raw;
+    result->name = cur_tok.raw;
 
     if(!expect(TokenType::Symbol)) {
         delete result;
@@ -243,29 +239,28 @@ AstType *Parser::parse_type() {
             delete result;
             return nullptr;
         }
-        AstType *new_result  = new AstType();
-        new_result->line     = result->line;
-        new_result->column   = result->column;
+
+        AstType *new_result = new AstType(result->line, result->column);
+
         new_result->is_array = true;
         new_result->subtype  = result;
-        result               = new_result;
+
+        result = new_result;
     }
 
     return result;
 }
 
-AstDec *Parser::parse_dec() {
-    AstDec *result = new AstDec();
+AstDec *Parser::parse_decl() {
+    AstDec *result = new AstDec(cur_tok.line, cur_tok.column);
 
     size_t start = this->token_index;
 
-    result->line      = cur_tok.line;
-    result->column    = cur_tok.column;
-    result->immutable = cur_tok.raw == "let";
+    result->immutable = cur_tok.type == TokenType::Let;
 
     next_token();
 
-    result->name       = new AstSymbol();
+    result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
     result->name->name = cur_tok.raw;
 
     if(!expect(TokenType::Symbol)) {
@@ -278,6 +273,7 @@ AstDec *Parser::parse_dec() {
     if(accept(TokenType::Colon)) {
         valid        = true;
         result->type = parse_type();
+
         if(!result->type) {
             delete result;
             return nullptr;
@@ -287,6 +283,7 @@ AstDec *Parser::parse_dec() {
     if(accept(TokenType::Equal)) {
         valid         = true;
         result->value = parse_expr();
+
         if(!result->value) {
             delete result;
             return nullptr;
@@ -308,10 +305,7 @@ AstDec *Parser::parse_dec() {
 }
 
 AstIf *Parser::parse_if() {
-    AstIf *result = new AstIf();
-
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
+    AstIf *result = new AstIf(cur_tok.line, cur_tok.column);
 
     next_token();
 
@@ -319,10 +313,12 @@ AstIf *Parser::parse_if() {
         delete result;
         return nullptr;
     }
+
     if(!(result->condition = parse_expr())) {
         delete result;
         return nullptr;
     }
+
     if(!expect(TokenType::CloseParenthesis)) {
         delete result;
         return nullptr;
@@ -335,22 +331,19 @@ AstIf *Parser::parse_if() {
 
     if(accept(TokenType::Else)) {
         if(cur_tok.type == TokenType::If) {
-            result->false_block         = new AstBlock();
-            result->false_block->line   = cur_tok.line;
-            result->false_block->column = cur_tok.column;
+            result->false_block = new AstBlock(cur_tok.line, cur_tok.column);
 
             AstIf *next_if = parse_if();
+
             if(!next_if) {
                 delete result;
                 return nullptr;
             }
 
             result->false_block->statements.push_back(next_if);
-        } else {
-            if(!(result->false_block = parse_block())) {
-                delete result;
-                return nullptr;
-            }
+        } else if(!(result->false_block = parse_block())) {
+            delete result;
+            return nullptr;
         }
     }
 
@@ -358,14 +351,11 @@ AstIf *Parser::parse_if() {
 }
 
 AstFn *Parser::parse_fn(bool require_body) {
-    AstFn *result = new AstFn();
-
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
+    AstFn *result = new AstFn(cur_tok.line, cur_tok.column);
 
     next_token();
 
-    result->name       = new AstSymbol();
+    result->name = new AstSymbol(cur_tok.line, cur_tok.column);
     result->name->name = cur_tok.raw;
 
     if(!expect(TokenType::Symbol)) {
@@ -374,8 +364,9 @@ AstFn *Parser::parse_fn(bool require_body) {
     }
 
     if(accept(TokenType::Dot)) {
-        result->type_self  = result->name;
-        result->name       = new AstSymbol();
+        result->type_self = result->name;
+
+        result->name = new AstSymbol(cur_tok.line, cur_tok.column);
         result->name->name = cur_tok.raw;
 
         if(!expect(TokenType::Symbol)) {
@@ -396,7 +387,13 @@ AstFn *Parser::parse_fn(bool require_body) {
         }
     }
 
-    if(require_body && !(result->body = parse_block())) {
+    if(cur_tok.type == TokenType::OpenCurlyBracket) {
+        if(!(result->body = parse_block())) {
+            delete result;
+            return nullptr;
+        }
+    } else if(require_body) {
+        // Body required but not found
         delete result;
         return nullptr;
     }
@@ -405,10 +402,8 @@ AstFn *Parser::parse_fn(bool require_body) {
 }
 
 AstLoop *Parser::parse_loop() {
-    AstLoop *result = new AstLoop();
+    AstLoop *result = new AstLoop(cur_tok.line, cur_tok.column);
 
-    result->line       = cur_tok.line;
-    result->column     = cur_tok.column;
     result->is_foreach = false;
 
     next_token();
@@ -420,7 +415,8 @@ AstLoop *Parser::parse_loop() {
 
     if(cur_tok.type == TokenType::Symbol && peek_tok.type == TokenType::In) {
         result->is_foreach = true;
-        result->name       = new AstSymbol();
+
+        result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
         result->name->name = cur_tok.raw;
 
         accept(TokenType::Symbol);
@@ -436,6 +432,7 @@ AstLoop *Parser::parse_loop() {
         delete result;
         return nullptr;
     }
+
     if(!(result->body = parse_block())) {
         delete result;
         return nullptr;
@@ -445,9 +442,7 @@ AstLoop *Parser::parse_loop() {
 }
 
 AstContinue *Parser::parse_continue() {
-    AstContinue *result = new AstContinue();
-    result->line        = cur_tok.line;
-    result->column      = cur_tok.column;
+    AstContinue *result = new AstContinue(cur_tok.line, cur_tok.column);
 
     next_token();
 
@@ -460,9 +455,7 @@ AstContinue *Parser::parse_continue() {
 }
 
 AstBreak *Parser::parse_break() {
-    AstBreak *result = new AstBreak();
-    result->line     = cur_tok.line;
-    result->column   = cur_tok.column;
+    AstBreak *result = new AstBreak(cur_tok.line, cur_tok.column);
 
     next_token();
 
@@ -479,12 +472,9 @@ AstStruct *Parser::parse_struct() {
         return nullptr; // Internal error
     }
 
-    AstStruct *result = new AstStruct();
+    AstStruct *result = new AstStruct(cur_tok.line, cur_tok.column);
 
-    result->line       = cur_tok.line;
-    result->column     = cur_tok.column;
-    result->block      = new AstBlock();
-    result->name       = new AstSymbol();
+    result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
     result->name->name = cur_tok.raw;
 
     if(!expect(TokenType::Symbol)) {
@@ -492,16 +482,17 @@ AstStruct *Parser::parse_struct() {
         return nullptr;
     }
 
+    result->block = new AstBlock(cur_tok.line, cur_tok.column);
+
     if(!expect(TokenType::OpenCurlyBracket)) {
         delete result;
         return nullptr;
     }
-    while(!accept(TokenType::CloseCurlyBracket)) {
-        AstDec *decl = new AstDec();
 
-        decl->line       = cur_tok.line;
-        decl->column     = cur_tok.column;
-        decl->name       = new AstSymbol();
+    while(!accept(TokenType::CloseCurlyBracket)) {
+        AstDec *decl = new AstDec(cur_tok.line, cur_tok.column);
+
+        decl->name       = new AstSymbol(cur_tok.line, cur_tok.column);
         decl->name->name = cur_tok.raw;
 
         if(!expect(TokenType::Symbol)) {
@@ -513,6 +504,7 @@ AstStruct *Parser::parse_struct() {
             delete result;
             return nullptr;
         }
+
         if(!(decl->type = parse_type())) {
             delete result;
             return nullptr;
@@ -525,14 +517,11 @@ AstStruct *Parser::parse_struct() {
 }
 
 AstImpl *Parser::parse_impl() {
-    AstImpl *result = new AstImpl();
-
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
+    AstImpl *result = new AstImpl(cur_tok.line, cur_tok.column);
 
     next_token();
 
-    result->name       = new AstSymbol();
+    result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
     result->name->name = cur_tok.raw;
 
     if(!expect(TokenType::Symbol)) {
@@ -548,15 +537,12 @@ AstImpl *Parser::parse_impl() {
     return result;
 }
 
-AstAttribute *Parser::parse_at() {
-    AstAttribute *result = new AstAttribute();
-
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
+AstAttribute *Parser::parse_attr() {
+    AstAttribute *result = new AstAttribute(cur_tok.line, cur_tok.column);
 
     next_token();
 
-    result->name       = new AstSymbol();
+    result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
     result->name->name = cur_tok.raw;
 
     if(!expect(TokenType::Symbol)) {
@@ -581,16 +567,14 @@ AstAffix *Parser::parse_affix() {
         {"suffix", AffixType::Suffix},
     };
 
-    AstAffix *result = new AstAffix();
+    AstAffix *result = new AstAffix(cur_tok.line, cur_tok.column);
 
-    result->line       = cur_tok.line;
-    result->column     = cur_tok.column;
     result->affix_type = affix_types.at(cur_tok.raw);
 
     next_token();
 
     if(accept(TokenType::Op)) {
-        result->name       = new AstSymbol();
+        result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
         result->name->name = cur_tok.raw;
 
         if(!expect(TokenType::CustomOperator)) {
@@ -602,29 +586,33 @@ AstAffix *Parser::parse_affix() {
             delete result;
             return nullptr;
         }
+
         if(accept(TokenType::Colon)) {
             if(!(result->return_type = parse_type())) {
                 delete result;
                 return nullptr;
             }
         }
+
         if(!(result->body = parse_block())) {
             delete result;
             return nullptr;
         }
     } else if(cur_tok.type == TokenType::Fn) {
         AstFn *fn = parse_fn();
+
         if(!fn) {
             delete result;
             return nullptr;
         }
+
         result->name        = fn->name;
         result->params      = fn->params;
         result->return_type = fn->return_type;
         result->body        = fn->body;
 
-        fn->name = nullptr;
         fn->params.clear();
+        fn->name        = nullptr;
         fn->return_type = nullptr;
         fn->body        = nullptr;
     } else {
@@ -636,10 +624,7 @@ AstAffix *Parser::parse_affix() {
 }
 
 AstReturn *Parser::parse_return() {
-    AstReturn *result = new AstReturn();
-
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
+    AstReturn *result = new AstReturn(cur_tok.line, cur_tok.column);
 
     next_token();
 
@@ -661,36 +646,39 @@ AstReturn *Parser::parse_return() {
 }
 
 AstExtern *Parser::parse_extern() {
-    AstExtern *result = new AstExtern();
-
-    result->line   = cur_tok.line;
-    result->column = cur_tok.column;
+    AstExtern *result = new AstExtern(cur_tok.line, cur_tok.column);
 
     next_token();
 
     if(accept(TokenType::OpenCurlyBracket)) {
         while(!accept(TokenType::CloseCurlyBracket)) {
             AstFn *decl = parse_fn(false);
+
             if(!decl) {
                 delete result;
                 return nullptr;
             }
+
             if(!expect(TokenType::SemiColon)) {
                 delete result;
                 return nullptr;
             }
+
             result->decls.push_back(decl);
         }
     } else {
         AstFn *decl = parse_fn(false);
+
         if(!decl) {
             delete result;
             return nullptr;
         }
+
         if(!expect(TokenType::SemiColon)) {
             delete result;
             return nullptr;
         }
+
         result->decls.push_back(decl);
     }
 
@@ -701,6 +689,7 @@ AstNode *Parser::parse_expr() {
     unsigned int line = cur_tok.line, column = cur_tok.column;
 
     AstNode *result = parse_expr_primary();
+
     if(!result) {
         delete result;
         return nullptr;
@@ -710,11 +699,9 @@ AstNode *Parser::parse_expr() {
         return result;
     }
 
-    AstBinaryExpr *expr = new AstBinaryExpr();
+    AstBinaryExpr *expr = new AstBinaryExpr(line, column);
 
-    expr->line   = line;
-    expr->column = column;
-    expr->op     = cur_tok.raw;
+    expr->op = cur_tok.raw;
 
     next_token();
 
@@ -731,26 +718,34 @@ AstNode *Parser::parse_expr_primary() {
     case TokenType::Symbol:
         result = parse_symbol();
         break;
+
     case TokenType::StringLiteral:
         result = parse_string();
         break;
+
     case TokenType::FloatLiteral: // Fall through
     case TokenType::IntegerLiteral:
         result = parse_number();
         break;
+
     case TokenType::Boolean:
         result = parse_boolean();
         break;
+
     case TokenType::OpenSquareBracket:
         result = parse_array();
         break;
+
     case TokenType::OpenParenthesis:
         accept(TokenType::OpenParenthesis);
+
         result = parse_expr();
+
         if(!expect(TokenType::CloseParenthesis)) {
             delete result;
             return nullptr;
         }
+
         break;
 
     default:
@@ -758,10 +753,7 @@ AstNode *Parser::parse_expr_primary() {
     }
 
     if(accept(TokenType::OpenSquareBracket)) {
-        AstIndex *index = new AstIndex();
-
-        index->line   = result->line;
-        index->column = result->column;
+        AstIndex *index = new AstIndex(result->line, result->column);
 
         index->array = result;
         index->expr  = parse_expr();
@@ -783,11 +775,9 @@ bool Parser::parse_params(std::vector<AstDec *> &result) {
     }
 
     while(!accept(TokenType::CloseParenthesis)) {
-        AstDec *param = new AstDec();
-        param->line   = cur_tok.line;
-        param->column = cur_tok.column;
+        AstDec *param = new AstDec(cur_tok.line, cur_tok.column);
 
-        param->name       = new AstSymbol();
+        param->name       = new AstSymbol(cur_tok.line, cur_tok.column);
         param->name->name = cur_tok.raw;
 
         if(!expect(TokenType::Symbol)) {
@@ -808,6 +798,7 @@ bool Parser::parse_params(std::vector<AstDec *> &result) {
             if(!expect(TokenType::CloseParenthesis)) {
                 return false;
             }
+
             break;
         }
     }
@@ -822,6 +813,7 @@ bool Parser::parse_args(std::vector<AstNode *> &result) {
 
     while(!accept(TokenType::CloseParenthesis)) {
         AstNode *expr = parse_expr();
+
         if(!expr) {
             return false;
         }
@@ -831,6 +823,7 @@ bool Parser::parse_args(std::vector<AstNode *> &result) {
         if(accept(TokenType::CloseParenthesis)) {
             break;
         }
+
         if(!expect(TokenType::Comma)) {
             return false;
         }
@@ -843,14 +836,16 @@ bool Parser::next_token() {
     if(this->token_index == this->tokens.size() - 1) {
         return false;
     }
+
     this->token_index++;
 
     while(this->tokens[this->token_index].type == TokenType::SingleLineComment
-          || this->tokens[this->token_index].type
-                 == TokenType::MultilineComment) {
+            || this->tokens[this->token_index].type
+            == TokenType::MultilineComment) {
         if(this->token_index == this->tokens.size() - 1) {
             return false;
         }
+
         this->token_index++;
     }
 
@@ -873,5 +868,6 @@ bool Parser::expect(TokenType type) {
     }
 
     this->errors.push_back({ErrorType::UnexpectedToken, cur_tok});
+
     return false;
 }

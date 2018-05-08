@@ -60,25 +60,25 @@ struct str {
     chars: u8[]
 }
 
-impl str {
-    infix op +(other: str): str {
-        let resultChars = u8[length + other.length];
-
-        var c = 0;
-
-        //first string
-        loop(self.length) {
-            resultChars[c] = self.chars[c++];
-        }
-
-        //second string
-        loop(other.length) {
-            resultChars[c] = other.chars[c++];
-        }
-
-        return str(length + other.length, resultChars);
-    }
-}
+//impl str {
+//    infix op +(other: str): str {
+//        let resultChars = u8[length + other.length];
+//
+//        var c = 0;
+//
+//        //first string
+//        loop(self.length) {
+//            resultChars[c] = self.chars[c++];
+//        }
+//
+//        //second string
+//        loop(other.length) {
+//            resultChars[c] = other.chars[c++];
+//        }
+//
+//        return str(length + other.length, resultChars);
+//    }
+//}
 
 
 //terminal lib

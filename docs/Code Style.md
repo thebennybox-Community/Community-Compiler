@@ -29,7 +29,7 @@ Code should be indented by four spaces
 ```
 impl Test {
     fn function() {
-        doSomething();
+        do_something();
     }
 }
 ```
@@ -118,11 +118,11 @@ match (a) {
 ```
 
 ## Naming
-Functions and variables should be written in camelCase
+Functions and variables should be written in snake\_case
 ```
-fn doStuff() { ... }
+fn do_stuff() { ... }
 
-dec reallyCoolValue;
+dec really_cool_value;
 ```
 
 Structs should be named with PascalCase

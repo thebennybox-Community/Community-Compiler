@@ -2,7 +2,6 @@
 #define AST_PRETTY_PRINTER_H
 
 #include "Ast.h"
-
 #include "TokenStream.h"
 
 void pretty_print_ast(Ast &ast);

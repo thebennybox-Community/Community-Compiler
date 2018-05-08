@@ -1,7 +1,3 @@
-//
-// Created by myvar on 4/29/18.
-//
-
 #ifndef SRC_TOKEN_H
 #define SRC_TOKEN_H
 
@@ -28,7 +24,8 @@
     F(OpenSquareBracket), \
     F(CloseSquareBracket), \
     \
-    F(Dec), \
+    F(Var), \
+    F(Let), \
     F(Fn), \
     F(Continue), \
     F(Break), \
@@ -66,16 +63,16 @@
 
 #define token_type_is_operator(t) \
     ( \
-        t == TokenType::Dot || \
-        t == TokenType::Equal || \
-        t == TokenType::CmpEqual || \
-        t == TokenType::NotEqual || \
-        t == TokenType::GreaterThan || \
-        t == TokenType::GreaterThanEqual || \
-        t == TokenType::LessThan || \
-        t == TokenType::LessThanEqual || \
-        t == TokenType::CustomOperator || \
-        t == TokenType::Symbol \
+      t == TokenType::Dot || \
+      t == TokenType::Equal || \
+      t == TokenType::CmpEqual || \
+      t == TokenType::NotEqual || \
+      t == TokenType::GreaterThan || \
+      t == TokenType::GreaterThanEqual || \
+      t == TokenType::LessThan || \
+      t == TokenType::LessThanEqual || \
+      t == TokenType::CustomOperator || \
+      t == TokenType::Symbol \
     )
 
 enum class TokenType {
@@ -96,4 +93,4 @@ public:
     TokenType type;
 };
 
-#endif //SRC_TOKEN_H
+#endif // SRC_TOKEN_H

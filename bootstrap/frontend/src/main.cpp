@@ -15,19 +15,23 @@ void error(TokenStream stream, Parser parser) {
                 token.line,
                 token.column,
                 token.offset,
-                token.raw.c_str());
+                token.raw.c_str()
+            );
         }
+    }
 
+    if(stream.errors.size() != 0) {
         for(Error error : stream.errors) {
             printf(
                 "Error type: %-4d "
                 "type: %-18s line: %-4u col: %-3u offset: %-5u raw: \"%s\"\n",
-                (int)error.error_type,
+                (int)error.type,
                 token_type_names[(int)error.token.type],
                 error.token.line,
                 error.token.column,
                 error.token.offset,
-                error.token.raw.c_str());
+                error.token.raw.c_str()
+            );
         }
     }
 
@@ -35,12 +39,13 @@ void error(TokenStream stream, Parser parser) {
         printf(
             "Error type: %-4d "
             "type: %-18s line: %-4d col: %-3d offset: %-5d raw: \"%s\"\n",
-            (int)error.error_type,
+            (int)error.type,
             token_type_names[(int)error.token.type],
             error.token.line,
             error.token.column,
             error.token.offset,
-            error.token.raw.c_str());
+            error.token.raw.c_str()
+        );
     }
 }
 
