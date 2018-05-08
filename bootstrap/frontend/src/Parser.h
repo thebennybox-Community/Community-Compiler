@@ -16,7 +16,7 @@ public:
      *
      * @return Ast object, containing the root block
      */
-    Ast parse(const std::vector<Token> &tokens);
+    Ast *parse(const std::vector<Token> &tokens);
 
     /** List of errors that occurred during parsing */
     std::vector<Error> errors;
@@ -162,7 +162,8 @@ private:
     /**
      * Parses an affix function or operator. Expects the current token to be
      * "infix", "prefix" or "suffix". After this function, the current token is
-     * the one after the closing curly bracket.
+     * the one
+ after the closing curly bracket.
      *
      * @return The affix node
      */
@@ -212,7 +213,7 @@ private:
      *
      * @return Whether the list was parsed successfully
      */
-    bool parse_params(std::vector<AstDec*> &result);
+    bool parse_params(std::vector<AstDec *> &result);
 
     /**
      * Parses an argument list. Expects the current token to be the opening
@@ -223,7 +224,7 @@ private:
      *
      * @return Whether the list was parsed successfully
      */
-    bool parse_args(std::vector<AstNode*> &result);
+    bool parse_args(std::vector<AstNode *> &result);
 
     /**
      * Advances to the next token, not including comments.

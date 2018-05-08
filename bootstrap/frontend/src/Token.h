@@ -63,16 +63,16 @@
 
 #define token_type_is_operator(t) \
     ( \
-        t == TokenType::Dot || \
-        t == TokenType::Equal || \
-        t == TokenType::CmpEqual || \
-        t == TokenType::NotEqual || \
-        t == TokenType::GreaterThan || \
-        t == TokenType::GreaterThanEqual || \
-        t == TokenType::LessThan || \
-        t == TokenType::LessThanEqual || \
-        t == TokenType::CustomOperator || \
-        t == TokenType::Symbol \
+      t == TokenType::Dot || \
+      t == TokenType::Equal || \
+      t == TokenType::CmpEqual || \
+      t == TokenType::NotEqual || \
+      t == TokenType::GreaterThan || \
+      t == TokenType::GreaterThanEqual || \
+      t == TokenType::LessThan || \
+      t == TokenType::LessThanEqual || \
+      t == TokenType::CustomOperator || \
+      t == TokenType::Symbol \
     )
 
 enum class TokenType {

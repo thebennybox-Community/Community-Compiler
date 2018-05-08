@@ -1,11 +1,11 @@
 #ifndef SRC_ILEMMITER_H
 #define SRC_ILEMMITER_H
 
-#include "Ast.h"
+#include <vector>
 #include <map>
 #include <stdio.h>
 #include <string.h>
-#include <vector>
+#include "Ast.h"
 
 #define NOOP 0xFF
 //**Push Numeric**
@@ -96,25 +96,23 @@
 #define PTR (unsigned char)0xB
 #define VOID (unsigned char)0xF
 
-static const std::map<std::string, unsigned char> type_map =
-
-{   {"u8", U8},
-    {"u16", U16},
-    {"u32", U32},
-    {"u64", U64},
-    {"i8", I8},
-    {"i16", I16},
-    {"i32", I32},
-    {"i64", I64},
-    {"f32", F32},
-    {"f64", F64},
-    {"str", STR},
-    {"ptr", PTR},
-    {"void", VOID}
+static const std::map<std::string, unsigned char> type_map = {
+    {"u8",   U8},
+    {"u16",  U16},
+    {"u32",  U32},
+    {"u64",  U64},
+    {"i8",   I8},
+    {"i16",  I16},
+    {"i32",  I32},
+    {"i64",  I64},
+    {"f32",  F32},
+    {"f64",  F64},
+    {"str",  STR},
+    {"ptr",  PTR},
+    {"void", VOID},
 };
 
 static unsigned char to_IL_type(AstType *x) {
-
     if(x == nullptr) {
         return VOID;
     }
@@ -123,8 +121,7 @@ static unsigned char to_IL_type(AstType *x) {
         return to_IL_type(x->subtype);
     }
 
-    auto z = type_map.at(x->name);
-    return z;
+    return type_map.at(x->name);
 }
 
 class ILemitter {
@@ -291,4 +288,4 @@ public:
     }
 };
 
-#endif
+#endif // SRC_ILEMITTER_H

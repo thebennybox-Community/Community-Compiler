@@ -273,11 +273,11 @@ void TokenStream::lex(std::string src) {
             }
 
             if(src[i] == 'f' ||
-                (
-                    (src[i] == 'i' || src[i] == 'u') &&
-                    token.type == TokenType::IntegerLiteral
-                )
-            ) {
+                    (
+                        (src[i] == 'i' || src[i] == 'u') &&
+                        token.type == TokenType::IntegerLiteral
+                    )
+              ) {
                 unsigned int start        = i;
                 unsigned int saved_column = column;
 
@@ -292,8 +292,8 @@ void TokenStream::lex(std::string src) {
                         src.substr(start + 1, i - (start + 1));
 
                     if(!(((bits == "8" || bits == "16") && src[start] != 'f') ||
-                         bits == "32" || bits == "64")
-                    ) {
+                            bits == "32" || bits == "64")
+                      ) {
                         i      = start; // Invalid suffix, backtrack
                         column = saved_column;
                     } else if(src[start] == 'f') {
@@ -317,49 +317,57 @@ void TokenStream::lex(std::string src) {
             token.type = TokenType::Comma;
             token.raw  = ",";
             break;
+
         case '.':
             i++, column++;
             token.type = TokenType::Dot;
             token.raw  = ".";
             break;
+
         case ';':
             i++, column++;
             token.type = TokenType::SemiColon;
             token.raw  = ";";
             break;
+
         case '(':
             i++, column++;
             token.type = TokenType::OpenParenthesis;
             token.raw  = "(";
             break;
+
         case ')':
             i++, column++;
             token.type = TokenType::CloseParenthesis;
             token.raw  = ")";
             break;
+
         case '{':
             i++, column++;
             token.type = TokenType::OpenCurlyBracket;
             token.raw  = "{";
             break;
+
         case '}':
             i++, column++;
             token.type = TokenType::CloseCurlyBracket;
             token.raw  = "}";
             break;
+
         case '[':
             i++, column++;
             token.type = TokenType::OpenSquareBracket;
             token.raw  = "[";
             break;
+
         case ']':
             i++, column++;
             token.type = TokenType::CloseSquareBracket;
             token.raw  = "]";
             break;
 
-        case '/':
-            if(src[i + 1] == '/') {
+        case '/': {
+          if(src[i + 1] == '/') {
                 i += 2; // Skip //
 
                 unsigned int start = i;
@@ -402,7 +410,9 @@ void TokenStream::lex(std::string src) {
 
                 break;
             }
+
             // Fall through
+        }
 
         case '!': case '#': case '$': case '%': case '&': case '*':
         case '+': case '-': case ':': case '<': case '=': case '>':

@@ -16,8 +16,7 @@ Ast *Parser::parse(const std::vector<Token> &tokens) {
         if(this->errors.size() == 0 && statement) {
             ast->root->statements.push_back(statement);
         } else {
-            if(statement)
-                delete statement;
+            delete statement;
         }
     }
 
@@ -35,25 +34,39 @@ AstNode *Parser::parse_stmt() {
 
         return result;
     }
+
     case TokenType::OpenCurlyBracket:  return parse_block();
+
     case TokenType::StringLiteral:     // Fall through
     case TokenType::IntegerLiteral:    // Fall through
     case TokenType::FloatLiteral:      // Fall through
     case TokenType::Boolean:           return parse_expr();
+
     case TokenType::Var:               // Fall through
     case TokenType::Let:               return parse_decl();
+
     case TokenType::Fn:                return parse_fn();
+
     case TokenType::If:                return parse_if();
+
     case TokenType::Loop:              return parse_loop();
+
     case TokenType::Continue:          return parse_continue();
+
     case TokenType::Break:             return parse_break();
+
     case TokenType::Struct:            return parse_struct();
+
     case TokenType::Impl:              return parse_impl();
+
     case TokenType::At:                return parse_attr();
+
     case TokenType::Suffix:            // Fall through
     case TokenType::Prefix:            // Fall through
     case TokenType::Infix:             return parse_affix();
+
     case TokenType::Return:            return parse_return();
+
     case TokenType::Extern:            return parse_extern();
 
     case TokenType::MultilineComment:  // Fall through
@@ -705,19 +718,24 @@ AstNode *Parser::parse_expr_primary() {
     case TokenType::Symbol:
         result = parse_symbol();
         break;
+
     case TokenType::StringLiteral:
         result = parse_string();
         break;
+
     case TokenType::FloatLiteral: // Fall through
     case TokenType::IntegerLiteral:
         result = parse_number();
         break;
+
     case TokenType::Boolean:
         result = parse_boolean();
         break;
+
     case TokenType::OpenSquareBracket:
         result = parse_array();
         break;
+
     case TokenType::OpenParenthesis:
         accept(TokenType::OpenParenthesis);
 
@@ -822,8 +840,8 @@ bool Parser::next_token() {
     this->token_index++;
 
     while(this->tokens[this->token_index].type == TokenType::SingleLineComment
-          || this->tokens[this->token_index].type
-                 == TokenType::MultilineComment) {
+            || this->tokens[this->token_index].type
+            == TokenType::MultilineComment) {
         if(this->token_index == this->tokens.size() - 1) {
             return false;
         }

@@ -7,14 +7,35 @@
 #define AstNodeType_ENUM(name) name
 #define AstNodeType_NAME_ARRAY(name) #name
 
-#define AstNodeTypes(F)                                                        \
-    F(AstBlock), F(AstString), F(AstNumber), F(AstBoolean), F(AstArray),       \
-    F(AstDec), F(AstIf), F(AstFn), F(AstFnCall), F(AstLoop),               \
-    F(AstContinue), F(AstBreak), F(AstStruct), F(AstImpl),                 \
-    F(AstAttribute), F(AstAffix), F(AstUnaryExpr), F(AstBinaryExpr),       \
-    F(AstIndex), F(AstType), F(AstSymbol), F(AstReturn), F(AstExtern),
+#define AstNodeTypes(F) \
+    F(AstBlock),        \
+    F(AstString),       \
+    F(AstNumber),       \
+    F(AstBoolean),      \
+    F(AstArray),        \
+    F(AstDec),          \
+    F(AstIf),           \
+    F(AstFn),           \
+    F(AstFnCall),       \
+    F(AstLoop),         \
+    F(AstContinue),     \
+    F(AstBreak),        \
+    F(AstStruct),       \
+    F(AstImpl),         \
+    F(AstAttribute),    \
+    F(AstAffix),        \
+    F(AstUnaryExpr),    \
+    F(AstBinaryExpr),   \
+    F(AstIndex),        \
+    F(AstType),         \
+    F(AstSymbol),       \
+    F(AstReturn),       \
+    F(AstExtern),       \
 
-enum class AstNodeType { AstNodeTypes(AstNodeType_ENUM) };
+enum class AstNodeType {
+    AstNodeTypes(AstNodeType_ENUM)
+};
+
 static constexpr const char *const ast_node_type_names[] = {
     AstNodeTypes(AstNodeType_NAME_ARRAY)
 };
@@ -111,9 +132,7 @@ struct AstType : public AstNode {
         AstNode(AstNodeType::AstType, line, column) {}
 
     virtual ~AstType() {
-        if(subtype) {
-            delete subtype;
-        }
+        delete subtype;
     }
 };
 
@@ -127,17 +146,9 @@ struct AstDec : public AstNode {
         AstNode(AstNodeType::AstDec, line, column) {}
 
     virtual ~AstDec() {
-        if(name) {
-            delete name;
-        }
-
-        if(type) {
-            delete type;
-        }
-
-        if(value) {
-            delete value;
-        }
+        delete name;
+        delete type;
+        delete value;
     }
 };
 
@@ -149,17 +160,9 @@ struct AstIf : public AstNode {
         AstNode(AstNodeType::AstIf, line, column) {}
 
     virtual ~AstIf() {
-        if(condition) {
-            delete condition;
-        }
-
-        if(true_block) {
-            delete true_block;
-        }
-
-        if(false_block) {
-            delete false_block;
-        }
+        delete condition;
+        delete true_block;
+        delete false_block;
     }
 };
 
@@ -170,28 +173,18 @@ struct AstFn : public AstNode {
     AstType *return_type = nullptr;
     AstBlock *body       = nullptr;
 
-    AstFn(unsigned int line = 0, unsigned int column = 0):
+    AstFn(unsigned int line = 0, unsigned int column
+= 0):
         AstNode(AstNodeType::AstFn, line, column) {}
 
     virtual ~AstFn() {
-        if(type_self) {
-            delete type_self;
-        }
-
-        if(name) {
-            delete name;
-        }
+        delete type_self;
+        delete name;
+        delete return_type;
+        delete body;
 
         for(auto *p : params) {
             delete p;
-        }
-
-        if(return_type) {
-            delete return_type;
-        }
-
-        if(body) {
-            delete body;
         }
     }
 };
@@ -204,9 +197,7 @@ struct AstFnCall : public AstNode {
         AstNode(AstNodeType::AstFnCall, line, column) {}
 
     virtual ~AstFnCall() {
-        if(name) {
-            delete name;
-        }
+        delete name;
 
         for(auto *p : args) {
             delete p;
@@ -224,17 +215,9 @@ struct AstLoop : public AstNode {
         AstNode(AstNodeType::AstLoop, line, column) {}
 
     virtual ~AstLoop() {
-        if(body) {
-            delete body;
-        }
-
-        if(name) {
-            delete name;
-        }
-
-        if(expr) {
-            delete expr;
-        }
+        delete body;
+        delete name;
+        delete expr;
     }
 };
 
@@ -256,13 +239,8 @@ struct AstStruct : public AstNode {
         AstNode(AstNodeType::AstStruct, line, column) {}
 
     virtual ~AstStruct() {
-        if(name) {
-            delete name;
-        }
-
-        if(block) {
-            delete block;
-        }
+        delete name;
+        delete block;
     }
 };
 
@@ -274,13 +252,8 @@ struct AstImpl : public AstNode {
         AstNode(AstNodeType::AstImpl, line, column) {}
 
     virtual ~AstImpl() {
-        if(name) {
-            delete name;
-        }
-
-        if(block) {
-            delete block;
-        }
+        delete name;
+        delete block;
     }
 };
 
@@ -292,9 +265,7 @@ struct AstAttribute : public AstNode {
         AstNode(AstNodeType::AstAttribute, line, column) {}
 
     virtual ~AstAttribute() {
-        if(name) {
-            delete name;
-        }
+        delete name;
 
         for(auto *p : args) {
             delete p;
@@ -313,20 +284,12 @@ struct AstAffix : public AstNode {
         AstNode(AstNodeType::AstAffix, line, column) {}
 
     virtual ~AstAffix() {
-        if(name) {
-            delete name;
-        }
+        delete name;
+        delete return_type;
+        delete body;
 
         for(auto *p : params) {
             delete p;
-        }
-
-        if(return_type) {
-            delete return_type;
-        }
-
-        if(body) {
-            delete body;
         }
     }
 };
@@ -338,9 +301,7 @@ struct AstReturn : public AstNode {
         AstNode(AstNodeType::AstReturn, line, column) {}
 
     virtual ~AstReturn() {
-        if(expr) {
-            delete expr;
-        }
+        delete expr;
     }
 };
 
@@ -352,9 +313,7 @@ struct AstUnaryExpr : public AstNode {
         AstNode(AstNodeType::AstUnaryExpr, line, column) {}
 
     virtual ~AstUnaryExpr() {
-        if(expr) {
-            delete expr;
-        }
+        delete expr;
     }
 };
 
@@ -366,13 +325,8 @@ struct AstBinaryExpr : public AstNode {
         AstNode(AstNodeType::AstBinaryExpr, line, column) {}
 
     virtual ~AstBinaryExpr() {
-        if(lhs) {
-            delete lhs;
-        }
-
-        if(rhs) {
-            delete rhs;
-        }
+        delete lhs;
+        delete rhs;
     }
 };
 
@@ -383,13 +337,8 @@ struct AstIndex : public AstNode {
         AstNode(AstNodeType::AstIndex, line, column) {}
 
     virtual ~AstIndex() {
-        if(array) {
-            delete array;
-        }
-
-        if(expr) {
-            delete expr;
-        }
+        delete array;
+        delete expr;
     }
 };
 
@@ -410,9 +359,7 @@ struct Ast {
     AstBlock *root = nullptr;
 
     ~Ast() {
-        if(root) {
-            delete root;
-        }
+        delete root;
     }
 };
 

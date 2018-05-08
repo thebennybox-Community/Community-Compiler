@@ -1,7 +1,3 @@
-//
-// Created by myvar on 5/6/18.
-//
-
 #ifndef FRONTEND_SEMANTICS_H
 #define FRONTEND_SEMANTICS_H
 
@@ -21,34 +17,43 @@ public:
 
     bool p1_hasSymbol(AstSymbol *z) {
         for(auto x : p1_funcs) {
-            if(x->name == z->name)
+            if(x->name == z->name) {
                 return true;
+            }
         }
 
         for(auto x : p1_structs) {
-            if(x->name == z->name)
+            if(x->name == z->name) {
                 return true;
+            }
         }
 
         return false;
     }
 
     bool p1_hasSymbol(AstType *y) {
-        if(y == nullptr)
+        if(y == nullptr) {
             return false;
+        }
 
         for(auto x : p1_funcs) {
-            if(x->name == y->name)
+            if(x->name == y->name) {
                 return true;
-            if(p1_hasSymbol(y->subtype))
+            }
+
+            if(p1_hasSymbol(y->subtype)) {
                 return true;
+            }
         }
 
         for(auto x : p1_structs) {
-            if(x->name == y->name)
+            if(x->name == y->name) {
                 return true;
-            if(p1_hasSymbol(y->subtype))
+            }
+
+            if(p1_hasSymbol(y->subtype)) {
                 return true;
+            }
         }
 
         return false;
@@ -56,8 +61,9 @@ public:
 
     AstFn *p2_get_fn(AstSymbol *name) {
         for(auto x : p2_funcs) {
-            if(x->name->name == name->name)
+            if(x->name->name == name->name) {
                 return x;
+            }
         }
 
         return nullptr;
@@ -65,8 +71,9 @@ public:
 
     AstFn *p2_get_fn(std::string name) {
         for(auto x : p2_funcs) {
-            if(x->name->name == name)
+            if(x->name->name == name) {
                 return x;
+            }
         }
 
         return nullptr;
@@ -74,8 +81,9 @@ public:
 
     AstAffix *p2_get_affix(AstSymbol *name) {
         for(auto x : p2_affixs) {
-            if(x->name->name == name->name)
+            if(x->name->name == name->name) {
                 return x;
+            }
         }
 
         return nullptr;
@@ -83,8 +91,9 @@ public:
 
     AstAffix *p2_get_affix(std::string name) {
         for(auto x : p2_affixs) {
-            if(x->name->name == name)
+            if(x->name->name == name) {
                 return x;
+            }
         }
 
         return nullptr;
@@ -92,8 +101,9 @@ public:
 
     AstDec *p2_get_dec(AstSymbol *name) {
         for(auto x : p2_dec) {
-            if(x->name->name == name->name)
+            if(x->name->name == name->name) {
                 return x;
+            }
         }
 
         return nullptr;
@@ -101,8 +111,9 @@ public:
 
     AstDec *p2_get_dec(std::string name) {
         for(auto x : p2_dec) {
-            if(x->name->name == name)
+            if(x->name->name == name) {
                 return x;
+            }
         }
 
         return nullptr;
