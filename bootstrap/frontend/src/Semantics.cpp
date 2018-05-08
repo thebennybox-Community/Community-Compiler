@@ -643,6 +643,10 @@ AstNode *Semantics::inline_if_need_be(AstNode *node) {
 
 AstType *Semantics::determin_type(AstNode *node) {
 
+    if(node == nullptr) {
+        return nullptr;
+    }
+
     switch(node->node_type) {
     case AstNodeType::AstBlock: {
         auto x = (AstBlock *)node;
