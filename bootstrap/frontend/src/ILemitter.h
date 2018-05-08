@@ -98,27 +98,30 @@
 
 static const std::map<std::string, unsigned char> type_map =
 
-    {{"u8", U8},
-     {"u16", U16},
-     {"u32", U32},
-     {"u64", U64},
-     {"i8", I8},
-     {"i16", I16},
-     {"i32", I32},
-     {"i64", I64},
-     {"f32", F32},
-     {"f64", F64},
-     {"str", STR},
-     {"ptr", PTR},
-     {"void", VOID}};
+{   {"u8", U8},
+    {"u16", U16},
+    {"u32", U32},
+    {"u64", U64},
+    {"i8", I8},
+    {"i16", I16},
+    {"i32", I32},
+    {"i64", I64},
+    {"f32", F32},
+    {"f64", F64},
+    {"str", STR},
+    {"ptr", PTR},
+    {"void", VOID}
+};
 
 static unsigned char to_IL_type(AstType *x) {
 
-    if(x == nullptr)
+    if(x == nullptr) {
         return VOID;
+    }
 
-    if(x->is_array)
+    if(x->is_array) {
         return to_IL_type(x->subtype);
+    }
 
     auto z = type_map.at(x->name);
     return z;
@@ -202,8 +205,7 @@ public:
         unsigned char args[]);
 
     void InternalFunction(const char *name, unsigned char type);
-    void
-    FunctionParameter(const char *func, const char *name, unsigned char type);
+    void FunctionParameter(const char *func, const char *name, unsigned char type);
     void FunctionLocal(const char *func, const char *name, unsigned char type);
     void Global(const char *name, unsigned char type);
     void Data(const char *name, const char *data);
@@ -243,6 +245,7 @@ public:
     void w(const char *x) {
         unsigned int z = strlen(x);
         w(z);
+
         for(int i = 0; i < z; i++) {
             w((unsigned char)x[i]);
         }
@@ -281,6 +284,7 @@ public:
 
     void w(double x) {
         unsigned char const *p = reinterpret_cast<unsigned char const *>(&x);
+
         for(int i = 0; i != sizeof(double); ++i) {
             w(p[i]);
         }

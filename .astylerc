@@ -1,0 +1,14 @@
+--style=attach
+--indent=spaces=4
+--indent-preproc-define
+--break-blocks
+--pad-oper
+--unpad-paren
+--align-pointer=name
+--add-braces
+--close-templates
+--max-code-length=80
+--break-after-logical
+--attach-return-type
+--attach-return-type-decl
+--keep-one-line-statements

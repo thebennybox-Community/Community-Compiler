@@ -133,6 +133,7 @@ void ILemitter::call_stack(
     w(CALS);
     w(return_type);
     w(total);
+
     for(unsigned int i = 0; i < total; i++) {
         w(args[i]);
     }

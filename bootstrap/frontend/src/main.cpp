@@ -68,6 +68,7 @@ int main(int argc, char **argv) {
     for(int i = 2; i < argc; i++) {
 
         std::string file_contents = load_text_from_file(argv[i]);
+
         if(file_contents.empty()) {
             // printf("Error reading file: %s\n", argv[i]);
             // return 1;
@@ -106,6 +107,7 @@ int main(int argc, char **argv) {
 
     auto o     = argv[1];
     FILE *file = fopen(o, "wb");
+
     if(file == NULL) {
         // Some error thing here
     }

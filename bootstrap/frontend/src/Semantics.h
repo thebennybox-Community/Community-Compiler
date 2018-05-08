@@ -90,9 +90,28 @@ public:
         return nullptr;
     }
 
+    AstDec *p2_get_dec(AstSymbol *name) {
+        for(auto x : p2_dec) {
+            if(x->name->name == name->name)
+                return x;
+        }
+
+        return nullptr;
+    }
+
+    AstDec *p2_get_dec(std::string name) {
+        for(auto x : p2_dec) {
+            if(x->name->name == name)
+                return x;
+        }
+
+        return nullptr;
+    }
+
     std::vector<AstFn *> p2_funcs;
     std::vector<AstAffix *> p2_affixs;
     std::vector<AstStruct *> p2_structs;
+    std::vector<AstDec *> p2_dec;
 
     void pass1_node(AstNode *node);
     void p1_struct(AstStruct *node);
@@ -109,6 +128,7 @@ public:
     void p3_affix(AstAffix *node);
 
     AstNode *inline_if_need_be(AstNode *node);
+    AstType *determin_type(AstNode *node);
 };
 
 #endif // FRONTEND_SEMANTICS_H

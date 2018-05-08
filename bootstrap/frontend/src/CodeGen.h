@@ -21,12 +21,15 @@ private:
     std::stack<std::vector<AstDec *>> scope_stack;
     std::stack<std::vector<AstDec *>> arg_stack;
 
+    AstSymbol *scope_owner;
+
     bool has_local(std::string name) {
         for(auto e : scope) {
             if(e->name->name == name) {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -40,6 +43,7 @@ private:
                 return true;
             }
         }
+
         return false;
     }
 
