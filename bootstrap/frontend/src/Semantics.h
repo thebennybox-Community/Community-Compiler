@@ -19,7 +19,6 @@ public:
     std::vector<AstSymbol *> p1_funcs;
     std::vector<AstSymbol *> p1_structs;
 
-private:
     bool p1_hasSymbol(AstSymbol *z) {
         for(auto x : p1_funcs) {
             if(x->name == z->name)
@@ -55,7 +54,44 @@ private:
         return false;
     }
 
+    AstFn *p2_get_fn(AstSymbol *name) {
+        for(auto x : p2_funcs) {
+            if(x->name->name == name->name)
+                return x;
+        }
+
+        return nullptr;
+    }
+
+    AstFn *p2_get_fn(std::string name) {
+        for(auto x : p2_funcs) {
+            if(x->name->name == name)
+                return x;
+        }
+
+        return nullptr;
+    }
+
+    AstAffix *p2_get_affix(AstSymbol *name) {
+        for(auto x : p2_affixs) {
+            if(x->name->name == name->name)
+                return x;
+        }
+
+        return nullptr;
+    }
+
+    AstAffix *p2_get_affix(std::string name) {
+        for(auto x : p2_affixs) {
+            if(x->name->name == name)
+                return x;
+        }
+
+        return nullptr;
+    }
+
     std::vector<AstFn *> p2_funcs;
+    std::vector<AstAffix *> p2_affixs;
     std::vector<AstStruct *> p2_structs;
 
     void pass1_node(AstNode *node);
@@ -65,12 +101,14 @@ private:
     void pass2_node(AstNode *node);
     void p2_struct(AstStruct *node);
     void p2_fn(AstFn *node);
+    void p2_affix(AstAffix *node);
 
     void pass3_node(AstNode *node);
     void pass3_nest_att(AstNode *node);
     void p3_struct(AstStruct *node);
-    void p3_fn(AstFn *node);
     void p3_affix(AstAffix *node);
+
+    AstNode *inline_if_need_be(AstNode *node);
 };
 
 #endif // FRONTEND_SEMANTICS_H

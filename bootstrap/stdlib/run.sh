@@ -4,8 +4,8 @@ for filename in *.ds; do
    files="$files ./$filename"
 done
 
-rm -r bin
-mkdir bin
+#rm -r bin
+#mkdir bin
 
 ../frontend/build/frontend ./bin/out.fil ${files}
 

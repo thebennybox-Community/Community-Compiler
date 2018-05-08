@@ -2,18 +2,21 @@
 extern {
     fn putchar(ch: u8) : i32;
     fn printf(x: str);
+    //fn printf(x: str, d: u8);
 }
 
 
 fn main()
 {
     printf("Hello World!");
-
     putchar(10);
 
-    let x: u8 = 10;
-
-    printf("10 + 10  = %d", 10i32 + 10i32);    
+    printf("%d", (16) / 2); 
+    
+    if(10 == 15)
+    {        
+          
+    }
 
     putchar(10);
 }

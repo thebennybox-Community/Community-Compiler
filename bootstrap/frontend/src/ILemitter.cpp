@@ -144,7 +144,7 @@ void ILemitter::label(const char *lbl) {
 }
 
 void ILemitter::jump(const char *lbl) {
-    w(LABL);
+    w(JUMP);
     w(lbl);
 }
 
@@ -297,4 +297,53 @@ void ILemitter::bitwise_or() {
 
 void ILemitter::bitwise_xor() {
     w(BXOR);
+}
+
+void ILemitter::ExternalFunction(
+    const char *name,
+    unsigned char type,
+    unsigned int total_args,
+    unsigned char args[]) {
+    w(EXFN);
+    w(name);
+    w(type);
+    w(total_args);
+
+    for(int i = 0; i < total_args; i++) {
+        w(args[i]);
+    }
+}
+
+void ILemitter::InternalFunction(const char *name, unsigned char type) {
+    w(INFN);
+    w(name);
+    w(type);
+}
+
+void ILemitter::FunctionParameter(
+    const char *func, const char *name, unsigned char type) {
+    w(FPRM);
+    w(func);
+    w(name);
+    w(type);
+}
+
+void ILemitter::FunctionLocal(
+    const char *func, const char *name, unsigned char type) {
+    w(FLOC);
+    w(func);
+    w(name);
+    w(type);
+}
+
+void ILemitter::Global(const char *name, unsigned char type) {
+    w(GLOB);
+    w(name);
+    w(type);
+}
+
+void ILemitter::Data(const char *name, const char *data) {
+    w(DATA);
+    w(name);
+    w(data);
 }

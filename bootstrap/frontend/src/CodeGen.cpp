@@ -2,7 +2,17 @@
 #include "CodeGen.h"
 #include <algorithm>
 
+static std::string type_to_string(const AstType *node) {
+    if(node->is_array) {
+        return type_to_string(node->subtype) + "Arr";
+    }
+    return node->name;
+}
+
 void CodeGen::generateIL(AstNode *node, ILemitter &il) {
+    if(!node->emit)
+        return;
+
     switch(node->node_type) {
     case AstNodeType::AstBlock: {
         auto x = (AstBlock *)node;
@@ -94,49 +104,95 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
         break;
     }
     case AstNodeType::AstIf: {
-        auto x   = (AstIf *)node;
-        auto lbl = (std::string("lbl") + std::to_string(g_counter++)).c_str();
-        auto lblout = (std::string(lbl) + std::string("out")).c_str();
+        auto x      = (AstIf *)node;
+        auto lbl    = std::string("lbl") + std::to_string(g_counter);
+        auto lblout = std::string("lblout") + std::to_string(g_counter);
 
         generateIL(x->condition, il);
 
-        il.jump_equal_zero(lbl);
+        il.jump_equal_zero(lbl.c_str());
 
         generateIL(x->true_block, il);
-        il.jump(lblout);
+        il.jump(lblout.c_str());
 
-        il.label(lbl);
+        il.label(lbl.c_str());
 
         if(x->false_block != nullptr) {
             generateIL(x->false_block, il);
         }
 
-        il.label(lblout);
-
+        il.label(lblout.c_str());
+        g_counter++;
         break;
     }
     case AstNodeType::AstFn: {
         auto x = (AstFn *)node;
-        if(x->type_self != nullptr) {
-            il.function((x->type_self->name + "_" + x->name->name).c_str());
+
+        auto buf = x->name->name;
+        if(x->body != nullptr) {
+            for(auto a : x->params) {
+                x->name->name += type_to_string(a->type);
+            }
+        }
+
+        if(x->body != nullptr) {
+            il.InternalFunction(
+                (x->name->name).c_str(), to_IL_type(x->return_type));
         } else {
-            il.function((x->name->name).c_str());
+            unsigned char args[x->params.size()];
+
+            for(int i = 0; i < x->params.size(); i++) {
+                auto b  = (x->params.at(i)->type);
+                args[i] = to_IL_type(b);
+            }
+
+            il.ExternalFunction(
+                (x->name->name).c_str(),
+                to_IL_type(x->return_type),
+                x->params.size(),
+                args);
         }
+        if(x->body != nullptr) {
+            if(x->type_self != nullptr) {
+                il.function((x->type_self->name + "_" + x->name->name).c_str());
+            } else {
+                il.function((x->name->name).c_str());
+            }
 
-        push_scope();
+            push_scope();
+            for(auto e : x->params) {
+                add_arg(e);
+            }
 
-        for(auto e : x->params) {
-            add_arg(e);
+            if(x->nested_attributes.size() == 0) {
+                generateIL(x->body, il);
+            } else {
+                for(auto y : x->nested_attributes) {
+                    if(y->name->name == "il") {
+                        for(auto b : x->body->statements) {
+                            if(b->node_type == AstNodeType::AstNumber) {
+                                auto n = (AstNumber *)b;
+
+                                if(n->is_signed) {
+                                    il.w((unsigned char)n->value.i);
+                                } else {
+                                    il.w((char)n->value.u);
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            pop_scope();
+
+            il._return();
+            x->name->name = buf;
         }
-        generateIL(x->body, il);
-
-        pop_scope();
-
-        il._return();
-
         break;
     }
     case AstNodeType::AstFnCall: {
+
         auto x = (AstFnCall *)node;
 
         std::reverse(x->args.begin(), x->args.end());
@@ -145,7 +201,27 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
             generateIL(y, il);
         }
 
-        il.call(x->name->name.c_str());
+        auto fn = sem.p2_get_fn(x->name);
+        if(fn->nested_attributes.size() == 0) {
+            il.call(x->name->name.c_str());
+        } else {
+            for(auto y : fn->nested_attributes) {
+                if(y->name->name == "il") {
+                    for(auto b : fn->body->statements) {
+                        if(b->node_type == AstNodeType::AstNumber) {
+                            auto n = (AstNumber *)b;
+
+                            if(n->is_signed) {
+                                il.w((unsigned char)n->value.i);
+                            } else {
+                                il.w((char)n->value.u);
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
 
         break;
     }
@@ -161,8 +237,6 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
                 (std::string("lblout") + std::to_string(g_counter)).c_str();
             auto lblcont =
                 (std::string("lblcont") + std::to_string(g_counter)).c_str();
-
-            g_counter++;
 
             il.store_local("~");
 
@@ -184,6 +258,7 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
             il.jump_less_equal_zero(lbl);
 
             il.label(lblout);
+            g_counter++;
         }
 
         break;
@@ -224,6 +299,13 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
     case AstNodeType::AstAffix: {
         auto x = (AstAffix *)node;
 
+        for(auto a : x->params) {
+            x->name->name += type_to_string(a->type);
+        }
+
+        il.InternalFunction(
+            (x->name->name).c_str(), to_IL_type(x->return_type));
+
         il.function(x->name->name.c_str());
 
         generateIL(x->body, il);
@@ -239,9 +321,28 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
     }
     case AstNodeType::AstBinaryExpr: {
         auto x = (AstBinaryExpr *)node;
-        generateIL(x->rhs, il);
         generateIL(x->lhs, il);
-        il.call(x->op.c_str());
+        generateIL(x->rhs, il);
+        // il.call(x->op.c_str());
+
+        {
+            auto fn = sem.p2_get_fn(x->op);
+            if(fn != nullptr) {
+                for(auto x : fn->body->statements) {
+                    generateIL(x, il);
+                }
+            }
+        }
+
+        {
+            auto fn = sem.p2_get_affix(x->op);
+            if(fn != nullptr) {
+                for(auto x : fn->body->statements) {
+                    generateIL(x, il);
+                }
+            }
+        }
+
         break;
     }
     case AstNodeType::AstIndex: {
@@ -279,6 +380,10 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
     }
     case AstNodeType::AstExtern: {
         auto x = (AstExtern *)node;
+
+        for(auto b : x->decls) {
+            generateIL(b, il);
+        }
 
         break;
     }

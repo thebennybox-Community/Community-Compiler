@@ -3,9 +3,32 @@ struct i32
     
 }
 
+@inline
+infix op ==(a: i32, b: i32) : i32
+{
+    i_cmpe();
+}
 
 @inline
 infix op +(a: i32, b: i32) : i32
 {
     i_add();
+}
+
+@inline
+infix op -(a: i32, b: i32) : i32
+{
+    i_sub();
+}
+
+@inline
+infix op *(a: i32, b: i32) : i32
+{
+    i_mul();
+}
+
+@inline
+infix op /(a: i32, b: i32) : i32
+{
+    i_div();
 }

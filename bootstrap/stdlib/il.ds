@@ -1,6 +1,30 @@
-
 @il
 fn i_add()
 {
-    0x70
+    112
+}
+
+@il
+fn i_sub()
+{
+    113
+}
+
+@il
+fn i_mul()
+{
+    0
+}
+
+@il
+fn i_div()
+{
+    115
+}
+
+
+@il
+fn i_cmpe()
+{
+    48
 }
