@@ -14,8 +14,8 @@ struct str
     return result;
 }*/
 
-@inline
+/*@inline
 infix op +(a: str, b: str) : str
 {
     a;
-}
+}*/
