@@ -77,7 +77,10 @@ AstNode *Parser::parse_stmt() {
         return nullptr;
 
     default:
-        this->errors.push_back({ErrorType::UnexpectedToken, cur_tok});
+        this->errors.push_back({
+            ErrorType::UnexpectedToken, cur_tok,
+            "Unexpected token in input"
+        });
         next_token();
         break;
     }
@@ -307,7 +310,10 @@ AstDec *Parser::parse_decl() {
     }
 
     if(!valid) {
-        this->errors.push_back({ErrorType::InvalidDec, this->tokens[start]});
+        this->errors.push_back({
+            ErrorType::InvalidDec, this->tokens[start],
+            "Invalid declaration, either a type or a value is required"
+        });
         delete result;
         return nullptr;
     }
@@ -884,7 +890,10 @@ bool Parser::expect(TokenType type) {
         return true;
     }
 
-    this->errors.push_back({ErrorType::UnexpectedToken, cur_tok});
+    this->errors.push_back({
+        ErrorType::UnexpectedToken, cur_tok,
+        "Unexpected token in input"
+    });
 
     return false;
 }
