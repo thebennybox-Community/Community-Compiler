@@ -7,6 +7,10 @@ done
 rm -r bin
 mkdir bin
 
+cd ../ilc/
+gradle task build 
+cd ../stdlib/
+
 unzip -d bin ../ilc/build/distributions/duskilc-0.1.zip
 
 clear
