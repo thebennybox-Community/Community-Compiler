@@ -367,7 +367,7 @@ void TokenStream::lex(std::string src) {
             break;
 
         case '/': {
-          if(src[i + 1] == '/') {
+            if(src[i + 1] == '/') {
                 i += 2; // Skip //
 
                 unsigned int start = i;
@@ -467,6 +467,30 @@ void TokenStream::lex(std::string src) {
 
             token.type = TokenType::StringLiteral;
             token.raw  = src.substr(start, length);
+
+            for(unsigned int j = 0; j < token.raw.size(); j++) {
+                if(token.raw[j] == '\\') {
+                    if(token.raw[j + 1] == 'n') {
+                        token.raw.replace(j, 2, "\n");
+                    } else if(token.raw[j + 1] == 't') {
+                        token.raw.replace(j, 2, "\t");
+                    } else if(token.raw[j + 1] == '\\') {
+                        token.raw.replace(j, 2, "\\");
+                    } else if(token.raw[j + 1] == '"') {
+                        token.raw.replace(j, 2, "\"");
+                    } else {
+                        this->errors.push_back({
+                            ErrorType::UnexpectedCharacter,
+                            {
+                                line, column, i,
+                                std::string(1, token.raw[j + 1]),
+                                TokenType::StringLiteral
+                            },
+                            "Unexpected character in escape sequence"
+                        });
+                    }
+                }
+            }
 
             break;
         }
