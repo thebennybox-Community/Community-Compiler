@@ -39,6 +39,7 @@ AstNode *Parser::parse_stmt() {
 
     case TokenType::StringLiteral:     // Fall through
     case TokenType::IntegerLiteral:    // Fall through
+    case TokenType::HexLiteral:        // Fall through
     case TokenType::FloatLiteral:      // Fall through
     case TokenType::Boolean:           return parse_expr();
 
@@ -149,7 +150,22 @@ AstNumber *Parser::parse_number() {
     // after suffix is number of bits. Default integer is i32, default float is
     // f32.
 
-    if(cur_tok.type == TokenType::IntegerLiteral) {
+    if(cur_tok.type == TokenType::HexLiteral) {
+        result->is_float  = false;
+        result->is_signed = false;
+
+        size_t suffix_start = cur_tok.raw.find("u");
+
+        if(suffix_start != std::string::npos) {
+            const std::string value = cur_tok.raw.substr(0, suffix_start);
+
+            result->value.u = std::stoull(value, 0, 16);
+            result->bits    = std::stoi(cur_tok.raw.substr(suffix_start + 1));
+        } else {
+            result->value.u = std::stoull(cur_tok.raw, 0, 16);
+            result->bits    = 32;
+        }
+    } else if(cur_tok.type == TokenType::IntegerLiteral) {
         result->is_float  = false;
         result->is_signed = true;
 
@@ -723,7 +739,8 @@ AstNode *Parser::parse_expr_primary() {
         result = parse_string();
         break;
 
-    case TokenType::FloatLiteral: // Fall through
+    case TokenType::FloatLiteral:
+    case TokenType::HexLiteral:
     case TokenType::IntegerLiteral:
         result = parse_number();
         break;
