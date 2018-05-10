@@ -12,9 +12,11 @@ fn main()
         x = x + 1;
     }
 
+    var z = 0;
 
-    loop(5 == 5)
+    loop(z < 7)
     {
-        printf("while loop\n");
+        printf("while loop %d\n", z);
+        z = z + 1;
     }
 }

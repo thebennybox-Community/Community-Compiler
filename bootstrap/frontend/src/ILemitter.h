@@ -98,6 +98,7 @@
 
 static const std::map<std::string, unsigned char> type_map = {
     {"u8",   U8},
+    {"bool",   U8},
     {"u16",  U16},
     {"u32",  U32},
     {"u64",  U64},
