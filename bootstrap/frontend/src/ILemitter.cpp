@@ -1,5 +1,7 @@
 #include "ILemitter.h"
 
+#include "Ast.h"
+
 void ILemitter::no_operation() {
     w(NOOP);
 }
@@ -310,7 +312,7 @@ void ILemitter::ExternalFunction(
     w(type);
     w(total_args);
 
-    for(int i = 0; i < total_args; i++) {
+    for(unsigned int i = 0; i < total_args; i++) {
         w(args[i]);
     }
 }
