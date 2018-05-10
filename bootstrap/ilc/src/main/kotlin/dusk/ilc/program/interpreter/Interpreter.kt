@@ -3,11 +3,14 @@ package dusk.ilc.program.interpreter
 import dusk.ilc.opcodes.*
 import dusk.ilc.program.Function
 import dusk.ilc.program.ProgramData
+import dusk.ilc.util.Verbose
 import java.util.Stack
 
 class Interpreter(val program: ProgramData) {
 
 	private val funcHandlers = ArrayList<ExternalFunctionHandler>()
+
+	private val scopeStack = Stack<Scope>()
 
 	var index: Int
 		get() = scopeStack.peek().index
@@ -15,13 +18,19 @@ class Interpreter(val program: ProgramData) {
 			scopeStack.peek().index = value
 		}
 
+	val nextInstruction: Instruction?
+		get() = if(hasRemaining) program[index] else null
+
 	val hasRemaining: Boolean
 		get() = scopeStack.isNotEmpty() && index in program.instructions.indices
 
-	private val scopeStack = Stack<Scope>()
+	val currentScope: Scope?
+		get() = if(scopeStack.isEmpty()) null else scopeStack.peek()
 
 	init {
-		callFunction(getFunction("main"))
+		val func = getFunction("main")
+		if(func != null)
+			callFunction(func)
 	}
 
 	fun addExternalFunctionHandler(handler: ExternalFunctionHandler) {
@@ -42,7 +51,11 @@ class Interpreter(val program: ProgramData) {
 	}
 
 	fun step() {
+		if(!hasRemaining)
+			return
+
 		val instr = program[index++]
+		Verbose.println("### $instr")
 //		println("Scope: ${scopeStack.size}")
 //		println("Executing (${index-1}) $instr")
 
@@ -79,7 +92,10 @@ class Interpreter(val program: ProgramData) {
 					push(scope.stack.pop())
 			}
 			OpCodes.CALL -> {
-				callFunction(getFunction((instr.args[0] as ArgIdentifier).value))
+				val functionName = (instr.args[0] as ArgIdentifier).value
+				val func = (getFunction(functionName)
+						?: throw IllegalStateException("Attempt to call undefined function $functionName"))
+				callFunction(func)
 			}
 			OpCodes.CALS -> callFunction(pop() as Function)
 
@@ -193,8 +209,8 @@ class Interpreter(val program: ProgramData) {
 		}
 	}
 
-	private fun getFunction(name: String): Function {
-		return program.functions[name]!!
+	private fun getFunction(name: String): Function? {
+		return program.functions[name]
 	}
 
 	private fun callFunction(func: Function) {
@@ -244,8 +260,8 @@ class Interpreter(val program: ProgramData) {
 
 	class Scope(val returnType: Type<*>) {
 		val stack = Stack<Any>()
-		val locals = HashMap<String, Any>()
-		val args = HashMap<String, Any>()
+		val locals: MutableMap<String, Any> = HashMap()
+		val args: MutableMap<String, Any> = HashMap()
 		var index = 0
 	}
 }

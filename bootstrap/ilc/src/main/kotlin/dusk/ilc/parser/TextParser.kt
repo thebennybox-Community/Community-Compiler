@@ -9,7 +9,8 @@ object TextParser : Parser {
 
 	private data class ArgumentParser(val regex: Regex, val converter: (String) -> Argument<*>)
 
-	val intRegex = Regex("^(-?(0x)?[1-9][0-9]*|0)$")
+//	val intRegex = Regex("^(-?(0x)?[1-9][0-9]*|0)$")
+	val intRegex = Regex("^(-?[1-9][0-9]*|0|-?0x[0-9A-Fa-f]+)$")
 	val floatRegex = Regex("^-?([1-9][0-9]*|0)(\\.[0-9]+)?$")
 
 	private val argumentParsers = mapOf(
@@ -42,24 +43,15 @@ object TextParser : Parser {
 
 	override fun parse(input: InputStream): ProgramData {
 		return ProgramData(input.bufferedReader().useLines {
-			it.flatMap { it.split(";").asSequence() }.map(String::trim).map(::parseLine).filterNotNull().toList()
+			it
+					.filterNot { it.startsWith('#') || it.isBlank() }
+					.flatMap { it.split(";").asSequence() }
+					.map(String::trim).map(::parseLine)
+					.filterNotNull().toList()
 		})
 	}
 
 	private fun parseLine(line: String): Instruction? {
-		if (line.startsWith('#') || line.isBlank())
-			return null
-
-//		if(line.endsWith(":")) {
-//			val name = line.takeWhile { it.isLetterOrDigit() || it == '_' }
-//			val arrayString = line.removePrefix(name).removeSuffix(":")
-//			val array = arrayString.takeIf(String::isNotBlank)?.let {
-//				parseSingleArgument(TypeTypeArray, it)
-//			}?.second
-//
-//			return Instruction(OpCodes.LABL, arrayOf(ArgIdentifier(name), array ?: ArgTypeArray(emptyArray<String>())))
-//		}
-
 		val name = line.takeWhile { !it.isWhitespace() }
 //		if (name.endsWith(':'))
 //			return Instruction(OpCodes.LABL, arrayOf(ArgIdentifier(name.removeSuffix(":"))))
@@ -69,9 +61,7 @@ object TextParser : Parser {
 		val argsString = line.removePrefix(name).trim()
 		val args = parseArguments(code, argsString)
 
-		val instr = Instruction(code, args)
-//		println(instr)
-		return instr
+		return Instruction(code, args)
 	}
 
 	private fun parseArguments(code: OpCode, args: String): List<Argument<*>> {
@@ -81,8 +71,6 @@ object TextParser : Parser {
 			val (length, value) = parseSingleArgument(it, remaining)!!
 			remaining.delete(0, length)
 			remaining.delete(0, remaining.takeWhile(Char::isWhitespace).length)
-//			while(remaining.isNotEmpty() && remaining.first().isWhitespace())
-//				remaining.deleteCharAt(0)
 
 			value
 		}

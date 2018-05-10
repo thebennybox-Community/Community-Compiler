@@ -24,10 +24,12 @@ abstract class Argument<T>(val type: Type<T>, val value: T) {
 	override fun toString(): String {
 		if (value == null)
 			return ""
-		if (value is Array<*>)
-			return value.joinToString(" ", "[", "]") { it.toString().escape() }
 		if (value is String && type == TypeString)
 			return "\"${value.escape()}\""
+		if (value is Array<*>)
+			return value.joinToString(" ", "[", "]") { it.toString().escape() }
+		if (value is ByteArray)
+			return value.joinToString(" ", "[", "]") { "0x"+(it.toInt() and 0xFF).toString(16).toUpperCase() }
 		return value.toString()
 	}
 }
