@@ -2,7 +2,31 @@ extern {
     fn printf(x: str);
 }
 
+fn foo(x: i32)
+{
+    printf("i32: %d\n", x);
+}
+
+fn foo(x: u8)
+{
+    printf("u8: %d\n", x);
+}
+
+fn foo(x: str)
+{
+    printf("str: %s\n", x);
+}
+
+
+
 fn main()
 {
     printf("Hello World!\n");
+
+    let x = 10;
+    let z = 5u8;
+
+    foo("test");
+    foo(x);
+    foo(z);
 }

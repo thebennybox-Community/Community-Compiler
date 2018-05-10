@@ -293,7 +293,7 @@ void pretty_print_fn(const AstFn *node, std::string indent) {
         term_fg[TermColour::Yellow],
         term_reset,
         term_fg[TermColour::Blue],
-        node->name->name.c_str(),
+        node->mangled_name->name.c_str(),
         term_reset);
 
     if(node->return_type) {

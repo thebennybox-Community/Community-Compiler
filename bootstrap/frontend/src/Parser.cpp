@@ -377,8 +377,11 @@ AstFn *Parser::parse_fn(bool require_body) {
 
     next_token();
 
-    result->name = new AstSymbol(cur_tok.line, cur_tok.column);
-    result->name->name = cur_tok.raw;
+    result->unmangled_name = new AstSymbol(cur_tok.line, cur_tok.column);
+    result->unmangled_name->name = cur_tok.raw;
+
+    result->mangled_name = new AstSymbol(cur_tok.line, cur_tok.column);
+    result->mangled_name->name = cur_tok.raw;
 
     if(!expect(TokenType::Symbol)) {
         delete result;
@@ -386,10 +389,13 @@ AstFn *Parser::parse_fn(bool require_body) {
     }
 
     if(accept(TokenType::Dot)) {
-        result->type_self = result->name;
+        result->type_self = result->unmangled_name;
 
-        result->name = new AstSymbol(cur_tok.line, cur_tok.column);
-        result->name->name = cur_tok.raw;
+        result->unmangled_name = new AstSymbol(cur_tok.line, cur_tok.column);
+        result->unmangled_name->name = cur_tok.raw;
+
+        result->mangled_name = new AstSymbol(cur_tok.line, cur_tok.column);
+        result->mangled_name->name = cur_tok.raw;
 
         if(!expect(TokenType::Symbol)) {
             delete result;
@@ -628,13 +634,15 @@ AstAffix *Parser::parse_affix() {
             return nullptr;
         }
 
-        result->name        = fn->name;
+        result->name        = fn->unmangled_name;
+        result->name        = fn->mangled_name;
         result->params      = fn->params;
         result->return_type = fn->return_type;
         result->body        = fn->body;
 
         fn->params.clear();
-        fn->name        = nullptr;
+        fn->unmangled_name        = nullptr;
+        fn->mangled_name        = nullptr;
         fn->return_type = nullptr;
         fn->body        = nullptr;
     } else {

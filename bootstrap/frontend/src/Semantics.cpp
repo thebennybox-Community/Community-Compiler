@@ -48,7 +48,7 @@ bool Semantics::p1_hasSymbol(AstType *y) {
 
 AstFn *Semantics::p2_get_fn(AstSymbol *name) {
     for(auto x : p2_funcs) {
-        if(x->name->name == name->name) {
+        if(x->unmangled_name->name == name->name) {
             return x;
         }
     }
@@ -58,7 +58,7 @@ AstFn *Semantics::p2_get_fn(AstSymbol *name) {
 
 AstFn *Semantics::p2_get_fn(std::string &name) {
     for(auto x : p2_funcs) {
-        if(x->name->name == name) {
+        if(x->unmangled_name->name == name) {
             return x;
         }
     }
@@ -107,7 +107,7 @@ AstDec *Semantics::p2_get_dec(std::string &name) {
 }
 
 void Semantics::p1_fn(AstFn *node) {
-    p1_funcs.push_back(node->name);
+    p1_funcs.push_back(node->mangled_name);
 }
 
 void Semantics::p1_struct(AstStruct *node) {
@@ -463,11 +463,17 @@ void Semantics::pass3_node(AstNode *node) {
     case AstNodeType::AstFn: {
         auto x = (AstFn *)node;
 
+        if(x->body != nullptr) {
+            for(auto a : x->params) {
+                x->mangled_name->name += type_to_string(a->type);
+            }
+        }
+
         for(auto a : p2_funcs) {
-            if(a != x && a->name->name == x->name->name) {
+            if(a != x && a->mangled_name->name == x->mangled_name->name) {
                 printf(
                     "Duplicite fn decleration found for \"%s\"\n",
-                    a->name->name.c_str());
+                    a->mangled_name->name.c_str());
                 return;
             }
         }
@@ -484,6 +490,13 @@ void Semantics::pass3_node(AstNode *node) {
 
     case AstNodeType::AstFnCall: {
         auto x = (AstFnCall *)node;
+        auto z = p2_get_fn(x->name);
+
+        if(z != nullptr && z->body != nullptr) {
+            for(auto a : x->args) {
+                // x->name->name += type_to_string(determin_type(a));
+            }
+        }
 
         {
             auto mn = p2_get_fn(x->name);
@@ -510,14 +523,14 @@ void Semantics::pass3_node(AstNode *node) {
                         auto a = determin_type(nm->params.at(i));
                         auto b = determin_type(x->args.at(i));
 
-                        if(a->name != b->name) {
-                            printf(
-                                "expecting type \"%s\" at argument %u, \"%s\" "
-                                "provided\n",
-                                a->name.c_str(),
-                                i + 1,
-                                b->name.c_str());
-                        }
+                        //  if(a->name != b->name) {
+                        /* printf(
+                             "expecting type \"%s\" at argument %u, \"%s\" "
+                             "provided\n",
+                             a->name.c_str(),
+                             i + 1,
+                             b->name.c_str());*/
+                        //  }
                     }
                 }
             }
