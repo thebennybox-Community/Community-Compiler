@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 
     for(auto a : asts) {
         sem.pass2(*a);
-        //  pretty_print_ast(*a);
+        // pretty_print_ast(*a);
     }
 
     for(auto a : asts) {
