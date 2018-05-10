@@ -225,25 +225,6 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem) {
 void AstFnCall::code_gen(ILemitter &il, Semantics &sem) {
     auto fn  = sem.p2_get_fn(name);
 
-    if(fn->body != nullptr) {
-
-        for(auto a : args) {
-            auto z = sem.determin_type(a);
-
-            if(z != nullptr) {
-                name->name += type_to_string(z);
-            } else {
-                if(a->node_type == AstNodeType::AstSymbol) {
-                    auto x = (AstSymbol *)a;
-
-                    if(has_local(x)) {
-                        name->name += type_to_string(get_local(x)->type);
-                    }
-                }
-            }
-        }
-    }
-
     std::reverse(args.begin(), args.end());
 
     for(auto y : args) {

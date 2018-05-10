@@ -217,6 +217,7 @@ struct AstFn : public AstNode {
 struct AstFnCall : public AstNode {
     AstSymbol *name = nullptr;
     std::vector<AstNode *> args;
+    bool mangled = false;
 
     AstFnCall(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstFnCall, line, column) {}

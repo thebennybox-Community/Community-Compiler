@@ -18,15 +18,27 @@ fn foo(x: str)
 }
 
 
+fn bar() : u8
+{
+    50
+}
+
+fn qaz() : str
+{
+    "bob the builder"
+}
 
 fn main()
 {
     printf("Hello World!\n");
 
     let x = 10;
-    let z = 5u8;
+    let y = 5u8;
+    let z = bar();
 
     foo("test");
     foo(x);
+    foo(y);
     foo(z);
+    foo(qaz());
 }

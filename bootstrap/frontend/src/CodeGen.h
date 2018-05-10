@@ -52,15 +52,6 @@ static bool has_arg(std::string name) {
     return false;
 }
 
-static AstDec *get_local(AstSymbol *name) {
-    for(auto e : scope) {
-        if(e->name->name == name->name) {
-            return e;
-        }
-    }
-
-    return nullptr;
-}
 
 static AstDec *get_local(std::string name) {
     for(auto e : scope) {
@@ -71,6 +62,12 @@ static AstDec *get_local(std::string name) {
 
     return nullptr;
 }
+
+static AstDec *get_local(AstSymbol *name) {
+    return get_local(name->name);
+}
+
+
 
 static bool has_arg(AstSymbol *name) {
     return has_arg(name->name);
