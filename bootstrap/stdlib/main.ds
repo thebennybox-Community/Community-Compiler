@@ -2,27 +2,19 @@ extern {
     fn printf(x: str);
 }
 
-@inline
-infix op +(a: i32, b: u8) : i32
-{
-    i_add();
-}
-
-@inline
-infix op +(a: u8, b: i32) : i32
-{
-    i_add();
-}
-
 fn main()
 {
-    printf("Hello World!\n");
+    var x = 0;
 
-    let x = 10;
-    let y = 5u8;
-  
-    let z = x + y;
+    loop(5)
+    {
+        printf("loop %d\n", x);
+        x = x + 1;
+    }
 
-    printf("%d\n", z);
 
+    loop(5 == 5)
+    {
+        printf("while loop\n");
+    }
 }

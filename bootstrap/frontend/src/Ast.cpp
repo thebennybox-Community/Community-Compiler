@@ -265,7 +265,9 @@ void AstLoop::code_gen(ILemitter &il, Semantics &sem) {
     if(is_foreach) {
     } else {
 
-        il.FunctionLocal(scope_owner->name.c_str(), "~", U32);
+        auto var = "~" + std::to_string(g_counter++);
+
+        il.FunctionLocal(scope_owner->name.c_str(), var.c_str(), U32);
         // note to next guy: for and while loops use exact same code gen
         // logic
         auto lbl     = std::string("lbl") + std::to_string(g_counter);
@@ -273,7 +275,7 @@ void AstLoop::code_gen(ILemitter &il, Semantics &sem) {
         auto lblcont = std::string("lblcont") + std::to_string(g_counter);
 
         il.push_u32(1);
-        il.store_local("~");
+        il.store_local(var.c_str());
 
         // il.jump(lblcont.c_str());
 
@@ -282,12 +284,12 @@ void AstLoop::code_gen(ILemitter &il, Semantics &sem) {
 
         il.label(lblcont.c_str());
 
-        il.load_local("~");
+        il.load_local(var.c_str());
         il.push_u32(1);
         il.integer_add();
 
         il.duplicate();
-        il.store_local("~");
+        il.store_local(var.c_str());
 
         generateIL(expr, il, sem);
         il.integer_subtract();
@@ -349,9 +351,21 @@ void AstUnaryExpr::code_gen(ILemitter &il, Semantics &sem) {
 }
 
 void AstBinaryExpr::code_gen(ILemitter &il, Semantics &sem) {
+    if(op == "=") {
+        generateIL(rhs, il, sem);
+
+        auto x = (AstSymbol *)lhs;
+        il.store_local(x->name.c_str());
+        return;
+    }
+
+
     generateIL(lhs, il, sem);
     generateIL(rhs, il, sem);
     // il.call(op.c_str());
+
+
+
 
     {
         auto fn = sem.p2_get_fn(op);
