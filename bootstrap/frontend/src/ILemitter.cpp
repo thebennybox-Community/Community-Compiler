@@ -196,6 +196,10 @@ void ILemitter::address_local(const char *lbl) {
     w(lbl);
 }
 
+void ILemitter::address_stack() {
+    w(ADRS);
+}
+
 void ILemitter::load_argument(const char *lbl) {
     w(LARG);
     w(lbl);
