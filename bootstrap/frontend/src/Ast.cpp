@@ -148,27 +148,24 @@ void AstIf::code_gen(ILemitter &il, Semantics &sem) {
 
 void AstFn::code_gen(ILemitter &il, Semantics &sem) {
 
+    scope_owner = mangled_name;
 
-    auto buf = name->name;
-
-    if(body != nullptr) {
-        for(auto a : params) {
-            name->name += type_to_string(a->type);
-        }
-    }
-
-    scope_owner = name;
+    // if(body != nullptr) {
+    //     for(auto a : params) {
+    //         mangled_name->name += type_to_string(a->type);
+    //     }
+    // }
 
     if(body != nullptr) {
         for(auto p : params) {
             il.FunctionParameter(
-                name->name.c_str(),
+                mangled_name->name.c_str(),
                 p->name->name.c_str(),
                 to_IL_type(p->type));
         }
 
         il.InternalFunction(
-            (name->name).c_str(), to_IL_type(return_type));
+            (mangled_name->name).c_str(), to_IL_type(return_type));
     } else {
         unsigned char args[params.size()];
 
@@ -178,7 +175,7 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem) {
         }
 
         il.ExternalFunction(
-            (name->name).c_str(),
+            (unmangled_name->name).c_str(),
             to_IL_type(return_type),
             (unsigned int)params.size(),
             args);
@@ -186,9 +183,9 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem) {
 
     if(body != nullptr) {
         if(type_self != nullptr) {
-            il.function((type_self->name + "_" + name->name).c_str());
+            il.function((type_self->name + "_" + mangled_name->name).c_str());
         } else {
-            il.function(name->name.c_str());
+            il.function(mangled_name->name.c_str());
         }
 
         push_scope();
@@ -222,11 +219,11 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem) {
         pop_scope();
 
         il._return();
-        name->name = buf;
     }
 }
 
 void AstFnCall::code_gen(ILemitter &il, Semantics &sem) {
+    auto fn  = sem.p2_get_fn(name);
 
     std::reverse(args.begin(), args.end());
 
@@ -234,14 +231,8 @@ void AstFnCall::code_gen(ILemitter &il, Semantics &sem) {
         generateIL(y, il, sem);
     }
 
-    auto fn  = sem.p2_get_fn(name);
-    auto buf = name->name;
 
-    if(fn->body != nullptr) {
-        for(auto a : fn->params) {
-            name->name += type_to_string(a->type);
-        }
-    }
+    auto buf = name->name;
 
     if(fn->nested_attributes.size() == 0) {
         il.call(name->name.c_str());

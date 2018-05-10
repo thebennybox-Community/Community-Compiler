@@ -91,10 +91,22 @@ int main(int argc, char **argv) {
 
     for(auto a : asts) {
         sem.pass2(*a);
+        //  pretty_print_ast(*a);
     }
 
     for(auto a : asts) {
         sem.pass3(*a);
+    }
+
+    scope.clear();
+    args.clear();
+
+    while(!scope_stack.empty()) {
+        scope_stack.pop();
+    }
+
+    while(!arg_stack.empty()) {
+        arg_stack.pop();
     }
 
     for(auto a : asts) {

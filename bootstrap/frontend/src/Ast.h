@@ -189,20 +189,22 @@ struct AstIf : public AstNode {
 
 struct AstFn : public AstNode {
     AstSymbol *type_self = nullptr;
-    AstSymbol *name      = nullptr;
+    AstSymbol *unmangled_name     = nullptr;
+    AstSymbol *mangled_name = nullptr;
     std::vector<AstDec *> params;
     AstType *return_type = nullptr;
     AstBlock *body       = nullptr;
 
     AstFn(unsigned int line = 0, unsigned int column
-= 0):
+          = 0):
         AstNode(AstNodeType::AstFn, line, column) {}
 
     virtual void code_gen(ILemitter &il, Semantics &sem);
 
     virtual ~AstFn() {
         delete type_self;
-        delete name;
+        delete unmangled_name;
+        delete mangled_name;
         delete return_type;
         delete body;
 
@@ -215,6 +217,7 @@ struct AstFn : public AstNode {
 struct AstFnCall : public AstNode {
     AstSymbol *name = nullptr;
     std::vector<AstNode *> args;
+    bool mangled = false;
 
     AstFnCall(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstFnCall, line, column) {}

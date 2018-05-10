@@ -21,6 +21,8 @@ public:
     bool p1_hasSymbol(AstType *y);
     AstFn *p2_get_fn(AstSymbol *name);
     AstFn *p2_get_fn(std::string &name);
+    AstFn *p2_get_fn_unmangeld(std::string &name);
+    AstFn *p2_get_fn_unmangeld(AstSymbol *name);
     AstAffix *p2_get_affix(AstSymbol *name);
     AstAffix *p2_get_affix(std::string &name);
     AstDec *p2_get_dec(AstSymbol *name);
