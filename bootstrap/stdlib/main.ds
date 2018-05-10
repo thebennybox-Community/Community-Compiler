@@ -24,6 +24,14 @@ fn read_all_text(f: str) : str
 
 fn main()
 {
-    read_all_text("test.txt");
-    printf("\n");
+    let x = "Hi";
+    printf("%c\n", x[1]);
+
+    
+
+    /*let z = 0;
+    loop({ z = z + 1; z} < 10)
+    {
+        printf("test");
+    }*/
 }

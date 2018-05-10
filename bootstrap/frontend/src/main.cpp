@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
 
     for(auto a : asts) {
         generateIL(a->root, il, sem);
-        // pretty_print_ast(*a);
+        pretty_print_ast(*a);
     }
 
     auto o     = argv[1];

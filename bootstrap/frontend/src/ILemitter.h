@@ -73,6 +73,7 @@
 #define BAND (unsigned char)0x92
 #define BWOR (unsigned char)0x93
 #define BXOR (unsigned char)0x94
+#define ADRS (unsigned char)0x6b
 
 #define EXFN (unsigned char)0xE0
 #define INFN (unsigned char)0xE1
@@ -158,6 +159,7 @@ public:
     void load_local(const char *lbl);
     void store_local(const char *lbl);
     void address_local(const char *lbl);
+    void address_stack();
     void load_argument(const char *lbl);
     void store_argument(const char *lbl);
     void address_argument(const char *lbl);

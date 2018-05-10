@@ -427,8 +427,50 @@ void AstBinaryExpr::code_gen(ILemitter &il, Semantics &sem) {
 
 }
 
+static const std::map<std::string, int> type_size_map = {
+    {"u8",   1},
+    {"bool",   1},
+    {"u16",  2},
+    {"u32",  4},
+    {"u64",  8},
+    {"i8",   1},
+    {"i16",  2},
+    {"i32",  4},
+    {"i64",  8},
+    {"f32",  4},
+    {"f64",  8},
+    {"str",  1},
+    {"ptr",  4},
+    {"void", 1},
+};
+
+int type_to_size(AstType *t) {
+    if(t->is_array) {
+        type_to_size(t->subtype);
+    }
+
+    return type_size_map.at(t->name);
+}
+
 void AstIndex::code_gen(ILemitter &il, Semantics &sem) {
 
+
+    generateIL(array, il, sem);
+
+
+    auto y = sem.determin_type(array);
+    auto x =  type_to_size(y);
+
+    il.address_stack();
+
+    il.push_i32(type_to_size(y));
+
+    generateIL(expr, il, sem);
+
+    il.integer_multiply();
+    il.integer_add();
+
+    il.read();
 }
 
 void AstType::code_gen(ILemitter &il, Semantics &sem) {
