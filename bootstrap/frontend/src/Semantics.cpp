@@ -2,6 +2,110 @@
 
 #include "Ast.h"
 
+bool Semantics::p1_hasSymbol(AstSymbol *z) {
+    for(auto x : p1_funcs) {
+        if(x->name == z->name) {
+            return true;
+        }
+    }
+
+    for(auto x : p1_structs) {
+        if(x->name == z->name) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Semantics::p1_hasSymbol(AstType *y) {
+    if(y == nullptr) {
+        return false;
+    }
+
+    for(auto x : p1_funcs) {
+        if(x->name == y->name) {
+            return true;
+        }
+
+        if(p1_hasSymbol(y->subtype)) {
+            return true;
+        }
+    }
+
+    for(auto x : p1_structs) {
+        if(x->name == y->name) {
+            return true;
+        }
+
+        if(p1_hasSymbol(y->subtype)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+AstFn *Semantics::p2_get_fn(AstSymbol *name) {
+    for(auto x : p2_funcs) {
+        if(x->name->name == name->name) {
+            return x;
+        }
+    }
+
+    return nullptr;
+}
+
+AstFn *Semantics::p2_get_fn(std::string &name) {
+    for(auto x : p2_funcs) {
+        if(x->name->name == name) {
+            return x;
+        }
+    }
+
+    return nullptr;
+}
+
+AstAffix *Semantics::p2_get_affix(AstSymbol *name) {
+    for(auto x : p2_affixs) {
+        if(x->name->name == name->name) {
+            return x;
+        }
+    }
+
+    return nullptr;
+}
+
+AstAffix *Semantics::p2_get_affix(std::string &name) {
+    for(auto x : p2_affixs) {
+        if(x->name->name == name) {
+            return x;
+        }
+    }
+
+    return nullptr;
+}
+
+AstDec *Semantics::p2_get_dec(AstSymbol *name) {
+    for(auto x : p2_dec) {
+        if(x->name->name == name->name) {
+            return x;
+        }
+    }
+
+    return nullptr;
+}
+
+AstDec *Semantics::p2_get_dec(std::string &name) {
+    for(auto x : p2_dec) {
+        if(x->name->name == name) {
+            return x;
+        }
+    }
+
+    return nullptr;
+}
+
 void Semantics::p1_fn(AstFn *node) {
     p1_funcs.push_back(node->name);
 }
@@ -50,6 +154,10 @@ void Semantics::pass1_node(AstNode *node) {
             pass1_node(x);
         }
     } break;
+
+    default:
+        printf("Unhandled node type in pass 1 of semantic analysis\n");
+        break;
     }
 }
 
@@ -96,6 +204,10 @@ void Semantics::pass2_node(AstNode *node) {
             pass2_node(x);
         }
     } break;
+
+    default:
+        printf("Unhandled node type in pass 2 of semantic analysis\n");
+        break;
     }
 }
 
@@ -258,6 +370,10 @@ void Semantics::pass3_nest_att(AstNode *node) {
 
         break;
     }
+
+    default:
+        printf("Unhandled node type in pass 3 of semantic analysis\n");
+        break;
     }
 }
 
@@ -308,7 +424,7 @@ void Semantics::pass3_node(AstNode *node) {
         auto x = (AstDec *)node;
 
         if(x->type == nullptr) {
-            x->type == determin_type(x->value);
+            x->type = determin_type(x->value);
         } else {
             /*if(x->type->name != determin_type(x->value)->name) {
                 printf(
@@ -390,13 +506,13 @@ void Semantics::pass3_node(AstNode *node) {
                 } else if(nm->params.size() < x->args.size()) {
                     printf("to few arguments provide\n");
                 } else {
-                    for(int i = 0; i < nm->params.size(); i++) {
+                    for(unsigned int i = 0; i < nm->params.size(); i++) {
                         auto a = determin_type(nm->params.at(i));
                         auto b = determin_type(x->args.at(i));
 
                         if(a->name != b->name) {
                             printf(
-                                "expecting type \"%s\" at argument %d, \"%s\" "
+                                "expecting type \"%s\" at argument %u, \"%s\" "
                                 "provided\n",
                                 a->name.c_str(),
                                 i + 1,
@@ -636,7 +752,7 @@ AstNode *Semantics::inline_if_need_be(AstNode *node) {
 
     auto x = (AstFnCall *)node;
 
-    printf(x->name->name.c_str());
+    printf("%s\n", x->name->name.c_str());
 
     return node;
 }
@@ -885,4 +1001,3 @@ AstType *Semantics::determin_type(AstNode *node) {
 
     return nullptr;
 }
-

@@ -5,7 +5,7 @@
 #include <map>
 #include <stdio.h>
 #include <string.h>
-#include "Ast.h"
+#include "AstDefs.h"
 
 #define NOOP 0xFF
 //**Push Numeric**
@@ -111,18 +111,6 @@ static const std::map<std::string, unsigned char> type_map = {
     {"ptr",  PTR},
     {"void", VOID},
 };
-
-static unsigned char to_IL_type(AstType *x) {
-    if(x == nullptr) {
-        return VOID;
-    }
-
-    if(x->is_array) {
-        return to_IL_type(x->subtype);
-    }
-
-    return type_map.at(x->name);
-}
 
 class ILemitter {
 public:
@@ -240,10 +228,10 @@ public:
     }
 
     void w(const char *x) {
-        unsigned int z = strlen(x);
-        w(z);
+        unsigned int length = (unsigned int)strlen(x);
+        w(length);
 
-        for(int i = 0; i < z; i++) {
+        for(unsigned int i = 0; i < length; i++) {
             w((unsigned char)x[i]);
         }
     }
@@ -274,7 +262,7 @@ public:
     void w(float x) {
         unsigned char const *p = reinterpret_cast<unsigned char const *>(&x);
 
-        for(int i = 0; i != sizeof(float); ++i) {
+        for(unsigned int i = 0; i < sizeof(float); i++) {
             w(p[i]);
         }
     }
@@ -282,7 +270,7 @@ public:
     void w(double x) {
         unsigned char const *p = reinterpret_cast<unsigned char const *>(&x);
 
-        for(int i = 0; i != sizeof(double); ++i) {
+        for(unsigned int i = 0; i < sizeof(double); i++) {
             w(p[i]);
         }
     }

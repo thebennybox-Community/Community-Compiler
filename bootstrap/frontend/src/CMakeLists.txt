@@ -13,6 +13,7 @@ add_executable(
 		TokenStream.h
 		Parser.cpp
 		Parser.h
+		Ast.cpp
 		Ast.h
 		AstPrettyPrinter.cpp
 		AstPrettyPrinter.h
