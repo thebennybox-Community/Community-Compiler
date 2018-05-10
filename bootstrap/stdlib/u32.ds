@@ -1,6 +1,6 @@
 struct u32
 {
-    
+
 }
 
 @inline

@@ -11,21 +11,20 @@ extern {
 fn main()
 {
     let x = "              \n";
-  
+
     var c : i32 = 1;
     var file = fopen("test.txt", "r");
-   
+
     var index = 0;
 
-    if (file != 0) 
+    if (file != 0)
     {
-        loop(c > 0)
+        loop({c = getc(file); c} > 0)
         {
-            c = getc(file);           
-            //x[index] = c;  
+            //x[index] = c;
             index = index + 1;
         }
-           
+
         if(fclose(file) != 0)
         {
             printf("error closing file.");

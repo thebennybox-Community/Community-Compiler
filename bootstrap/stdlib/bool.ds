@@ -1,9 +1,7 @@
 struct bool
 {
-    
+
 }
-
-
 
 @inline
 infix op &&(a: i32, b: i32) : i32

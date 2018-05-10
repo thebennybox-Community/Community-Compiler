@@ -1,8 +1,7 @@
 struct i16
 {
-    
-}
 
+}
 
 @inline
 infix op +(a: i16, b: i16) : i16
