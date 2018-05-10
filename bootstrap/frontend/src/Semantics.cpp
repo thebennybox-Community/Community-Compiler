@@ -237,6 +237,11 @@ static std::string type_to_string(const AstType *node) {
 }
 
 void Semantics::p2_affix(AstAffix *node) {
+
+    for(auto a : node->params) {
+        // node->name->name += type_to_string(a->type);
+    }
+
     if(node->return_type != nullptr) {
         if(!p1_hasSymbol(node->return_type)) {
             printf(

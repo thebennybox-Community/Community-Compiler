@@ -261,9 +261,10 @@ void AstFnCall::code_gen(ILemitter &il, Semantics &sem) {
 
 void AstLoop::code_gen(ILemitter &il, Semantics &sem) {
 
+    auto x = sem.determin_type(expr);
 
     if(is_foreach) {
-    } else {
+    } else if(x != nullptr && x->name != "bool") {
 
         auto var = "~" + std::to_string(g_counter++);
 
@@ -297,6 +298,23 @@ void AstLoop::code_gen(ILemitter &il, Semantics &sem) {
         il.jump_less_equal_zero(lbl.c_str());
 
         il.label(lblout.c_str());
+        g_counter++;
+    } else {
+        auto lbl     = std::string("lbl") + std::to_string(g_counter);
+        auto lbl_cond     = std::string("lbl_cond") + std::to_string(g_counter);
+
+        il.jump(lbl_cond.c_str());
+
+        il.label(lbl.c_str());
+        generateIL(body, il, sem);
+
+        il.label(lbl_cond.c_str());
+        generateIL(expr, il, sem);
+
+        il.push_i8(1);
+        il.integer_subtract();
+        il.jump_equal_zero(lbl.c_str());
+
         g_counter++;
     }
 }
