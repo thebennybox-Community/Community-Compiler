@@ -156,7 +156,7 @@ void Semantics::pass1_node(AstNode *node) {
     } break;
 
     default:
-        printf("Unhandled node type in pass 1 of semantic analysis\n");
+        // printf("Unhandled node type in pass 1 of semantic analysis\n");
         break;
     }
 }
@@ -206,7 +206,7 @@ void Semantics::pass2_node(AstNode *node) {
     } break;
 
     default:
-        printf("Unhandled node type in pass 2 of semantic analysis\n");
+        // printf("Unhandled node type in pass 2 of semantic analysis\n");
         break;
     }
 }
@@ -372,7 +372,7 @@ void Semantics::pass3_nest_att(AstNode *node) {
     }
 
     default:
-        printf("Unhandled node type in pass 3 of semantic analysis\n");
+        // printf("Unhandled node type in pass 3 of semantic analysis\n");
         break;
     }
 }

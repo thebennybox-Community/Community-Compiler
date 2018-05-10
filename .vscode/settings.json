@@ -41,6 +41,10 @@
         "tuple": "cpp",
         "type_traits": "cpp",
         "algorithm": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "bitset": "cpp",
+        "iomanip": "cpp",
+        "sstream": "cpp",
+        "valarray": "cpp"
     },
     }

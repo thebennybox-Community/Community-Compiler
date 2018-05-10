@@ -1,23 +1,8 @@
 extern {
-    fn putchar(ch: u8) : i32;
     fn printf(x: str);
 }
 
-fn println(x: str)
-{
-    printf("%s", x);
-    putchar(10);
-}
-
-fn print_num(x: i32)
-{
-    printf("%d", x);
-    putchar(10);
-}
-
-
-
 fn main()
 {
-    println("Hello World! yeet");
+    printf("Hello World!\n");
 }
