@@ -25,18 +25,9 @@ Ast *Parser::parse(const std::vector<Token> &tokens) {
 
 AstNode *Parser::parse_stmt() {
     switch(cur_tok.type) {
-    case TokenType::Symbol: {
-        auto result = parse_expr();
-
-        if(!expect(TokenType::SemiColon)) {
-            return nullptr;
-        }
-
-        return result;
-    }
-
     case TokenType::OpenCurlyBracket:  return parse_block();
 
+    case TokenType::Symbol:            // Fall through
     case TokenType::StringLiteral:     // Fall through
     case TokenType::IntegerLiteral:    // Fall through
     case TokenType::HexLiteral:        // Fall through
@@ -104,6 +95,8 @@ AstBlock *Parser::parse_block() {
         }
 
         result->statements.push_back(statement);
+
+        while(accept(TokenType::SemiColon)) {} // Hacky, but works
     }
 
     return result;
@@ -777,6 +770,14 @@ AstNode *Parser::parse_expr_primary() {
             return nullptr;
         }
 
+        break;
+
+    case TokenType::OpenCurlyBracket:
+        result = parse_block();
+        break;
+
+    case TokenType::If:
+        result = parse_if();
         break;
 
     default:
