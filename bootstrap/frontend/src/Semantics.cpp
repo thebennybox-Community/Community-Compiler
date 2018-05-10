@@ -465,9 +465,11 @@ void Semantics::pass3_node(AstNode *node) {
             }*/
         }
 
-        pass3_node(x->value);
+        if(x->value != nullptr) {
+            pass3_node(x->value);
+            x->value = inline_if_need_be(x->value);
+        }
 
-        x->value = inline_if_need_be(x->value);
         break;
     }
 
@@ -520,7 +522,7 @@ void Semantics::pass3_node(AstNode *node) {
         auto x = (AstFnCall *)node;
         auto z = p2_get_fn_unmangeld(x->name);
 
-        if(!x->mangled && z->body != nullptr) {
+        if(!x->mangled && z != nullptr && z->body != nullptr) {
             x->mangled = true;
 
             for(auto a : x->args) {

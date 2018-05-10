@@ -96,13 +96,16 @@ static void pop_scope() {
 
 
 static void generateIL(AstNode *node, ILemitter &il, Semantics &sem) {
-    if(!node->emit) {
-        return;
-    }
 
     if(node == nullptr) {
         return;
     }
+
+    if(!node->emit) {
+        return;
+    }
+
+
 
     node->code_gen(il, sem);
 }
