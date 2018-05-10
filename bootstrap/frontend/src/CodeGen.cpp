@@ -1,6 +1,19 @@
 #include "CodeGen.h"
 
 #include <algorithm>
+#include "Ast.h"
+
+static unsigned char to_IL_type(AstType *x) {
+    if(x == nullptr) {
+        return VOID;
+    }
+
+    if(x->is_array) {
+        return to_IL_type(x->subtype);
+    }
+
+    return type_map.at(x->name);
+}
 
 static std::string type_to_string(const AstType *node) {
     if(node->is_array) {
@@ -43,9 +56,9 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
                 printf("8 bit floats are not a thing\n");
             } else {
                 if(x->is_signed) {
-                    il.push_i8(x->value.i);
+                    il.push_i8((char)x->value.i);
                 } else {
-                    il.push_u8(x->value.u);
+                    il.push_u8((unsigned char)x->value.u);
                 }
             }
 
@@ -56,9 +69,9 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
                 printf("16 bit floats are not a thing\n");
             } else {
                 if(x->is_signed) {
-                    il.push_i16(x->value.i);
+                    il.push_i16((short)x->value.i);
                 } else {
-                    il.push_u16(x->value.u);
+                    il.push_u16((unsigned short)x->value.u);
                 }
             }
 
@@ -66,12 +79,12 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
 
         case 32:
             if(x->is_float) {
-                il.push_f32(x->value.f);
+                il.push_f32((float)x->value.f);
             } else {
                 if(x->is_signed) {
-                    il.push_i32(x->value.i);
+                    il.push_i32((int)x->value.i);
                 } else {
-                    il.push_u32(x->value.u);
+                    il.push_u32((unsigned int)x->value.u);
                 }
             }
 
@@ -176,17 +189,15 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
         } else {
             unsigned char args[x->params.size()];
 
-            for(int i = 0; i < x->params.size(); i++) {
-                auto b  = (x->params.at(i
-
-                                       )->type);
+            for(unsigned int i = 0; i < x->params.size(); i++) {
+                auto b  = (x->params.at(i)->type);
                 args[i] = to_IL_type(b);
             }
 
             il.ExternalFunction(
                 (x->name->name).c_str(),
                 to_IL_type(x->return_type),
-                x->params.size(),
+                (unsigned int)x->params.size(),
                 args);
         }
 
@@ -461,5 +472,9 @@ void CodeGen::generateIL(AstNode *node, ILemitter &il) {
 
         break;
     }
+
+    default:
+        printf("Unhandled node type in code gen\n");
+        break;
     }
 }
