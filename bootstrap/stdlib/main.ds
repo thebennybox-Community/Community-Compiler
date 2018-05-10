@@ -1,20 +1,29 @@
 extern {
     fn printf(x: str);
+    fn fopen(filename : str, mode : str) : u32;
+    fn getc(stream : u32) : i32;
+    fn fclose(stream : u32) : i32;
 }
 
-fn foo(x: i32) : i32
+fn read_all_text(f: str) : str
 {
-    if(x > 7)
+    var c : i32 = 1;
+    var file = fopen(f, "r");
+   
+    if (file != 0) 
     {
-        return 50;
+        loop(c > 0)
+        {
+            c = getc(file);
+            printf("%c", c);
+        }
+           
+        fclose(file);
     }
-
-    return 100;
 }
-
 
 fn main()
 {
-    printf("a: %d\n", foo(10));
-    printf("a: %d\n", foo(5));
+    read_all_text("test.txt");
+    printf("\n");
 }

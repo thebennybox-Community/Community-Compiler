@@ -120,12 +120,19 @@ void AstDec::code_gen(ILemitter &il, Semantics &sem) {
         name->name.c_str(),
         to_IL_type(type));
 
-    generateIL(value, il, sem);
+    if(value != nullptr) {
+        generateIL(value, il, sem);
+    }
 
     il.store_local(name->name.c_str());
 }
 
 void AstIf::code_gen(ILemitter &il, Semantics &sem) {
+
+
+    //auto buf = g_counter;
+    g_counter++;
+
     auto lbl    = std::string("lbl") + std::to_string(g_counter);
     auto lblout = std::string("lblout") + std::to_string(g_counter);
 
@@ -144,6 +151,8 @@ void AstIf::code_gen(ILemitter &il, Semantics &sem) {
 
     il.label(lblout.c_str());
     g_counter++;
+
+    // g_counter = buf;
 }
 
 void AstFn::code_gen(ILemitter &il, Semantics &sem) {
@@ -263,6 +272,9 @@ void AstLoop::code_gen(ILemitter &il, Semantics &sem) {
 
     auto x = sem.determin_type(expr);
 
+    // auto buf = g_counter;
+    g_counter++;
+
     if(is_foreach) {
     } else if(x != nullptr && x->name != "bool") {
 
@@ -317,6 +329,8 @@ void AstLoop::code_gen(ILemitter &il, Semantics &sem) {
 
         g_counter++;
     }
+
+    //  g_counter = buf;
 }
 
 void AstContinue::code_gen(ILemitter &il, Semantics &sem) {
