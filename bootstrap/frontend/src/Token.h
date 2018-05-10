@@ -14,6 +14,7 @@
     \
     F(StringLiteral), \
     F(IntegerLiteral), \
+    F(HexLiteral), \
     F(FloatLiteral), \
     F(Boolean), \
     \

@@ -1,7 +1,9 @@
 #ifndef FRONTEND_SEMANTICS_H
 #define FRONTEND_SEMANTICS_H
 
-#include "Ast.h"
+#include <vector>
+#include <string>
+#include "AstDefs.h"
 
 class Semantics {
 public:
@@ -15,109 +17,14 @@ public:
     std::vector<AstSymbol *> p1_funcs;
     std::vector<AstSymbol *> p1_structs;
 
-    bool p1_hasSymbol(AstSymbol *z) {
-        for(auto x : p1_funcs) {
-            if(x->name == z->name) {
-                return true;
-            }
-        }
-
-        for(auto x : p1_structs) {
-            if(x->name == z->name) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    bool p1_hasSymbol(AstType *y) {
-        if(y == nullptr) {
-            return false;
-        }
-
-        for(auto x : p1_funcs) {
-            if(x->name == y->name) {
-                return true;
-            }
-
-            if(p1_hasSymbol(y->subtype)) {
-                return true;
-            }
-        }
-
-        for(auto x : p1_structs) {
-            if(x->name == y->name) {
-                return true;
-            }
-
-            if(p1_hasSymbol(y->subtype)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    AstFn *p2_get_fn(AstSymbol *name) {
-        for(auto x : p2_funcs) {
-            if(x->name->name == name->name) {
-                return x;
-            }
-        }
-
-        return nullptr;
-    }
-
-    AstFn *p2_get_fn(std::string name) {
-        for(auto x : p2_funcs) {
-            if(x->name->name == name) {
-                return x;
-            }
-        }
-
-        return nullptr;
-    }
-
-    AstAffix *p2_get_affix(AstSymbol *name) {
-        for(auto x : p2_affixs) {
-            if(x->name->name == name->name) {
-                return x;
-            }
-        }
-
-        return nullptr;
-    }
-
-    AstAffix *p2_get_affix(std::string name) {
-        for(auto x : p2_affixs) {
-            if(x->name->name == name) {
-                return x;
-            }
-        }
-
-        return nullptr;
-    }
-
-    AstDec *p2_get_dec(AstSymbol *name) {
-        for(auto x : p2_dec) {
-            if(x->name->name == name->name) {
-                return x;
-            }
-        }
-
-        return nullptr;
-    }
-
-    AstDec *p2_get_dec(std::string name) {
-        for(auto x : p2_dec) {
-            if(x->name->name == name) {
-                return x;
-            }
-        }
-
-        return nullptr;
-    }
+    bool p1_hasSymbol(AstSymbol *z);
+    bool p1_hasSymbol(AstType *y);
+    AstFn *p2_get_fn(AstSymbol *name);
+    AstFn *p2_get_fn(std::string &name);
+    AstAffix *p2_get_affix(AstSymbol *name);
+    AstAffix *p2_get_affix(std::string &name);
+    AstDec *p2_get_dec(AstSymbol *name);
+    AstDec *p2_get_dec(std::string &name);
 
     std::vector<AstFn *> p2_funcs;
     std::vector<AstAffix *> p2_affixs;

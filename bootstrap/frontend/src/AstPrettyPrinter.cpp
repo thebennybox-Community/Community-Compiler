@@ -544,6 +544,7 @@ static void set_colour(unsigned int i, const TokenStream &tokens) {
                 break;
 
             case TokenType::IntegerLiteral:
+            case TokenType::HexLiteral:
             case TokenType::FloatLiteral:
             case TokenType::StringLiteral:
             case TokenType::Boolean:

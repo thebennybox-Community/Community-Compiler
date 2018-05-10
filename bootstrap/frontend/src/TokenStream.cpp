@@ -176,6 +176,10 @@ static inline bool is_digit(char c) {
     return char_info[(unsigned char)c] & DEC;
 }
 
+static inline bool is_hex_digit(char c) {
+    return char_info[(unsigned char)c] & HEX;
+}
+
 static inline bool is_identifier(char c) {
     return char_info[(unsigned char)c] & IDENT;
 }
@@ -237,7 +241,56 @@ void TokenStream::lex(std::string src) {
             break;
         }
 
-        case '0': case '1': case '2': case '3': case '4':
+        case '0': {
+            if(src[i + 1] == 'x') {
+                token.type = TokenType::HexLiteral;
+
+                unsigned int start = i;
+
+                i += 2; // Skip 0x
+
+                while(is_hex_digit(src[i])) {
+                    i++, column++;
+                }
+
+                if(src[i] == 'u') {
+                    unsigned int start        = i;
+                    unsigned int saved_column = column;
+
+                    i++, column++;
+
+                    while(is_digit(src[i])) {
+                        i++, column++;
+                    }
+
+                    if(!is_identifier(src[i])) {
+                        std::string bits =
+                            src.substr(start + 1, i - (start + 1));
+
+                        if(
+                            bits != "8"  && bits != "16" &&
+                            bits != "32" && bits != "64"
+                        ) {
+                            i      = start; // Invalid suffix, backtrack
+                            column = saved_column;
+                        }
+                    } else {
+                        i      = start; // Invalid suffix, backtrack
+                        column = saved_column;
+                    }
+                }
+
+                unsigned int length = i - start;
+
+                token.raw = src.substr(start, length);
+
+                break;
+            }
+
+            // Fall through
+        }
+
+        case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9': {
             token.type = TokenType::IntegerLiteral;
 
@@ -367,7 +420,7 @@ void TokenStream::lex(std::string src) {
             break;
 
         case '/': {
-          if(src[i + 1] == '/') {
+            if(src[i + 1] == '/') {
                 i += 2; // Skip //
 
                 unsigned int start = i;
@@ -467,6 +520,30 @@ void TokenStream::lex(std::string src) {
 
             token.type = TokenType::StringLiteral;
             token.raw  = src.substr(start, length);
+
+            for(unsigned int j = 0; j < token.raw.size(); j++) {
+                if(token.raw[j] == '\\') {
+                    if(token.raw[j + 1] == 'n') {
+                        token.raw.replace(j, 2, "\n");
+                    } else if(token.raw[j + 1] == 't') {
+                        token.raw.replace(j, 2, "\t");
+                    } else if(token.raw[j + 1] == '\\') {
+                        token.raw.replace(j, 2, "\\");
+                    } else if(token.raw[j + 1] == '"') {
+                        token.raw.replace(j, 2, "\"");
+                    } else {
+                        this->errors.push_back({
+                            ErrorType::UnexpectedCharacter,
+                            {
+                                line, column, i,
+                                std::string(1, token.raw[j + 1]),
+                                TokenType::StringLiteral
+                            },
+                            "Unexpected character in escape sequence"
+                        });
+                    }
+                }
+            }
 
             break;
         }
