@@ -5,29 +5,34 @@ extern {
     fn fclose(stream : u32) : i32;
 }
 
-fn read_all_text(f: str) : str
+
+
+
+fn main()
 {
+    let x = "              \n";
+  
     var c : i32 = 1;
-    var file = fopen(f, "r");
+    var file = fopen("test.txt", "r");
    
+    var index = 0;
+
     if (file != 0) 
     {
         loop(c > 0)
         {
-            c = getc(file);
-            printf("%c", c);
+            c = getc(file);           
+            //x[index] = c;  
+            index = index + 1;
         }
            
-        fclose(file);
+        if(fclose(file) != 0)
+        {
+            printf("error closing file.");
+        }
     }
-}
 
-fn main()
-{
-    let x = "Hi";
-    printf("%c\n", x[1]);
-
-    
+    printf(x);
 
     /*let z = 0;
     loop({ z = z + 1; z} < 10)

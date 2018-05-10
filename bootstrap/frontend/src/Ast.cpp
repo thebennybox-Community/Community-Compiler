@@ -29,11 +29,13 @@ static std::string type_to_string(const AstType *node) {
 
 void AstBlock::code_gen(ILemitter &il, Semantics &sem) {
     push_scope();
+    g_counter++;
 
     for(auto y : statements) {
         generateIL(y, il, sem);
     }
 
+    g_counter++;
     pop_scope();
 }
 
