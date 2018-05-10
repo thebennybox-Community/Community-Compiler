@@ -373,7 +373,13 @@ void AstBinaryExpr::code_gen(ILemitter &il, Semantics &sem) {
         generateIL(rhs, il, sem);
 
         auto x = (AstSymbol *)lhs;
-        il.store_local(x->name.c_str());
+
+        if(!get_local(x->name)->immutable) {
+            il.store_local(x->name.c_str());
+        } else {
+            printf("You can not assign a value to an immutable. \n");
+        }
+
         return;
     }
 

@@ -2,21 +2,19 @@ extern {
     fn printf(x: str);
 }
 
+fn foo(x: i32) : i32
+{
+    if(x > 7)
+    {
+        return 50;
+    }
+
+    return 100;
+}
+
+
 fn main()
 {
-    var x = 0;
-
-    loop(5)
-    {
-        printf("loop %d\n", x);
-        x = x + 1;
-    }
-
-    var z = 0;
-
-    loop(z < 7)
-    {
-        printf("while loop %d\n", z);
-        z = z + 1;
-    }
+    printf("a: %d\n", foo(10));
+    printf("a: %d\n", foo(5));
 }
