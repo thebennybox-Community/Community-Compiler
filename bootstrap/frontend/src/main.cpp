@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+static Semantics sem;
 
 void error(TokenStream stream, Parser parser) {
     if(stream.errors.size() != 0) {
@@ -61,8 +62,6 @@ int main(int argc, char **argv) {
 
     ILemitter il;
 
-    CodeGen gen;
-
     for(int i = 2; i < argc; i++) {
 
         std::string file_contents = load_text_from_file(argv[i]);
@@ -87,19 +86,19 @@ int main(int argc, char **argv) {
     }
 
     for(auto a : asts) {
-        gen.sem.pass1(*a);
+        sem.pass1(*a);
     }
 
     for(auto a : asts) {
-        gen.sem.pass2(*a);
+        sem.pass2(*a);
     }
 
     for(auto a : asts) {
-        gen.sem.pass3(*a);
+        sem.pass3(*a);
     }
 
     for(auto a : asts) {
-        gen.generateIL(a->root, il);
+        generateIL(a->root, il, sem);
         // pretty_print_ast(*a);
     }
 

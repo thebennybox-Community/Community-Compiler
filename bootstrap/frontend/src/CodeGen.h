@@ -1,76 +1,96 @@
 #ifndef SRC_CODEGEN_H
 #define SRC_CODEGEN_H
 
-#include "Ast.h"
 #include "ILemitter.h"
 #include "Semantics.h"
 #include <stack>
 #include <vector>
 
-class CodeGen {
-public:
-    void generateIL(AstNode *node, ILemitter &il);
+#include <algorithm>
+#include "Ast.h"
 
-    Semantics sem;
 
-private:
-    int g_counter;
+// class CodeGen {
+// public:
+// static void generateIL(AstNode *node, ILemitter &il);
 
-    std::vector<AstDec *> scope;
-    std::vector<AstDec *> args;
-    std::stack<std::vector<AstDec *>> scope_stack;
-    std::stack<std::vector<AstDec *>> arg_stack;
 
-    AstSymbol *scope_owner;
 
-    bool has_local(std::string name) {
-        for(auto e : scope) {
-            if(e->name->name == name) {
-                return true;
-            }
+static AstSymbol *scope_owner;
+
+static int g_counter;
+
+static std::vector<AstDec *> scope;
+static std::vector<AstDec *> args;
+static std::stack<std::vector<AstDec *>> scope_stack;
+static std::stack<std::vector<AstDec *>> arg_stack;
+
+
+
+
+static bool has_local(std::string name) {
+    for(auto e : scope) {
+        if(e->name->name == name) {
+            return true;
         }
-
-        return false;
     }
 
-    bool has_local(AstSymbol *name) {
-        return has_local(name->name);
-    }
+    return false;
+}
 
-    bool has_arg(std::string name) {
-        for(auto e : args) {
-            if(e->name->name == name) {
-                return true;
-            }
+static bool has_local(AstSymbol *name) {
+    return has_local(name->name);
+}
+
+static bool has_arg(std::string name) {
+    for(auto e : args) {
+        if(e->name->name == name) {
+            return true;
         }
-
-        return false;
     }
 
-    bool has_arg(AstSymbol *name) {
-        return has_arg(name->name);
+    return false;
+}
+
+static bool has_arg(AstSymbol *name) {
+    return has_arg(name->name);
+}
+
+static void add_local(AstDec *dec) {
+    scope.push_back(dec);
+}
+
+static void add_arg(AstDec *dec) {
+    args.push_back(dec);
+}
+
+static void  push_scope() {
+    scope_stack.push(scope);
+    arg_stack.push(args);
+}
+
+static void pop_scope() {
+    scope = scope_stack.top();
+    scope_stack.pop();
+
+    args = arg_stack.top();
+    arg_stack.pop();
+}
+
+
+static void generateIL(AstNode *node, ILemitter &il, Semantics &sem) {
+    if(!node->emit) {
+        return;
     }
 
-    void add_local(AstDec *dec) {
-        scope.push_back(dec);
+    if(node == nullptr) {
+        return;
     }
 
-    void add_arg(AstDec *dec) {
-        args.push_back(dec);
-    }
+    node->code_gen(il, sem);
+}
 
-    void push_scope() {
-        scope_stack.push(scope);
-        arg_stack.push(args);
-    }
 
-    void pop_scope() {
-        scope = scope_stack.top();
-        scope_stack.pop();
-
-        args = arg_stack.top();
-        arg_stack.pop();
-    }
-};
+//};
 
 #endif // SRC_CODEGEN_H
