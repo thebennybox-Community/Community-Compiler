@@ -934,21 +934,8 @@ AstType *Semantics::determin_type(AstNode *node) {
 
     case AstNodeType::AstAffix: {
         auto x = (AstAffix *)node;
+        return x->return_type;
 
-        {
-            auto z = determin_type(p2_get_fn(x->name));
-
-            if(z != nullptr) {
-                return z;
-            }
-        }
-        {
-            auto z = determin_type(p2_get_affix(x->name));
-
-            if(z != nullptr) {
-                return z;
-            }
-        }
         break;
     }
 

@@ -2,30 +2,16 @@ extern {
     fn printf(x: str);
 }
 
-fn foo(x: i32)
+@inline
+infix op +(a: i32, b: u8) : i32
 {
-    printf("i32: %d\n", x);
+    i_add();
 }
 
-fn foo(x: u8)
+@inline
+infix op +(a: u8, b: i32) : i32
 {
-    printf("u8: %d\n", x);
-}
-
-fn foo(x: str)
-{
-    printf("str: %s\n", x);
-}
-
-
-fn bar() : u8
-{
-    50
-}
-
-fn qaz() : str
-{
-    "bob the builder"
+    i_add();
 }
 
 fn main()
@@ -34,11 +20,9 @@ fn main()
 
     let x = 10;
     let y = 5u8;
-    let z = bar();
+  
+    let z = x + y;
 
-    foo("test");
-    foo(x);
-    foo(y);
-    foo(z);
-    foo(qaz());
+    printf("%d\n", z);
+
 }
