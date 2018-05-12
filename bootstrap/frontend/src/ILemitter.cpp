@@ -1,47 +1,45 @@
 #include "ILemitter.h"
 
-#include "Ast.h"
-
 void ILemitter::no_operation() {
     w(NOOP);
 }
 
-void ILemitter::push_u8(unsigned char x) {
+void ILemitter::push_u8(uint8_t x) {
     w(PU08);
     w(x);
 }
 
-void ILemitter::push_u16(unsigned short x) {
+void ILemitter::push_u16(uint16_t x) {
     w(PU16);
     w(x);
 }
 
-void ILemitter::push_u32(unsigned int x) {
+void ILemitter::push_u32(uint32_t x) {
     w(PU32);
     w(x);
 }
 
-void ILemitter::push_u64(unsigned long x) {
+void ILemitter::push_u64(uint64_t x) {
     w(PU64);
     w(x);
 }
 
-void ILemitter::push_i8(char x) {
+void ILemitter::push_i8(int8_t x) {
     w(PI08);
     w(x);
 }
 
-void ILemitter::push_i16(short x) {
+void ILemitter::push_i16(int16_t x) {
     w(PI16);
     w(x);
 }
 
-void ILemitter::push_i32(int x) {
+void ILemitter::push_i32(int32_t x) {
     w(PI32);
     w(x);
 }
 
-void ILemitter::push_i64(long x) {
+void ILemitter::push_i64(int64_t x) {
     w(PI64);
     w(x);
 }
@@ -79,7 +77,7 @@ void ILemitter::push_label(const char *lbl) {
     w(lbl);
 }
 
-void ILemitter::cast(unsigned const char type) {
+void ILemitter::cast(uint8_t type) {
     w(CAST);
     w(type);
 }
@@ -131,12 +129,12 @@ void ILemitter::call(const char *lbl) {
 }
 
 void ILemitter::call_stack(
-    unsigned int return_type, unsigned int args[], unsigned int total) {
+    uint8_t return_type, uint32_t *args, uint32_t arg_count) {
     w(CALS);
     w(return_type);
-    w(total);
+    w(arg_count);
 
-    for(unsigned int i = 0; i < total; i++) {
+    for(uint32_t i = 0; i < arg_count; i++) {
         w(args[i]);
     }
 }
@@ -306,50 +304,50 @@ void ILemitter::bitwise_xor() {
     w(BXOR);
 }
 
-void ILemitter::ExternalFunction(
+void ILemitter::external_function(
     const char *name,
-    unsigned char type,
-    unsigned int total_args,
-    unsigned char args[]) {
+    uint8_t type,
+    uint32_t arg_count,
+    uint8_t *args) {
     w(EXFN);
     w(name);
     w(type);
-    w(total_args);
+    w(arg_count);
 
-    for(unsigned int i = 0; i < total_args; i++) {
+    for(uint32_t i = 0; i < arg_count; i++) {
         w(args[i]);
     }
 }
 
-void ILemitter::InternalFunction(const char *name, unsigned char type) {
+void ILemitter::internal_function(const char *name, uint8_t type) {
     w(INFN);
     w(name);
     w(type);
 }
 
-void ILemitter::FunctionParameter(
-    const char *func, const char *name, unsigned char type) {
+void ILemitter::function_parameter(
+    const char *func, const char *name, uint8_t type) {
     w(FPRM);
     w(func);
     w(name);
     w(type);
 }
 
-void ILemitter::FunctionLocal(
-    const char *func, const char *name, unsigned char type) {
+void ILemitter::function_local(
+    const char *func, const char *name, uint8_t type) {
     w(FLOC);
     w(func);
     w(name);
     w(type);
 }
 
-void ILemitter::Global(const char *name, unsigned char type) {
+void ILemitter::global(const char *name, uint8_t type) {
     w(GLOB);
     w(name);
     w(type);
 }
 
-void ILemitter::Data(const char *name, const char *data) {
+void ILemitter::data(const char *name, const char *data) {
     w(DATA);
     w(name);
     w(data);

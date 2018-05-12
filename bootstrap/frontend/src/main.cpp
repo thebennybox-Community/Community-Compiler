@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+
 static Semantics sem;
 
 void error(TokenStream stream, Parser parser) {
@@ -58,20 +59,12 @@ int main(int argc, char **argv) {
     }
 
     std::vector<TokenStream> toks;
-    std::vector<Ast *> asts;
+    std::vector<Ast> asts;
 
     ILemitter il;
 
     for(int i = 2; i < argc; i++) {
-
         std::string file_contents = load_text_from_file(argv[i]);
-
-        if(file_contents.empty()) {
-            // printf("Error reading file: %s\n", argv[i]);
-            // return 1;
-        }
-
-        // printf("%s\n", argv[i]);
 
         TokenStream stream;
         stream.lex(file_contents);
@@ -81,21 +74,18 @@ int main(int argc, char **argv) {
         asts.push_back(parser.parse(stream.tokens));
 
         error(stream, parser);
-
-        // syntax_highlight_print(file_contents, stream);
     }
 
-    for(auto a : asts) {
-        sem.pass1(*a);
+    for(size_t i = 0; i < asts.size(); i++) {
+        sem.pass1(asts[i]);
     }
 
-    for(auto a : asts) {
-        sem.pass2(*a);
-        // pretty_print_ast(*a);
+    for(size_t i = 0; i < asts.size(); i++) {
+        sem.pass2(asts[i]);
     }
 
-    for(auto a : asts) {
-        sem.pass3(*a);
+    for(size_t i = 0; i < asts.size(); i++) {
+        sem.pass3(asts[i]);
     }
 
     scope.clear();
@@ -109,25 +99,18 @@ int main(int argc, char **argv) {
         arg_stack.pop();
     }
 
-    for(auto a : asts) {
-        generateIL(a->root, il, sem);
-        // pretty_print_ast(*a);
+    for(size_t i = 0; i < asts.size(); i++) {
+        generate_il(asts[i].root, il, sem);
     }
 
-    auto o     = argv[1];
-    FILE *file = fopen(o, "wb");
-
-    if(file == NULL) {
-        // Some error thing here
-    }
-
-    auto x = il.stream.size();
-    fwrite(&il.stream[0], x, 1, file);
+    FILE *file = fopen(argv[1], "wb");
+    size_t size = il.stream.size();
+    fwrite(&il.stream[0], size, 1, file);
     fclose(file);
 
-    for(auto a : asts) {
-        delete a;
-    }
+	for(auto &ast : asts) {
+		delete ast.root;
+	}
 
     return 0;
 }

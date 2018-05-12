@@ -16,7 +16,7 @@ public:
      *
      * @return Ast object, containing the root block
      */
-    Ast *parse(const std::vector<Token> &tokens);
+    Ast parse(const std::vector<Token> &tokens);
 
     /** List of errors that occurred during parsing */
     std::vector<Error> errors;

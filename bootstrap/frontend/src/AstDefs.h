@@ -28,8 +28,6 @@ typedef struct AstExtern AstExtern;
 
 struct Ast {
     AstBlock *root = nullptr;
-
-    ~Ast();
 };
 
 #endif /* ASTDEFS_H */
