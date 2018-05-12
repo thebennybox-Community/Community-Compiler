@@ -257,7 +257,7 @@ void pretty_print_dec(const AstDec *node, std::string indent) {
         node->immutable ? "let" : "var",
         term_reset,
         term_fg[TermColour::Red],
-        node->name->name.c_str(),
+        node->name.c_str(),
         term_reset);
 
     if(node->type) {
@@ -293,7 +293,7 @@ void pretty_print_fn(const AstFn *node, std::string indent) {
         term_fg[TermColour::Yellow],
         term_reset,
         term_fg[TermColour::Blue],
-        node->mangled_name->name.c_str(),
+        node->mangled_name.c_str(),
         term_reset);
 
     if(node->return_type) {
@@ -312,7 +312,7 @@ void pretty_print_fn(const AstFn *node, std::string indent) {
             (indent + INDENT_CHARS).c_str(),
             term_fg[TermColour::Yellow],
             term_reset,
-            param->name->name.c_str());
+            param->name.c_str());
     }
 
     if(node->body) {
@@ -326,7 +326,7 @@ void pretty_print_fn_call(const AstFnCall *node, std::string indent) {
         indent.c_str(),
         term_fg[TermColour::Yellow],
         term_reset);
-    pretty_print_symbol(node->name, indent + INDENT_CHARS);
+    //pretty_print_symbol(node->name, indent + INDENT_CHARS);
 
     for(auto expr : node->args) {
         pretty_print_node(expr, indent + INDENT_CHARS);
@@ -378,7 +378,7 @@ void pretty_print_impl(const AstImpl *node, std::string indent) {
         indent.c_str(),
         term_fg[TermColour::Yellow],
         term_reset);
-    pretty_print_symbol(node->name, indent + INDENT_CHARS);
+    //pretty_print_symbol(node->name, indent + INDENT_CHARS);
     pretty_print_block(node->block, indent + INDENT_CHARS);
 }
 
@@ -388,7 +388,7 @@ void pretty_print_attribute(const AstAttribute *node, std::string indent) {
         indent.c_str(),
         term_fg[TermColour::Yellow],
         term_reset);
-    pretty_print_symbol(node->name, indent + INDENT_CHARS);
+    //pretty_print_symbol(node->name, indent + INDENT_CHARS);
 }
 
 void pretty_print_affix(const AstAffix *node, std::string indent) {
@@ -416,7 +416,7 @@ void pretty_print_affix(const AstAffix *node, std::string indent) {
         pretty_print_type(node->return_type, indent + INDENT_CHARS);
     }
 
-    pretty_print_symbol(node->name, indent + INDENT_CHARS);
+    //pretty_print_symbol(node->name, indent + INDENT_CHARS);
 
     for(auto param : node->params) {
         printf(
@@ -424,7 +424,7 @@ void pretty_print_affix(const AstAffix *node, std::string indent) {
             (indent + INDENT_CHARS).c_str(),
             term_fg[TermColour::Yellow],
             term_reset,
-            param->name->name.c_str());
+            param->name.c_str());
     }
 
     pretty_print_block(node->body, indent + INDENT_CHARS);

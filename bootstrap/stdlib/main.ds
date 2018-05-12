@@ -10,19 +10,20 @@ extern {
 
 fn main()
 {
-    let x = "              \n";
+    var x: str = "_______________\n";
 
     var c : i32 = 1;
-    var file = fopen("test.txt", "r");
+    var file: u32 = fopen("test.txt", "r");
 
-    var index = 0;
+    var index: i32 = 0;
 
     if (file != 0)
     {
         loop({c = getc(file); c} > 0)
         {
-            //x[index] = c;
+            x[index] = c;
             index = index + 1;
+            printf("%c", c);
         }
 
         if(fclose(file) != 0)
@@ -31,11 +32,14 @@ fn main()
         }
     }
 
+	// This line causes a segfault because of the type inference
+	//var a = index + c;
+
     printf(x);
 
-    /*let z = 0;
-    loop({ z = z + 1; z} < 10)
+    /*var z = 0;
+    loop({ z = z + 1; z } < 10)
     {
-        printf("test");
+        printf("test\n");
     }*/
 }
