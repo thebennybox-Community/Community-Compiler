@@ -3,14 +3,38 @@ package dusk.ilc.program
 import dusk.ilc.opcodes.*
 import java.nio.ByteBuffer
 
+/**
+ * Holds information about a program.
+ *
+ * @param instructions list of instructions in the program
+ */
 class ProgramData(val instructions: List<Instruction>) {
 
+	/**
+	 * The functions defined in this program.
+	 */
 	val functions by lazy { findFunctions() }
+
+	/**
+	 * The globals defined in this program.
+	 */
 	val globals by lazy { findGlobals() }
+
+	/**
+	 * The metadata defined in thsi program.
+	 */
 	val data by lazy { findData() }
 
+	/**
+	 * `true` if this program is probably a script
+	 *
+	 * More specifically, `true` if it does not have a `main` function
+	 */
 	val isScript get() = "main" !in functions
 
+	/**
+	 * Creates a new `ProgramData`, wrapping the top instructions with a main function
+	 */
 	fun toNonScript(): ProgramData {
 		if (!isScript)
 			return this
@@ -40,10 +64,16 @@ class ProgramData(val instructions: List<Instruction>) {
 		return ProgramData(new)
 	}
 
+	/**
+	 * @return the instruction at [index]
+	 */
 	operator fun get(index: Int): Instruction {
 		return instructions[index]
 	}
 
+	/**
+	 * @return the function that the instruction at [index] is in
+	 */
 	fun getFunction(index: Int): Function? {
 		var i = index
 		while (i >= 0) {

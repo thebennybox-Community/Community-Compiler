@@ -3,6 +3,8 @@ package dusk.ilc
 import dusk.ilc.emitter.*
 import dusk.ilc.emitter.nasm.NASMEmitter
 import dusk.ilc.parser.*
+import dusk.ilc.program.Optimizer
+import dusk.ilc.program.interpreter.*
 import dusk.ilc.util.Flags
 import dusk.ilc.util.Verbose
 import java.io.File
@@ -10,8 +12,8 @@ import java.io.File
 enum class EmitterType(val create: () -> Emitter) {
 	NASM({ NASMEmitter(false) }),
 	WNASM({ NASMEmitter(true) }),
-	FLAT_BIN(BinaryEmitter),
-	FLAT_TEXT(TextEmitter),
+	BIN(BinaryEmitter),
+	TEXT(TextEmitter),
 	EXE({ ExecutableEmitter(false) }),
 	WEXE({ ExecutableEmitter(true) });
 
@@ -19,8 +21,8 @@ enum class EmitterType(val create: () -> Emitter) {
 }
 
 enum class ParserType(val create: () -> Parser) {
-	FLAT_BIN(BinaryParser),
-	FLAT_TEXT(TextParser);
+	BIN(BinaryParser),
+	TEXT(TextParser);
 
 	constructor(parser: Parser) : this({ parser })
 }
@@ -31,6 +33,7 @@ fun main(args: Array<String>) {
 	var emitterType: EmitterType? = null
 	var parserType: ParserType? = null
 
+	var interpret = false
 	// duskilc -o test.exe -e binary -p textV2 ogl.il
 
 	var i = 0
@@ -75,6 +78,8 @@ fun main(args: Array<String>) {
 			Flags.verbose = true
 		} else if (str == "--no-optimization") {
 			Flags.optimization = false
+		} else if(str == "-i") {
+			interpret = true
 		} else if(inputFile == null) {
 			val result = StringBuilder()
 			i--
@@ -93,18 +98,10 @@ fun main(args: Array<String>) {
 		}
 	}
 
-	if(emitterType == null) {
-		System.err.println("Expected emitter, use -e to specify it.")
-		return
-	}
+
 
 	if(parserType == null) {
 		System.err.println("Expected parser, use -p to specify it.")
-		return
-	}
-
-	if(outputFile == null) {
-		System.err.println("Expected output file, use -o to specify it.")
 		return
 	}
 
@@ -118,12 +115,41 @@ fun main(args: Array<String>) {
 		return
 	}
 
-	val emitter = emitterType.create()
+	if(interpret) {
+		val parser = parserType.create()
+		executeInterpreter(inputFile, parser)
+		return
+	}
+
+	if(emitterType == null) {
+		System.err.println("Expected emitter, use -e to specify it.")
+		return
+	}
+
+	if(outputFile == null) {
+		System.err.println("Expected output file, use -o to specify it.")
+		return
+	}
+
 	val parser = parserType.create()
+	val emitter = emitterType.create()
 	execute(inputFile, outputFile, emitter, parser)
 }
 
 private fun execute(inp: File, out: File, emitter: Emitter, parser: Parser) {
-	val instructions = parser.parse(inp.inputStream())
+	var instructions = parser.parse(inp.inputStream())
+	if(Flags.optimization)
+		instructions = Optimizer.optimize(instructions)
 	emitter.emit(instructions, out.outputStream())
+}
+
+private fun executeInterpreter(inp: File, parser: Parser) {
+//	println("### Interpreting ${inp.path}")
+	var instructions = parser.parse(inp.inputStream()).toNonScript()
+	if(Flags.optimization)
+		instructions = Optimizer.optimize(instructions)
+	val interpreter = Interpreter(instructions)
+	interpreter.addExternalFunctionHandler(ReflectionFunctions(StandardExternalFunctions))
+	interpreter.execute()
+//	println("### Interpreter done")
 }
