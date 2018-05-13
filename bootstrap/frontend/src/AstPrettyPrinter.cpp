@@ -545,6 +545,12 @@ void syntax_highlight_print_line(
 
     size_t i = error_start, end = error_start;
 
+    // If the error is at a new line character, we get too few context lines
+    // before, so start before it.
+    if(source[i] == '\n') {
+        i--;
+    }
+
     for(size_t j = 0; j <= (context_lines - 1) / 2; j++) {
         while(i > 0 && source[i] != '\n') {
             i--;
