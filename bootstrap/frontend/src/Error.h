@@ -8,7 +8,9 @@
 enum class ErrorType {
     CompilerError,
 
-    UnexpectedCharacter,
+    UnrecognisedCharacter,
+    NewLineInString,
+    InvalidEscapeSequence,
 
     UnexpectedToken,
     InvalidDec,
@@ -33,6 +35,18 @@ public:
     Token       token;
     std::string message;
     const AstNode *node;
+};
+
+struct LexerError {
+    ErrorType type;
+    unsigned int line, column;
+    unsigned int offset;
+    std::string raw;
+    std::string message;
+
+    std::string to_string() {
+        return message;
+    }
 };
 
 #endif // SRC_ERROR_H

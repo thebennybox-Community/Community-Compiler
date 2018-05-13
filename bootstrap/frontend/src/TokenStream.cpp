@@ -189,7 +189,7 @@ static inline bool is_operator(char c) {
 }
 
 void TokenStream::lex(std::string src) {
-    for(unsigned int i = 0; i < src.size(); (void)0) {
+    for(i = 0; i < src.size(); (void)0) {
         Token token;
         token.line   = line;
         token.column = column;
@@ -491,18 +491,16 @@ void TokenStream::lex(std::string src) {
         case '"': {
             i++, column++; // Skip opening "
 
-            unsigned int start = i;
+            unsigned int start = i, start_column = column, error_line = line;
 
             while(i < src.size() && src[i] != '"') {
                 if(src[i] == '\\') {
                     i++, column++;
                 } else if(src[i] == '\n') {
                     // TODO: Should we stop parsing a string here?
-                    this->errors.push_back({
-                        ErrorType::UnexpectedCharacter,
-                        {line, column, i, "\n", TokenType::Unknown},
-                        "Unexpected new line in string"
-                    });
+                    error(ErrorType::NewLineInString,
+                          line, column, i, "\n",
+                          "Unexpected new line in string");
 
                     i++;
                     line++;
@@ -522,7 +520,9 @@ void TokenStream::lex(std::string src) {
             token.raw  = src.substr(start, length);
 
             for(unsigned int j = 0; j < token.raw.size(); j++) {
-                if(token.raw[j] == '\\') {
+                if(token.raw[j] == '\n') {
+                    error_line++;
+                } else if(token.raw[j] == '\\') {
                     if(token.raw[j + 1] == 'n') {
                         token.raw.replace(j, 2, "\n");
                     } else if(token.raw[j + 1] == 't') {
@@ -532,15 +532,10 @@ void TokenStream::lex(std::string src) {
                     } else if(token.raw[j + 1] == '"') {
                         token.raw.replace(j, 2, "\"");
                     } else {
-                        this->errors.push_back({
-                            ErrorType::UnexpectedCharacter,
-                            {
-                                line, column, i,
-                                std::string(1, token.raw[j + 1]),
-                                TokenType::StringLiteral
-                            },
-                            "Unexpected character in escape sequence"
-                        });
+                        error(ErrorType::InvalidEscapeSequence,
+                              error_line, start_column + j, start + j,
+                              token.raw.substr(j, 2),
+                              "Unexpected character in escape sequence");
                     }
                 }
             }
@@ -549,11 +544,9 @@ void TokenStream::lex(std::string src) {
         }
 
         default: {
-            this->errors.push_back({
-                ErrorType::UnexpectedCharacter,
-                {line, column, i, std::string(1, src[i]), TokenType::Unknown},
-                "Unrecognised character in input"
-            });
+            error(ErrorType::UnrecognisedCharacter,
+                  line, column, i, std::string(1, src[i]),
+                  "Unrecognised character in input");
 
             i++, column++;
 
@@ -572,4 +565,12 @@ void TokenStream::lex(std::string src) {
     end_token.type   = TokenType::End;
 
     this->tokens.push_back(end_token);
+}
+
+void TokenStream::error(
+    ErrorType type,
+    unsigned int line, unsigned int column, unsigned int offset,
+    std::string raw, std::string message
+) {
+    this->errors.push_back({type, line, column, offset, raw, message});
 }

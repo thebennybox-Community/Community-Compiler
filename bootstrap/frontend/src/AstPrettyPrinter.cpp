@@ -1,55 +1,14 @@
 #include "AstPrettyPrinter.h"
 
-#include "Token.h"
 #include <inttypes.h>
 #include <stdio.h>
 #include <string>
+#include "Token.h"
+#include "Terminal.h"
 
 #define INDENT_CHARS "  "
 
-namespace TermColour {
-enum Name {
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    Grey,
-};
-}
-
-static constexpr const char *const term_fg[] = {
-    "\x1B[30m",
-    "\x1B[31m",
-    "\x1B[32m",
-    "\x1B[33m",
-    "\x1B[34m",
-    "\x1B[35m",
-    "\x1B[36m",
-    "\x1B[37m",
-    "\x1B[90m",
-};
-
-static constexpr const char *const term_bg[] = {
-    "\x1B[40m",
-    "\x1B[41m",
-    "\x1B[42m",
-    "\x1B[43m",
-    "\x1B[44m",
-    "\x1B[45m",
-    "\x1B[46m",
-    "\x1B[47m",
-    "",
-};
-
-static constexpr const char *const term_reset     = "\x1B[0m";
-static constexpr const char *const term_bold      = "\x1B[1m";
-static constexpr const char *const term_dim       = "\x1B[2m";
-static constexpr const char *const term_underline = "\x1B[4m";
-static constexpr const char *const term_reverse   = "\x1B[7m";
+static constexpr const char *const code_bg_esc_seq = "\x1B[48;5;236m";
 
 static std::string type_to_string(const AstType *node) {
     if(node->is_array) {
@@ -579,9 +538,12 @@ static void set_colour(size_t i, const TokenStream &tokens) {
 
 void syntax_highlight_print_line(
     const std::string &source, const TokenStream &tokens,
-    size_t i, const Token &error_token, size_t context_lines
+    size_t error_start, size_t error_len, size_t context_lines
 ) {
-    size_t end = i;
+    int lines, columns;
+    get_term_size(&lines, &columns);
+
+    size_t i = error_start, end = error_start;
 
     for(size_t j = 0; j <= (context_lines - 1) / 2; j++) {
         while(i > 0 && source[i] != '\n') {
@@ -609,21 +571,50 @@ void syntax_highlight_print_line(
         end--;
     }
 
+    int column = 0;
+
     for(; i < end; i++) {
-        if(
-            i < error_token.offset ||
-            i > error_token.offset + error_token.raw.size() - 1
-        ) {
+        column++;
+
+        if(i < error_start || i > error_start + error_len - 1) {
             set_colour(i, tokens);
-            putchar(source[i]);
+            printf("%s", code_bg_esc_seq);
+            if(source[i] == '\n') {
+                putchar(' ');
+            } else {
+                putchar(source[i]);
+            }
+            printf("%s", term_reset);
         } else {
-            printf("%s%s", term_bg[TermColour::Red], term_fg[TermColour::Black]);
-            putchar(source[i]);
+            printf("%s%s",
+                   term_bg[TermColour::Red], term_fg[TermColour::Black]);
+            if(source[i] == '\n') {
+                printf(" %s", term_reset);
+            } else {
+                putchar(source[i]);
+            }
             printf("%s", term_reset);
         }
+
+        if(source[i] == '\n') {
+            printf("%s", code_bg_esc_seq);
+            while(column < columns) {
+                putchar(' ');
+                column++;
+            }
+            column = 0;
+            putchar('\n');
+        }
+
+        printf("%s", term_reset);
     }
 
-    printf("\n");
+    printf(code_bg_esc_seq);
+    while(column < columns) {
+        putchar(' ');
+        column++;
+    }
+    printf("%s\n", term_reset);
 }
 
 void syntax_highlight_print(

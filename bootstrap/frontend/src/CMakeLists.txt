@@ -13,12 +13,14 @@ add_executable(
 		main.cpp
 		Token.h
 		Error.h
+        Terminal.h
 		TokenStream.cpp
 		TokenStream.h
 		Parser.cpp
 		Parser.h
 		Ast.cpp
 		Ast.h
+        AstDefs.h
 		AstPrettyPrinter.cpp
 		AstPrettyPrinter.h
 		Semantics.cpp

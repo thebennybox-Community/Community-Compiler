@@ -10,14 +10,16 @@ extern {
 
 fn main()
 {
-    var x = "_______________\n";
+    var x = "
+_\hah____
+__________\n";
 
     var c : i32 = 1;
     var file = fopen("test.txt", "r");
 
     var index: i32 = 0;
 
-    if (file != 0)
+    if (file != 0))
     {
         loop({c = getc(file); c} > 0)
         {
