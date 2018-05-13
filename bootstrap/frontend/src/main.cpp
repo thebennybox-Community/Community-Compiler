@@ -108,9 +108,9 @@ int main(int argc, char **argv) {
     fwrite(&il.stream[0], size, 1, file);
     fclose(file);
 
-	for(auto &ast : asts) {
-		delete ast.root;
-	}
+    for(auto &ast : asts) {
+        delete ast.root;
+    }
 
     return 0;
 }

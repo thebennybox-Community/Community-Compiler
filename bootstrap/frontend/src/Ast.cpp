@@ -39,7 +39,7 @@ void AstBlock::code_gen(ILemitter &il, Semantics &sem) {
 }
 
 void AstString::code_gen(ILemitter &il, Semantics &sem) {
-	(void)sem;
+    (void)sem;
     il.push_str(value.c_str());
 }
 
@@ -49,9 +49,9 @@ void AstNumber::code_gen(ILemitter &il, Semantics &sem) {
         if(is_float) {
             printf("Internal compiler error: 8 bit floats\n");
         } else if(is_signed) {
-			il.push_i8((int8_t)value.i);
-		} else {
-			il.push_u8((uint8_t)value.u);
+    il.push_i8((int8_t)value.i);
+    } else {
+    il.push_u8((uint8_t)value.u);
         }
 
         break;
@@ -60,9 +60,9 @@ void AstNumber::code_gen(ILemitter &il, Semantics &sem) {
         if(is_float) {
             printf("Internal compiler error: 16 bit floats\n");
         } else if(is_signed) {
-			il.push_i16((int16_t)value.i);
-		} else {
-			il.push_u16((uint16_t)value.u);
+    il.push_i16((int16_t)value.i);
+    } else {
+    il.push_u16((uint16_t)value.u);
         }
 
         break;
@@ -71,9 +71,9 @@ void AstNumber::code_gen(ILemitter &il, Semantics &sem) {
         if(is_float) {
             il.push_f32((float)value.f);
         } else if(is_signed) {
-			il.push_i32((int32_t)value.i);
-		} else {
-			il.push_u32((uint32_t)value.u);
+    il.push_i32((int32_t)value.i);
+    } else {
+    il.push_u32((uint32_t)value.u);
         }
 
         break;
@@ -82,22 +82,22 @@ void AstNumber::code_gen(ILemitter &il, Semantics &sem) {
         if(is_float) {
             il.push_f64(value.f);
         } else if(is_signed) {
-			il.push_i64(value.i);
-		} else {
-			il.push_u64(value.u);
+    il.push_i64(value.i);
+    } else {
+    il.push_u64(value.u);
         }
 
         break;
 
-	default:
-		printf("Internal compiler error: unknown number of bits");
-		break;
+    default:
+    printf("Internal compiler error: unknown number of bits");
+    break;
     }
 
 }
 
 void AstBoolean::code_gen(ILemitter &il, Semantics &sem) {
-	(void)sem;
+    (void)sem;
     if(value) {
         il.push_true();
     } else {
@@ -106,8 +106,8 @@ void AstBoolean::code_gen(ILemitter &il, Semantics &sem) {
 }
 
 void AstArray::code_gen(ILemitter &il, Semantics &sem) {
-	(void)il;
-	(void)sem;
+    (void)il;
+    (void)sem;
 }
 
 void AstDec::code_gen(ILemitter &il, Semantics &sem) {
@@ -262,7 +262,7 @@ void AstLoop::code_gen(ILemitter &il, Semantics &sem) {
     g_counter++;
 
     if(is_foreach) {
-		// TODO: need enumerables for this
+    // TODO: need enumerables for this
     } else if(type && type->name != "bool") {
         auto var = "~"s + std::to_string(g_counter++);
 
@@ -315,24 +315,26 @@ void AstLoop::code_gen(ILemitter &il, Semantics &sem) {
         g_counter++;
     }
 
+    delete type;
+
     //  g_counter = buf;
 }
 
 void AstContinue::code_gen(ILemitter &il, Semantics &sem) {
-	(void)sem;
+    (void)sem;
     auto lblcont = ("lblcont"s + std::to_string(g_counter)).c_str();
     il.jump(lblcont);
 }
 
 void AstBreak::code_gen(ILemitter &il, Semantics &sem) {
-	(void)sem;
+    (void)sem;
     auto lblout = ("lblout"s + std::to_string(g_counter)).c_str();
     il.jump(lblout);
 }
 
 void AstStruct::code_gen(ILemitter &il, Semantics &sem) {
-	(void)il;
-	(void)sem;
+    (void)il;
+    (void)sem;
 }
 
 void AstImpl::code_gen(ILemitter &il, Semantics &sem) {
@@ -365,9 +367,9 @@ void AstBinaryExpr::code_gen(ILemitter &il, Semantics &sem) {
     if(op == "=") {
         generate_il(rhs, il, sem);
 
-		// TODO: Left side can be an expression too
+    // TODO: Left side can be an expression too
         auto x = (AstSymbol*)lhs;
-		auto local = get_local(x->name);
+    auto local = get_local(x->name);
 
         if(local && !local->immutable) {
             il.store_local(x->name.c_str());
@@ -443,21 +445,23 @@ void AstIndex::code_gen(ILemitter &il, Semantics &sem) {
     il.integer_add();
 
     il.read();
+
+    delete type;
 }
 
 void AstType::code_gen(ILemitter &il, Semantics &sem) {
-	(void)il;
-	(void)sem;
+    (void)il;
+    (void)sem;
 }
 
 void AstSymbol::code_gen(ILemitter &il, Semantics &sem) {
-	(void)sem;
+    (void)sem;
     if(has_local(name)) {
         il.load_local(name.c_str());
     } else if(has_arg(name)) {
-		il.load_argument(name.c_str());
-	} else {
-		il.push_function(name.c_str());
+    il.load_argument(name.c_str());
+    } else {
+    il.push_function(name.c_str());
     }
 }
 

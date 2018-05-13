@@ -3,6 +3,19 @@
 #include "Ast.h"
 #include "CodeGen.h"
 
+static AstType *clone_type(const AstType *type) {
+    auto clone = new AstType();
+    auto result = clone;
+    clone->name = type->name;
+    while(type->subtype) {
+        clone->subtype = new AstType();
+        clone->subtype->name = type->subtype->name;
+        type  = type->subtype;
+        clone = clone->subtype;
+    }
+    return result;
+}
+
 bool Semantics::p1_has_symbol(const std::string &symbol) {
     for(auto sym : p1_funcs) {
         if(sym == symbol) {
@@ -36,7 +49,7 @@ bool Semantics::p1_has_symbol(const AstType *type) {
         }
     }
 
-	return p1_has_symbol(type->subtype);
+    return p1_has_symbol(type->subtype);
 }
 
 AstFn *Semantics::p2_get_fn(const AstSymbol *name) {
@@ -117,7 +130,7 @@ void Semantics::pass1_node(AstNode *node) {
 
     case AstNodeType::AstAffix:
         p1_funcs.push_back(((AstAffix*)node)->name);
-		break;
+        break;
 
     case AstNodeType::AstStruct:
         p1_struct((AstStruct*)node);
@@ -137,13 +150,13 @@ void Semantics::pass1_node(AstNode *node) {
         }
 
         pass1_node(((AstImpl*)node)->block);
-		break;
+        break;
 
     case AstNodeType::AstExtern:
         for(auto decl : ((AstExtern*)node)->decls) {
             pass1_node(decl);
         }
-		break;
+        break;
 
     default:
         break;
@@ -166,7 +179,7 @@ void Semantics::pass2_node(AstNode *node) {
 
     case AstNodeType::AstAffix:
         p2_affix((AstAffix*)node);
-		break;
+        break;
 
     case AstNodeType::AstStruct:
         p2_struct((AstStruct*)node);
@@ -180,13 +193,13 @@ void Semantics::pass2_node(AstNode *node) {
 
     case AstNodeType::AstImpl:
         pass2_node(((AstImpl*)node)->block);
-		break;
+        break;
 
     case AstNodeType::AstExtern:
         for(auto decl : ((AstExtern*)node)->decls) {
             pass2_node(decl);
         }
-		break;
+        break;
 
     default:
         break;
@@ -273,7 +286,7 @@ void Semantics::p2_fn(AstFn *node) {
             if(!p1_has_symbol(param->type)) {
                 printf(
                     "The type \"%s\" does not exist\n",
-					param->type->name.c_str());
+                    param->type->name.c_str());
                 return;
             }
         }
@@ -321,13 +334,13 @@ void Semantics::pass3_nest_att(AstNode *node) {
         nest_flag = true;
         attributes.push_back((AstAttribute*)node);
     } else if(nest_flag) {
-		nest_flag = false;
+        nest_flag = false;
 
-		for(auto attribute : attributes) {
-			node->attributes.push_back(attribute);
-		}
+        for(auto attribute : attributes) {
+            node->attributes.push_back(attribute);
+        }
 
-		attributes.clear();
+        attributes.clear();
     }
 
     switch(node->node_type) {
@@ -540,7 +553,7 @@ void Semantics::pass3_node(AstNode *node) {
     case AstNodeType::AstBreak:
         break;
 
-	case AstNodeType::AstStruct:
+    case AstNodeType::AstStruct:
         break;
 
     case AstNodeType::AstImpl: {
@@ -781,18 +794,15 @@ AstType *Semantics::infer_type(AstNode *node) {
     case AstNodeType::AstDec: {
         auto decl = (AstDec*)node;
         add_local(decl);
-        return decl->type;
+        return clone_type(decl->type);
     }
 
-	case AstNodeType::AstIf:
+    case AstNodeType::AstIf:
         printf("wtf, a if cant evaluate");
         break;
 
     case AstNodeType::AstFn: {
-		// TODO: this causes a segfault. Inferring types for assignment
-		// causes the type of this to be assigned to the type of the decl,
-		// which causes the pointer to be deleted twice in different places
-        return ((AstFn*)node)->return_type;
+        return clone_type(((AstFn*)node)->return_type);
     }
 
     case AstNodeType::AstFnCall: {
@@ -829,8 +839,8 @@ AstType *Semantics::infer_type(AstNode *node) {
         break;
 
     case AstNodeType::AstStruct: {
-        auto ret   = new AstType();
-        ret->name  = ((AstStruct*)node)->name;
+        auto ret  = new AstType();
+        ret->name = ((AstStruct*)node)->name;
         return ret;
     }
 
@@ -843,7 +853,7 @@ AstType *Semantics::infer_type(AstNode *node) {
         break;
 
     case AstNodeType::AstAffix:
-        return ((AstAffix*)node)->return_type;
+        return clone_type(((AstAffix*)node)->return_type);
 
     case AstNodeType::AstUnaryExpr: {
         auto un_expr = (AstUnaryExpr*)node;
@@ -891,7 +901,7 @@ AstType *Semantics::infer_type(AstNode *node) {
         return infer_type(((AstIndex*)node)->expr);
 
     case AstNodeType::AstType:
-        return (AstType*)node;
+        return clone_type((AstType*)node);
 
     case AstNodeType::AstSymbol: {
         auto symbol = (AstSymbol*)node;
@@ -900,14 +910,14 @@ AstType *Semantics::infer_type(AstNode *node) {
             auto fn = p2_get_fn(symbol->name);
 
             if(fn) {
-                return fn->return_type;
+                return clone_type(fn->return_type);
             }
         }
         {
             auto fn = p2_get_affix(symbol->name);
 
             if(fn) {
-                return fn->return_type;
+                return clone_type(fn->return_type);
             }
         }
         {
