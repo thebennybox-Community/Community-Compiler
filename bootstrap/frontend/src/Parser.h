@@ -250,7 +250,7 @@ private:
      *
      * @return Whether the token was accepted
      */
-    bool expect(TokenType type);
+    bool expect(TokenType type, std::string message);
 
     /** Local copy of the token stream */
     std::vector<Token> tokens;

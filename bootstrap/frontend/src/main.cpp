@@ -6,44 +6,6 @@
 #include <iostream>
 #include <vector>
 
-static Semantics sem;
-
-void error(TokenStream stream, Parser parser) {
-    if(stream.errors.size() != 0) {
-        for(Token token : stream.tokens) {
-            printf(
-                "type: %-18s line: %-4u col: %-3u offset: %-5u raw: \"%s\"\n",
-                token_type_names[(int)token.type],
-                token.line,
-                token.column,
-                token.offset,
-                token.raw.c_str()
-            );
-        }
-
-        for(Error error : stream.errors) {
-            printf(
-                "%s: \"%s\" at %u:%u\n",
-                error.message.c_str(),
-                error.token.raw.c_str(),
-                error.token.line,
-                error.token.column
-            );
-        }
-    }
-
-    for(Error error : parser.errors) {
-        printf(
-            "%s: \"%s\" (%s) at %u:%u\n",
-            error.message.c_str(),
-            error.token.raw.c_str(),
-            token_type_names[(int)error.token.type],
-            error.token.line,
-            error.token.column
-        );
-    }
-}
-
 std::string load_text_from_file(std::string filepath) {
     std::ifstream stream(filepath);
     std::string str(
@@ -61,7 +23,7 @@ int main(int argc, char **argv) {
     std::vector<TokenStream> toks;
     std::vector<Ast> asts;
 
-    ILemitter il;
+    bool errors_occurred = false;
 
     for(int i = 2; i < argc; i++) {
         std::string file_contents = load_text_from_file(argv[i]);
@@ -70,11 +32,70 @@ int main(int argc, char **argv) {
         stream.lex(file_contents);
         toks.push_back(stream);
 
-        Parser parser;
-        asts.push_back(parser.parse(stream.tokens));
+        if(!stream.errors.empty()) {
+            errors_occurred = true;
+            for(Token token : stream.tokens) {
+                printf(
+                    "type: %-18s line: %-4u col: %-3u offset: %-5u raw: \"%s\"\n",
+                    token_type_names[(int)token.type],
+                    token.line,
+                    token.column,
+                    token.offset,
+                    token.raw.c_str()
+                );
+            }
 
-        error(stream, parser);
+            for(Error error : stream.errors) {
+                printf(
+                    "%s: \"%s\" at %u:%u\n",
+                    error.message.c_str(),
+                    error.token.raw.c_str(),
+                    error.token.line,
+                    error.token.column
+                );
+                syntax_highlight_print_line(
+                    file_contents, stream, error.token.offset, error.token);
+            }
+        } else {
+            Parser parser;
+            asts.push_back(parser.parse(stream.tokens));
+
+            if(!parser.errors.empty()) {
+                errors_occurred = true;
+                for(Error error : parser.errors) {
+                    printf("\n-----------------------------\n\n");
+                    if(error.type == ErrorType::UnexpectedToken) {
+                        printf(
+                            "%s, got \"%s\" (%s) at %u:%u\n",
+                            error.message.c_str(),
+                            error.token.raw.c_str(),
+                            token_type_names[(int)error.token.type],
+                            error.token.line,
+                            error.token.column
+                        );
+                    } else {
+                        printf(
+                            "%s: \"%s\" (%s) at %u:%u\n",
+                            error.message.c_str(),
+                            error.token.raw.c_str(),
+                            token_type_names[(int)error.token.type],
+                            error.token.line,
+                            error.token.column
+                        );
+                    }
+                    syntax_highlight_print_line(
+                        file_contents, stream, error.token.offset, error.token);
+                }
+            }
+        }
     }
+
+    if(errors_occurred) {
+        printf("Errors occurred, exiting\n");
+        return 1;
+    }
+
+    Semantics sem;
 
     for(size_t i = 0; i < asts.size(); i++) {
         sem.pass1(asts[i]);
@@ -88,6 +109,13 @@ int main(int argc, char **argv) {
         sem.pass3(asts[i]);
     }
 
+    if(!sem.errors.empty()) {
+        for(Error error : sem.errors) {
+            printf("%s\n", error.message.c_str());
+        }
+        return 1;
+    }
+
     scope.clear();
     args.clear();
 
@@ -98,6 +126,8 @@ int main(int argc, char **argv) {
     while(!arg_stack.empty()) {
         arg_stack.pop();
     }
+
+    ILemitter il;
 
     for(size_t i = 0; i < asts.size(); i++) {
         generate_il(asts[i].root, il, sem);
