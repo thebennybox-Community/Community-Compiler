@@ -1,10 +1,11 @@
+#include <fstream>
+#include <iostream>
+#include <vector>
 #include "AstPrettyPrinter.h"
 #include "CodeGen.h"
 #include "Parser.h"
 #include "TokenStream.h"
-#include <fstream>
-#include <iostream>
-#include <vector>
+#include "Terminal.h"
 
 std::string load_text_from_file(std::string filepath) {
     std::ifstream stream(filepath);
@@ -34,27 +35,15 @@ int main(int argc, char **argv) {
 
         if(!stream.errors.empty()) {
             errors_occurred = true;
-            for(Token token : stream.tokens) {
-                printf(
-                    "type: %-18s line: %-4u col: %-3u offset: %-5u raw: \"%s\"\n",
-                    token_type_names[(int)token.type],
-                    token.line,
-                    token.column,
-                    token.offset,
-                    token.raw.c_str()
-                );
-            }
-
-            for(Error error : stream.errors) {
-                printf(
-                    "%s: \"%s\" at %u:%u\n",
-                    error.message.c_str(),
-                    error.token.raw.c_str(),
-                    error.token.line,
-                    error.token.column
-                );
+            for(LexerError error : stream.errors) {
+                printf("\n%s%s @ %s%s%d%s:%s%d%s\n",
+                       term_fg[TermColour::Yellow],
+                       error.to_string().c_str(),
+                       term_reset,
+                       term_fg[TermColour::Blue], error.line, term_reset,
+                       term_fg[TermColour::Blue], error.column, term_reset);
                 syntax_highlight_print_line(
-                    file_contents, stream, error.token.offset, error.token);
+                    file_contents, stream, error.offset, error.raw.size());
             }
         } else {
             Parser parser;
@@ -84,14 +73,18 @@ int main(int argc, char **argv) {
                         );
                     }
                     syntax_highlight_print_line(
-                        file_contents, stream, error.token.offset, error.token);
+                        file_contents, stream, error.token.offset, error.token.raw.size());
                 }
             }
         }
     }
 
     if(errors_occurred) {
-        printf("Errors occurred, exiting\n");
+        for(auto &ast : asts) {
+            delete ast.root;
+        }
+
+        printf("\n------------------------\nErrors occurred, exiting\n");
         return 1;
     }
 
