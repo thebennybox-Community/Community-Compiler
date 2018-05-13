@@ -154,7 +154,7 @@ struct AstType : public AstNode {
 };
 
 struct AstDec : public AstNode {
-	std::string name;
+    std::string name;
     AstType *type  = nullptr;
     AstNode *value = nullptr;
     bool immutable = false;
@@ -187,9 +187,9 @@ struct AstIf : public AstNode {
 };
 
 struct AstFn : public AstNode {
-	std::string unmangled_name;
-	std::string mangled_name;
-	std::string type_self;
+    std::string unmangled_name;
+    std::string mangled_name;
+    std::string type_self;
     std::vector<AstDec*> params;
     AstType *return_type = nullptr;
     AstBlock *body       = nullptr;
@@ -210,7 +210,7 @@ struct AstFn : public AstNode {
 };
 
 struct AstFnCall : public AstNode {
-	std::string name;
+    std::string name;
     std::vector<AstNode*> args;
     bool mangled = false;
 
@@ -227,7 +227,7 @@ struct AstFnCall : public AstNode {
 };
 
 struct AstLoop : public AstNode {
-	std::string name;
+    std::string name;
     bool is_foreach = false;
     AstBlock *body  = nullptr;
     AstNode *expr   = nullptr;
@@ -258,7 +258,7 @@ struct AstBreak: public AstNode {
 };
 
 struct AstStruct : public AstNode {
-	std::string name;
+    std::string name;
     AstBlock *block = nullptr;
 
     AstStruct(unsigned int line = 0, unsigned int column = 0):
@@ -272,7 +272,7 @@ struct AstStruct : public AstNode {
 };
 
 struct AstImpl : public AstNode {
-	std::string name;
+    std::string name;
     AstBlock *block = nullptr;
 
     AstImpl(unsigned int line = 0, unsigned int column = 0):
@@ -286,7 +286,7 @@ struct AstImpl : public AstNode {
 };
 
 struct AstAttribute : public AstNode {
-	std::string name;
+    std::string name;
     std::vector<AstNode*> args;
 
     AstAttribute(unsigned int line = 0, unsigned int column = 0):
@@ -302,7 +302,7 @@ struct AstAttribute : public AstNode {
 };
 
 struct AstAffix : public AstNode {
-	std::string name;
+    std::string name;
     std::vector<AstDec*> params;
     AstType *return_type = nullptr;
     AstBlock *body       = nullptr;

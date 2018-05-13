@@ -36,7 +36,7 @@ bool Semantics::p1_has_symbol(const AstType *type) {
         }
     }
 
-	return p1_has_symbol(type->subtype);
+    return p1_has_symbol(type->subtype);
 }
 
 AstFn *Semantics::p2_get_fn(const AstSymbol *name) {
@@ -117,7 +117,7 @@ void Semantics::pass1_node(AstNode *node) {
 
     case AstNodeType::AstAffix:
         p1_funcs.push_back(((AstAffix*)node)->name);
-		break;
+        break;
 
     case AstNodeType::AstStruct:
         p1_struct((AstStruct*)node);
@@ -137,13 +137,13 @@ void Semantics::pass1_node(AstNode *node) {
         }
 
         pass1_node(((AstImpl*)node)->block);
-		break;
+        break;
 
     case AstNodeType::AstExtern:
         for(auto decl : ((AstExtern*)node)->decls) {
             pass1_node(decl);
         }
-		break;
+        break;
 
     default:
         break;
@@ -166,7 +166,7 @@ void Semantics::pass2_node(AstNode *node) {
 
     case AstNodeType::AstAffix:
         p2_affix((AstAffix*)node);
-		break;
+        break;
 
     case AstNodeType::AstStruct:
         p2_struct((AstStruct*)node);
@@ -180,13 +180,13 @@ void Semantics::pass2_node(AstNode *node) {
 
     case AstNodeType::AstImpl:
         pass2_node(((AstImpl*)node)->block);
-		break;
+        break;
 
     case AstNodeType::AstExtern:
         for(auto decl : ((AstExtern*)node)->decls) {
             pass2_node(decl);
         }
-		break;
+        break;
 
     default:
         break;
@@ -273,7 +273,7 @@ void Semantics::p2_fn(AstFn *node) {
             if(!p1_has_symbol(param->type)) {
                 printf(
                     "The type \"%s\" does not exist\n",
-					param->type->name.c_str());
+                    param->type->name.c_str());
                 return;
             }
         }
@@ -321,13 +321,13 @@ void Semantics::pass3_nest_att(AstNode *node) {
         nest_flag = true;
         attributes.push_back((AstAttribute*)node);
     } else if(nest_flag) {
-		nest_flag = false;
+        nest_flag = false;
 
-		for(auto attribute : attributes) {
-			node->attributes.push_back(attribute);
-		}
+        for(auto attribute : attributes) {
+            node->attributes.push_back(attribute);
+        }
 
-		attributes.clear();
+        attributes.clear();
     }
 
     switch(node->node_type) {
@@ -540,7 +540,7 @@ void Semantics::pass3_node(AstNode *node) {
     case AstNodeType::AstBreak:
         break;
 
-	case AstNodeType::AstStruct:
+    case AstNodeType::AstStruct:
         break;
 
     case AstNodeType::AstImpl: {
@@ -784,14 +784,14 @@ AstType *Semantics::infer_type(AstNode *node) {
         return decl->type;
     }
 
-	case AstNodeType::AstIf:
+    case AstNodeType::AstIf:
         printf("wtf, a if cant evaluate");
         break;
 
     case AstNodeType::AstFn: {
-		// TODO: this causes a segfault. Inferring types for assignment
-		// causes the type of this to be assigned to the type of the decl,
-		// which causes the pointer to be deleted twice in different places
+        // TODO: this causes a segfault. Inferring types for assignment
+        // causes the type of this to be assigned to the type of the decl,
+        // which causes the pointer to be deleted twice in different places
         return ((AstFn*)node)->return_type;
     }
 
