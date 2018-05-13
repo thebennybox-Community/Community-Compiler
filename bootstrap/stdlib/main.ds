@@ -23,7 +23,6 @@ fn main()
         {
             x[index] = c;
             index = index + 1;
-            printf("%c", c);
         }
 
         if(fclose(file) != 0)
@@ -33,10 +32,4 @@ fn main()
     }
 
     printf(x);
-
-    /*var z = 0;
-    loop({ z = z + 1; z } < 10)
-    {
-        printf("test\n");
-    }*/
 }

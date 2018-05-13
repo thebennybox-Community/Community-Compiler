@@ -119,6 +119,7 @@ class ILemitter {
 public:
     std::vector<uint8_t> stream;
 
+    void remove_last();
     void no_operation();
     void push_u8(uint8_t x);
     void push_u16(uint16_t x);
