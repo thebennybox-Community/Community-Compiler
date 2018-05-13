@@ -802,9 +802,6 @@ AstType *Semantics::infer_type(AstNode *node) {
         break;
 
     case AstNodeType::AstFn: {
-        // TODO: this causes a segfault. Inferring types for assignment
-        // causes the type of this to be assigned to the type of the decl,
-        // which causes the pointer to be deleted twice in different places
         return clone_type(((AstFn*)node)->return_type);
     }
 
