@@ -1,28 +1,28 @@
 struct i32
 {
-    
+
 }
 
 @inline
-infix op ==(a: i32, b: i32) : i32
+infix op ==(a: i32, b: i32) : bool
 {
     cmpe();
 }
 
 @inline
-infix op !=(a: i32, b: i32) : i32
+infix op !=(a: i32, b: i32) : bool
 {
     cpne();
 }
 
 @inline
-infix op >(a: i32, b: i32) : i32
+infix op >(a: i32, b: i32) : bool
 {
    cmpl();
 }
 
 @inline
-infix op <(a: i32, b: i32) : i32
+infix op <(a: i32, b: i32) : bool
 {
      cmpg();
 }

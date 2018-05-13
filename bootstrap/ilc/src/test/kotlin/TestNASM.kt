@@ -1,7 +1,5 @@
 import dusk.ilc.emitter.nasm.NASMEmitter
-import dusk.ilc.parser.BinaryParser
 import dusk.ilc.parser.TextParser
-import dusk.ilc.util.Flags
 import java.io.File
 import kotlin.system.measureTimeMillis
 
@@ -14,10 +12,10 @@ fun main(args: Array<String>) {
 //		addDelete()
 //	}
 
-	val input = ClassLoader.getSystemClassLoader().getResourceAsStream("bug.fil")
+	val input = ClassLoader.getSystemClassLoader().getResourceAsStream("print.il")
 //	val input = File("test.fdasm").inputStream()
-//	val list = TextParser.parse(input)
-	val list = BinaryParser.parse(input)
+	val list = TextParser.parse(input)
+//	val list = BinaryParser.parse(input)
 
 //	Flags.verbose = true
 
@@ -54,7 +52,6 @@ fun main(args: Array<String>) {
 
 		println("Executing...")
 		ProcessBuilder("test.exe").inheritIO().start().waitFor()
-		println("Done executing")
 //		val execProgram = runtime.exec(arrayOf("test.exe"))
 //		println("EXECUTING PROGRAM:")
 //		val reader = execProgram.inputStream.bufferedReader()

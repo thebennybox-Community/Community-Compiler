@@ -257,7 +257,7 @@ void pretty_print_dec(const AstDec *node, std::string indent) {
         node->immutable ? "let" : "var",
         term_reset,
         term_fg[TermColour::Red],
-        node->name->name.c_str(),
+        node->name.c_str(),
         term_reset);
 
     if(node->type) {
@@ -293,7 +293,7 @@ void pretty_print_fn(const AstFn *node, std::string indent) {
         term_fg[TermColour::Yellow],
         term_reset,
         term_fg[TermColour::Blue],
-        node->name->name.c_str(),
+        node->mangled_name.c_str(),
         term_reset);
 
     if(node->return_type) {
@@ -312,7 +312,7 @@ void pretty_print_fn(const AstFn *node, std::string indent) {
             (indent + INDENT_CHARS).c_str(),
             term_fg[TermColour::Yellow],
             term_reset,
-            param->name->name.c_str());
+            param->name.c_str());
     }
 
     if(node->body) {
@@ -326,7 +326,7 @@ void pretty_print_fn_call(const AstFnCall *node, std::string indent) {
         indent.c_str(),
         term_fg[TermColour::Yellow],
         term_reset);
-    pretty_print_symbol(node->name, indent + INDENT_CHARS);
+    //pretty_print_symbol(node->name, indent + INDENT_CHARS);
 
     for(auto expr : node->args) {
         pretty_print_node(expr, indent + INDENT_CHARS);
@@ -378,7 +378,7 @@ void pretty_print_impl(const AstImpl *node, std::string indent) {
         indent.c_str(),
         term_fg[TermColour::Yellow],
         term_reset);
-    pretty_print_symbol(node->name, indent + INDENT_CHARS);
+    //pretty_print_symbol(node->name, indent + INDENT_CHARS);
     pretty_print_block(node->block, indent + INDENT_CHARS);
 }
 
@@ -388,7 +388,7 @@ void pretty_print_attribute(const AstAttribute *node, std::string indent) {
         indent.c_str(),
         term_fg[TermColour::Yellow],
         term_reset);
-    pretty_print_symbol(node->name, indent + INDENT_CHARS);
+    //pretty_print_symbol(node->name, indent + INDENT_CHARS);
 }
 
 void pretty_print_affix(const AstAffix *node, std::string indent) {
@@ -416,7 +416,7 @@ void pretty_print_affix(const AstAffix *node, std::string indent) {
         pretty_print_type(node->return_type, indent + INDENT_CHARS);
     }
 
-    pretty_print_symbol(node->name, indent + INDENT_CHARS);
+    //pretty_print_symbol(node->name, indent + INDENT_CHARS);
 
     for(auto param : node->params) {
         printf(
@@ -424,7 +424,7 @@ void pretty_print_affix(const AstAffix *node, std::string indent) {
             (indent + INDENT_CHARS).c_str(),
             term_fg[TermColour::Yellow],
             term_reset,
-            param->name->name.c_str());
+            param->name.c_str());
     }
 
     pretty_print_block(node->body, indent + INDENT_CHARS);
@@ -517,8 +517,8 @@ void pretty_print_ast(Ast &ast) {
     pretty_print_block(ast.root, "");
 }
 
-static void set_colour(unsigned int i, const TokenStream &tokens) {
-    for(unsigned int j = 0; j < tokens.tokens.size(); j++) {
+static void set_colour(size_t i, const TokenStream &tokens) {
+    for(size_t j = 0; j < tokens.tokens.size(); j++) {
         const auto &token = tokens.tokens[j];
 
         if(token.offset <= i && token.offset + token.raw.size() > i) {
@@ -577,9 +577,65 @@ static void set_colour(unsigned int i, const TokenStream &tokens) {
     }
 }
 
+void syntax_highlight_print_line(
+    const std::string &source, const TokenStream &tokens,
+    size_t i, const Token &error_token, size_t context_lines
+) {
+    size_t end = i;
+
+    for(size_t j = 0; j <= (context_lines - 1) / 2; j++) {
+        while(i > 0 && source[i] != '\n') {
+            i--;
+        }
+        if(i == 0) {
+            break;
+        }
+        i--;
+    }
+    if(i != 0) {
+        i += 2;
+    }
+
+    for(size_t j = 0; j <= (context_lines - 1) / 2; j++) {
+        while(end < source.size() && source[end] != '\n') {
+            end++;
+        }
+        if(end == source.size()) {
+            break;
+        }
+        end++;
+    }
+    if(end != source.size()) {
+        end--;
+    }
+
+    for(; i < end; i++) {
+        if(
+            i < error_token.offset ||
+            i > error_token.offset + error_token.raw.size() - 1
+        ) {
+            set_colour(i, tokens);
+            putchar(source[i]);
+        } else {
+            printf("%s%s", term_bg[TermColour::Red], term_fg[TermColour::Black]);
+            putchar(source[i]);
+            printf("%s", term_reset);
+        }
+    }
+
+    printf("\n");
+}
+
 void syntax_highlight_print(
     const std::string &source, const TokenStream &tokens) {
-    for(unsigned int i = 0; i < source.size(); i++) {
+    syntax_highlight_print(source, tokens, 0, source.size());
+}
+
+void syntax_highlight_print(
+    const std::string &source, const TokenStream &tokens,
+    size_t start, size_t end
+) {
+    for(size_t i = start; i < end; i++) {
         set_colour(i, tokens);
         putchar(source[i]);
     }

@@ -42,10 +42,17 @@ EXFN glutPostRedisplay void []
 # EXFN glutSwapBuffers void []
 # EXFN glutPostRedisplay void []
 
-INFN display void []
+INFN display void
+INFN main void
+FPRM main argc u32
+FPRM main argv ptr
 
+FUNC main
 
-LARG 4; ADRA 0; CALL glutInit
+LARG argv
+ADRA argc
+CALL glutInit
+
 PI32 2; CALL glutInitDisplayMode
 PI32 720; PI32 1280; CALL glutInitWindowSize
 

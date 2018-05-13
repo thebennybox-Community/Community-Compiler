@@ -5,16 +5,16 @@
 #define cur_tok (this->tokens[this->token_index])
 #define peek_tok (this->tokens[this->token_index + 1])
 
-Ast *Parser::parse(const std::vector<Token> &tokens) {
+Ast Parser::parse(const std::vector<Token> &tokens) {
     this->tokens = tokens;
-    Ast *ast     = new Ast();
-    ast->root    = new AstBlock();
+    Ast ast;
+    ast.root = new AstBlock();
 
     while(this->token_index < this->tokens.size() - 1) {
         AstNode *statement = parse_stmt();
 
         if(this->errors.size() == 0 && statement) {
-            ast->root->statements.push_back(statement);
+            ast.root->statements.push_back(statement);
         } else {
             delete statement;
         }
@@ -25,18 +25,9 @@ Ast *Parser::parse(const std::vector<Token> &tokens) {
 
 AstNode *Parser::parse_stmt() {
     switch(cur_tok.type) {
-    case TokenType::Symbol: {
-        auto result = parse_expr();
-
-        if(!expect(TokenType::SemiColon)) {
-            return nullptr;
-        }
-
-        return result;
-    }
-
     case TokenType::OpenCurlyBracket:  return parse_block();
 
+    case TokenType::Symbol:            // Fall through
     case TokenType::StringLiteral:     // Fall through
     case TokenType::IntegerLiteral:    // Fall through
     case TokenType::HexLiteral:        // Fall through
@@ -77,10 +68,10 @@ AstNode *Parser::parse_stmt() {
         return nullptr;
 
     default:
-        this->errors.push_back({
+        this->errors.emplace_back(
             ErrorType::UnexpectedToken, cur_tok,
             "Unexpected token in input"
-        });
+        );
         next_token();
         break;
     }
@@ -89,7 +80,8 @@ AstNode *Parser::parse_stmt() {
 }
 
 AstBlock *Parser::parse_block() {
-    if(!expect(TokenType::OpenCurlyBracket)) {
+    if(!expect(TokenType::OpenCurlyBracket,
+               "Expected opening curly bracket at start of block")) {
         return nullptr;
     }
 
@@ -104,6 +96,8 @@ AstBlock *Parser::parse_block() {
         }
 
         result->statements.push_back(statement);
+
+        while(accept(TokenType::SemiColon)) {} // Hacky, but works
     }
 
     return result;
@@ -113,9 +107,7 @@ AstNode *Parser::parse_symbol() {
     if(peek_tok.type == TokenType::OpenParenthesis) {
         // Function call
         AstFnCall *result = new AstFnCall(cur_tok.line, cur_tok.column);
-
-        result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
-        result->name->name = cur_tok.raw;
+        result->name = cur_tok.raw;
 
         next_token();
 
@@ -127,7 +119,6 @@ AstNode *Parser::parse_symbol() {
         return result;
     } else {
         AstSymbol *result = new AstSymbol(cur_tok.line, cur_tok.column);
-
         result->name = cur_tok.raw;
 
         next_token();
@@ -231,7 +222,9 @@ AstArray *Parser::parse_array() {
         result->elements.push_back(element);
 
         if(!accept(TokenType::Comma)) {
-            if(!expect(TokenType::CloseSquareBracket)) {
+            if(!expect(TokenType::CloseSquareBracket,
+                       "Expected closing square bracket at end of array "
+                       "literal")) {
                 delete result;
                 return nullptr;
             }
@@ -248,13 +241,15 @@ AstType *Parser::parse_type() {
 
     result->name = cur_tok.raw;
 
-    if(!expect(TokenType::Symbol)) {
+    if(!expect(TokenType::Symbol, "Expected type name")) {
         delete result;
         return nullptr;
     }
 
     while(accept(TokenType::OpenSquareBracket)) {
-        if(!expect(TokenType::CloseSquareBracket)) {
+        if(!expect(TokenType::CloseSquareBracket,
+                   "Expected closing square bracket to match opening square "
+                   "bracket in type")) {
             delete result;
             return nullptr;
         }
@@ -279,10 +274,10 @@ AstDec *Parser::parse_decl() {
 
     next_token();
 
-    result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
-    result->name->name = cur_tok.raw;
+    result->name = cur_tok.raw;
 
-    if(!expect(TokenType::Symbol)) {
+    if(!expect(TokenType::Symbol,
+               "Expected identifier in declaration")) {
         delete result;
         return nullptr;
     }
@@ -310,15 +305,16 @@ AstDec *Parser::parse_decl() {
     }
 
     if(!valid) {
-        this->errors.push_back({
+        this->errors.emplace_back(
             ErrorType::InvalidDec, this->tokens[start],
             "Invalid declaration, either a type or a value is required"
-        });
+        );
         delete result;
         return nullptr;
     }
 
-    if(!expect(TokenType::SemiColon)) {
+    if(!expect(TokenType::SemiColon,
+               "Expected semicolon at end of declaration")) {
         delete result;
         return nullptr;
     }
@@ -331,7 +327,8 @@ AstIf *Parser::parse_if() {
 
     next_token();
 
-    if(!expect(TokenType::OpenParenthesis)) {
+    if(!expect(TokenType::OpenParenthesis,
+               "Expected opening parenthesis after `if`")) {
         delete result;
         return nullptr;
     }
@@ -341,7 +338,8 @@ AstIf *Parser::parse_if() {
         return nullptr;
     }
 
-    if(!expect(TokenType::CloseParenthesis)) {
+    if(!expect(TokenType::CloseParenthesis,
+               "Expected closing parenthesis after if-condition")) {
         delete result;
         return nullptr;
     }
@@ -377,21 +375,24 @@ AstFn *Parser::parse_fn(bool require_body) {
 
     next_token();
 
-    result->name = new AstSymbol(cur_tok.line, cur_tok.column);
-    result->name->name = cur_tok.raw;
+    result->unmangled_name = cur_tok.raw;
+    result->mangled_name   = cur_tok.raw;
 
-    if(!expect(TokenType::Symbol)) {
+    if(!expect(TokenType::Symbol,
+               "Expected function or type name after `fn`")) {
         delete result;
         return nullptr;
     }
 
     if(accept(TokenType::Dot)) {
-        result->type_self = result->name;
+        result->type_self = result->unmangled_name;
 
-        result->name = new AstSymbol(cur_tok.line, cur_tok.column);
-        result->name->name = cur_tok.raw;
+        result->unmangled_name = cur_tok.raw;
+        result->mangled_name   = cur_tok.raw;
 
-        if(!expect(TokenType::Symbol)) {
+        if(!expect(TokenType::Symbol,
+                   "Expected function name after `.` in function "
+                   "declaration")) {
             delete result;
             return nullptr;
         }
@@ -409,13 +410,25 @@ AstFn *Parser::parse_fn(bool require_body) {
         }
     }
 
-    if(cur_tok.type == TokenType::OpenCurlyBracket) {
-        if(!(result->body = parse_block())) {
-            delete result;
-            return nullptr;
+    if(!require_body) {
+        if(cur_tok.type != TokenType::SemiColon) {
+            if(cur_tok.type != TokenType::OpenCurlyBracket) {
+                this->errors.emplace_back(
+                    ErrorType::UnexpectedToken, cur_tok,
+                    "Expected semicolon or opening curly bracket after "
+                    "function header"
+                );
+            } else if(!(result->body = parse_block())) {
+                delete result;
+                return nullptr;
+            }
         }
-    } else if(require_body) {
-        // Body required but not found
+    } else if(cur_tok.type != TokenType::OpenCurlyBracket) {
+        this->errors.emplace_back(
+            ErrorType::UnexpectedToken, cur_tok,
+            "Expected opening curly bracket at start of function definition"
+        );
+    } else if(!(result->body = parse_block())) {
         delete result;
         return nullptr;
     }
@@ -430,16 +443,15 @@ AstLoop *Parser::parse_loop() {
 
     next_token();
 
-    if(!expect(TokenType::OpenParenthesis)) {
+    if(!expect(TokenType::OpenParenthesis,
+               "Expected opening parenthesis after `loop`")) {
         delete result;
         return nullptr;
     }
 
     if(cur_tok.type == TokenType::Symbol && peek_tok.type == TokenType::In) {
         result->is_foreach = true;
-
-        result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
-        result->name->name = cur_tok.raw;
+        result->name = cur_tok.raw;
 
         accept(TokenType::Symbol);
         accept(TokenType::In);
@@ -450,7 +462,8 @@ AstLoop *Parser::parse_loop() {
         return nullptr;
     }
 
-    if(!expect(TokenType::CloseParenthesis)) {
+    if(!expect(TokenType::CloseParenthesis,
+               "Expected closing parenthesis after loop expression")) {
         delete result;
         return nullptr;
     }
@@ -468,7 +481,8 @@ AstContinue *Parser::parse_continue() {
 
     next_token();
 
-    if(!expect(TokenType::SemiColon)) {
+    if(!expect(TokenType::SemiColon,
+               "Expected semicolon after `continue`")) {
         delete result;
         return nullptr;
     }
@@ -481,7 +495,8 @@ AstBreak *Parser::parse_break() {
 
     next_token();
 
-    if(!expect(TokenType::SemiColon)) {
+    if(!expect(TokenType::SemiColon,
+               "Expected semicolon after `break`")) {
         delete result;
         return nullptr;
     }
@@ -490,39 +505,40 @@ AstBreak *Parser::parse_break() {
 }
 
 AstStruct *Parser::parse_struct() {
-    if(!expect(TokenType::Struct)) {
+    if(!expect(TokenType::Struct, "Internal compiler error")) {
         return nullptr; // Internal error
     }
 
     AstStruct *result = new AstStruct(cur_tok.line, cur_tok.column);
+    result->name = cur_tok.raw;
 
-    result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
-    result->name->name = cur_tok.raw;
-
-    if(!expect(TokenType::Symbol)) {
+    if(!expect(TokenType::Symbol,
+               "Expected struct name after `struct`")) {
         delete result;
         return nullptr;
     }
 
     result->block = new AstBlock(cur_tok.line, cur_tok.column);
 
-    if(!expect(TokenType::OpenCurlyBracket)) {
+    if(!expect(TokenType::OpenCurlyBracket,
+               "Expected opening curly bracket at start of struct")) {
         delete result;
         return nullptr;
     }
 
     while(!accept(TokenType::CloseCurlyBracket)) {
         AstDec *decl = new AstDec(cur_tok.line, cur_tok.column);
+        decl->name = cur_tok.raw;
 
-        decl->name       = new AstSymbol(cur_tok.line, cur_tok.column);
-        decl->name->name = cur_tok.raw;
-
-        if(!expect(TokenType::Symbol)) {
+        if(!expect(TokenType::Symbol,
+                   "Expected symbol name at start of declaration in struct")) {
             delete result;
             return nullptr;
         }
 
-        if(!expect(TokenType::Colon)) {
+        if(!expect(TokenType::Colon,
+                   "Expected colon after symbol name in declaration in "
+                   "struct")) {
             delete result;
             return nullptr;
         }
@@ -543,10 +559,10 @@ AstImpl *Parser::parse_impl() {
 
     next_token();
 
-    result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
-    result->name->name = cur_tok.raw;
+    result->name = cur_tok.raw;
 
-    if(!expect(TokenType::Symbol)) {
+    if(!expect(TokenType::Symbol,
+               "Expected struct name after `impl`")) {
         delete result;
         return nullptr;
     }
@@ -564,10 +580,10 @@ AstAttribute *Parser::parse_attr() {
 
     next_token();
 
-    result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
-    result->name->name = cur_tok.raw;
+    result->name = cur_tok.raw;
 
-    if(!expect(TokenType::Symbol)) {
+    if(!expect(TokenType::Symbol,
+               "Expected attribute name after `@`")) {
         delete result;
         return nullptr;
     }
@@ -584,7 +600,7 @@ AstAttribute *Parser::parse_attr() {
 
 AstAffix *Parser::parse_affix() {
     static const std::map<std::string, AffixType> affix_types = {
-        {"infix", AffixType::Infix},
+        {"infix",  AffixType::Infix},
         {"prefix", AffixType::Prefix},
         {"suffix", AffixType::Suffix},
     };
@@ -596,10 +612,10 @@ AstAffix *Parser::parse_affix() {
     next_token();
 
     if(accept(TokenType::Op)) {
-        result->name       = new AstSymbol(cur_tok.line, cur_tok.column);
-        result->name->name = cur_tok.raw;
+        result->name = cur_tok.raw;
 
-        if(!expect(TokenType::CustomOperator)) {
+        if(!expect(TokenType::CustomOperator,
+                   "Expected operator after `op`")) {
             delete result;
             return nullptr;
         }
@@ -628,13 +644,15 @@ AstAffix *Parser::parse_affix() {
             return nullptr;
         }
 
-        result->name        = fn->name;
+        result->name        = fn->unmangled_name;
+        result->name        = fn->mangled_name;
         result->params      = fn->params;
         result->return_type = fn->return_type;
         result->body        = fn->body;
 
         fn->params.clear();
-        fn->name        = nullptr;
+        fn->unmangled_name        = nullptr;
+        fn->mangled_name        = nullptr;
         fn->return_type = nullptr;
         fn->body        = nullptr;
     } else {
@@ -659,7 +677,8 @@ AstReturn *Parser::parse_return() {
         return nullptr;
     }
 
-    if(!expect(TokenType::SemiColon)) {
+    if(!expect(TokenType::SemiColon,
+               "Expected semicolon after return statement")) {
         delete result;
         return nullptr;
     }
@@ -681,7 +700,9 @@ AstExtern *Parser::parse_extern() {
                 return nullptr;
             }
 
-            if(!expect(TokenType::SemiColon)) {
+            if(!expect(TokenType::SemiColon,
+                       "Expected semicolon after declaration in `extern` "
+                       "block")) {
                 delete result;
                 return nullptr;
             }
@@ -696,7 +717,8 @@ AstExtern *Parser::parse_extern() {
             return nullptr;
         }
 
-        if(!expect(TokenType::SemiColon)) {
+        if(!expect(TokenType::SemiColon,
+                   "Expected semicolon after `extern` declaration")) {
             delete result;
             return nullptr;
         }
@@ -764,14 +786,24 @@ AstNode *Parser::parse_expr_primary() {
 
         result = parse_expr();
 
-        if(!expect(TokenType::CloseParenthesis)) {
+        if(!expect(TokenType::CloseParenthesis,
+                   "Expected closing parenthesis after parenthesised "
+                   "expression")) {
             delete result;
             return nullptr;
         }
 
         break;
 
+    case TokenType::OpenCurlyBracket:
+        result = parse_block();
+        break;
+
     default:
+        this->errors.emplace_back(
+            ErrorType::UnexpectedToken, cur_tok,
+            "Invalid token in primary expression"
+        );
         return nullptr;
     }
 
@@ -781,7 +813,9 @@ AstNode *Parser::parse_expr_primary() {
         index->array = result;
         index->expr  = parse_expr();
 
-        if(!expect(TokenType::CloseSquareBracket)) {
+        if(!expect(TokenType::CloseSquareBracket,
+                   "Expected closing square bracket after array index "
+                   "expression")) {
             delete result;
             return nullptr;
         }
@@ -793,21 +827,22 @@ AstNode *Parser::parse_expr_primary() {
 }
 
 bool Parser::parse_params(std::vector<AstDec *> &result) {
-    if(!expect(TokenType::OpenParenthesis)) {
+    if(!expect(TokenType::OpenParenthesis,
+               "Expected opening parenthesis at start of parameter list")) {
         return false;
     }
 
     while(!accept(TokenType::CloseParenthesis)) {
         AstDec *param = new AstDec(cur_tok.line, cur_tok.column);
+        param->name = cur_tok.raw;
 
-        param->name       = new AstSymbol(cur_tok.line, cur_tok.column);
-        param->name->name = cur_tok.raw;
-
-        if(!expect(TokenType::Symbol)) {
+        if(!expect(TokenType::Symbol,
+                   "Expected name at start of parameter declaration")) {
             return false;
         }
 
-        if(!expect(TokenType::Colon)) {
+        if(!expect(TokenType::Colon,
+                   "Expected colon after name in parameter declaration")) {
             return false;
         }
 
@@ -818,7 +853,9 @@ bool Parser::parse_params(std::vector<AstDec *> &result) {
         result.push_back(param);
 
         if(!accept(TokenType::Comma)) {
-            if(!expect(TokenType::CloseParenthesis)) {
+            if(!expect(TokenType::CloseParenthesis,
+                       "Expected comma or closing parenthesis after "
+                       "parameter")) {
                 return false;
             }
 
@@ -830,7 +867,8 @@ bool Parser::parse_params(std::vector<AstDec *> &result) {
 }
 
 bool Parser::parse_args(std::vector<AstNode *> &result) {
-    if(!expect(TokenType::OpenParenthesis)) {
+    if(!expect(TokenType::OpenParenthesis,
+               "Expected opening parenthesis at start of argument list")) {
         return false;
     }
 
@@ -847,7 +885,8 @@ bool Parser::parse_args(std::vector<AstNode *> &result) {
             break;
         }
 
-        if(!expect(TokenType::Comma)) {
+        if(!expect(TokenType::Comma,
+                   "Expected comma or closing parenthesis after argument")) {
             return false;
         }
     }
@@ -884,16 +923,16 @@ bool Parser::accept(TokenType type) {
     return false;
 }
 
-bool Parser::expect(TokenType type) {
+bool Parser::expect(TokenType type, std::string message) {
     if(cur_tok.type == type) {
         next_token();
         return true;
     }
 
-    this->errors.push_back({
+    this->errors.emplace_back(
         ErrorType::UnexpectedToken, cur_tok,
-        "Unexpected token in input"
-    });
+        message
+    );
 
     return false;
 }

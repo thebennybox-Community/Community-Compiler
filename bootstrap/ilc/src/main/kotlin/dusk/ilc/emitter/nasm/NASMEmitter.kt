@@ -177,6 +177,11 @@ class NASMEmitter(val underscores: Boolean) : dusk.ilc.emitter.Emitter {
 					result.lea(NASMRegister.EAX, NASMRegister.EBP + argOffset(data.getFunction(index)!!, instr.args[0]))
 					result.push(NASMRegister.EAX)
 				}
+				OpCodes.ADRS -> {
+					result.pop(NASMRegister.EAX)
+					result.lea(NASMRegister.EBX, NASMRegister.EAX.deref)
+					result.push(NASMRegister.EBX)
+				}
 				OpCodes.SLOC -> {
 					result.pop(NASMRegister.EAX)
 					result.mov(NASMRegister.EBP + localOffset(data.getFunction(index)!!, instr.args[0]), NASMRegister.EAX)

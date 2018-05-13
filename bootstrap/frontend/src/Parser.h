@@ -16,7 +16,7 @@ public:
      *
      * @return Ast object, containing the root block
      */
-    Ast *parse(const std::vector<Token> &tokens);
+    Ast parse(const std::vector<Token> &tokens);
 
     /** List of errors that occurred during parsing */
     std::vector<Error> errors;
@@ -250,7 +250,7 @@ private:
      *
      * @return Whether the token was accepted
      */
-    bool expect(TokenType type);
+    bool expect(TokenType type, std::string message);
 
     /** Local copy of the token stream */
     std::vector<Token> tokens;
