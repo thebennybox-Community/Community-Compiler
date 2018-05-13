@@ -3,6 +3,19 @@
 #include "Ast.h"
 #include "CodeGen.h"
 
+static AstType *clone_type(const AstType *type) {
+    auto clone = new AstType();
+    auto result = clone;
+    clone->name = type->name;
+    while(type->subtype) {
+        clone->subtype = new AstType();
+        clone->subtype->name = type->subtype->name;
+        type  = type->subtype;
+        clone = clone->subtype;
+    }
+    return result;
+}
+
 bool Semantics::p1_has_symbol(const std::string &symbol) {
     for(auto sym : p1_funcs) {
         if(sym == symbol) {
@@ -781,7 +794,7 @@ AstType *Semantics::infer_type(AstNode *node) {
     case AstNodeType::AstDec: {
         auto decl = (AstDec*)node;
         add_local(decl);
-        return decl->type;
+        return clone_type(decl->type);
     }
 
     case AstNodeType::AstIf:
@@ -792,7 +805,7 @@ AstType *Semantics::infer_type(AstNode *node) {
         // TODO: this causes a segfault. Inferring types for assignment
         // causes the type of this to be assigned to the type of the decl,
         // which causes the pointer to be deleted twice in different places
-        return ((AstFn*)node)->return_type;
+        return clone_type(((AstFn*)node)->return_type);
     }
 
     case AstNodeType::AstFnCall: {
@@ -829,8 +842,8 @@ AstType *Semantics::infer_type(AstNode *node) {
         break;
 
     case AstNodeType::AstStruct: {
-        auto ret   = new AstType();
-        ret->name  = ((AstStruct*)node)->name;
+        auto ret  = new AstType();
+        ret->name = ((AstStruct*)node)->name;
         return ret;
     }
 
@@ -843,7 +856,7 @@ AstType *Semantics::infer_type(AstNode *node) {
         break;
 
     case AstNodeType::AstAffix:
-        return ((AstAffix*)node)->return_type;
+        return clone_type(((AstAffix*)node)->return_type);
 
     case AstNodeType::AstUnaryExpr: {
         auto un_expr = (AstUnaryExpr*)node;
@@ -891,7 +904,7 @@ AstType *Semantics::infer_type(AstNode *node) {
         return infer_type(((AstIndex*)node)->expr);
 
     case AstNodeType::AstType:
-        return (AstType*)node;
+        return clone_type((AstType*)node);
 
     case AstNodeType::AstSymbol: {
         auto symbol = (AstSymbol*)node;
@@ -900,14 +913,14 @@ AstType *Semantics::infer_type(AstNode *node) {
             auto fn = p2_get_fn(symbol->name);
 
             if(fn) {
-                return fn->return_type;
+                return clone_type(fn->return_type);
             }
         }
         {
             auto fn = p2_get_affix(symbol->name);
 
             if(fn) {
-                return fn->return_type;
+                return clone_type(fn->return_type);
             }
         }
         {

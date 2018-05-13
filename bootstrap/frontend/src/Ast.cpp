@@ -315,6 +315,8 @@ void AstLoop::code_gen(ILemitter &il, Semantics &sem) {
         g_counter++;
     }
 
+    delete type;
+
     //  g_counter = buf;
 }
 
@@ -443,6 +445,8 @@ void AstIndex::code_gen(ILemitter &il, Semantics &sem) {
     il.integer_add();
 
     il.read();
+
+    delete type;
 }
 
 void AstType::code_gen(ILemitter &il, Semantics &sem) {

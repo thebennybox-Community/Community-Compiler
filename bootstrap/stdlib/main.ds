@@ -10,10 +10,10 @@ extern {
 
 fn main()
 {
-    var x: str = "_______________\n";
+    var x = "_______________\n";
 
     var c : i32 = 1;
-    var file: u32 = fopen("test.txt", "r");
+    var file = fopen("test.txt", "r");
 
     var index: i32 = 0;
 
@@ -31,9 +31,6 @@ fn main()
             printf("error closing file.");
         }
     }
-
-	// This line causes a segfault because of the type inference
-	//var a = index + c;
 
     printf(x);
 
