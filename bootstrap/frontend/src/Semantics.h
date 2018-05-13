@@ -4,18 +4,13 @@
 #include <vector>
 #include <string>
 #include "AstDefs.h"
+#include "Error.h"
 
 class Semantics {
 public:
     void pass1(Ast &ast);
     void pass2(Ast &ast);
     void pass3(Ast &ast);
-
-    bool nest_flag = false;
-    std::vector<AstAttribute*> attributes;
-
-    std::vector<std::string> p1_funcs;
-    std::vector<std::string> p1_structs;
 
     bool p1_has_symbol(const std::string &symbol);
     bool p1_has_symbol(const AstType *type);
@@ -28,10 +23,21 @@ public:
     AstDec *p2_get_dec(const AstSymbol *name);
     AstDec *p2_get_dec(const std::string &name);
 
+    AstType *infer_type(AstNode *node);
+
+    std::vector<Error> errors;
+
+private:
     std::vector<AstFn*> p2_funcs;
     std::vector<AstAffix*> p2_affixes;
     std::vector<AstStruct*> p2_structs;
     std::vector<AstDec*> p2_dec;
+
+    bool nest_flag = false;
+    std::vector<AstAttribute*> attributes;
+
+    std::vector<std::string> p1_funcs;
+    std::vector<std::string> p1_structs;
 
     void pass1_node(AstNode *node);
     void p1_struct(AstStruct *node);
@@ -48,7 +54,6 @@ public:
     void p3_affix(AstAffix *node);
 
     AstNode *inline_if_need_be(AstNode *node);
-    AstType *infer_type(AstNode *node);
 };
 
 #endif // FRONTEND_SEMANTICS_H

@@ -517,8 +517,8 @@ void pretty_print_ast(Ast &ast) {
     pretty_print_block(ast.root, "");
 }
 
-static void set_colour(unsigned int i, const TokenStream &tokens) {
-    for(unsigned int j = 0; j < tokens.tokens.size(); j++) {
+static void set_colour(size_t i, const TokenStream &tokens) {
+    for(size_t j = 0; j < tokens.tokens.size(); j++) {
         const auto &token = tokens.tokens[j];
 
         if(token.offset <= i && token.offset + token.raw.size() > i) {
@@ -577,9 +577,65 @@ static void set_colour(unsigned int i, const TokenStream &tokens) {
     }
 }
 
+void syntax_highlight_print_line(
+    const std::string &source, const TokenStream &tokens,
+    size_t i, const Token &error_token, size_t context_lines
+) {
+    size_t end = i;
+
+    for(size_t j = 0; j <= (context_lines - 1) / 2; j++) {
+        while(i > 0 && source[i] != '\n') {
+            i--;
+        }
+        if(i == 0) {
+            break;
+        }
+        i--;
+    }
+    if(i != 0) {
+        i += 2;
+    }
+
+    for(size_t j = 0; j <= (context_lines - 1) / 2; j++) {
+        while(end < source.size() && source[end] != '\n') {
+            end++;
+        }
+        if(end == source.size()) {
+            break;
+        }
+        end++;
+    }
+    if(end != source.size()) {
+        end--;
+    }
+
+    for(; i < end; i++) {
+        if(
+            i < error_token.offset ||
+            i > error_token.offset + error_token.raw.size() - 1
+        ) {
+            set_colour(i, tokens);
+            putchar(source[i]);
+        } else {
+            printf("%s%s", term_bg[TermColour::Red], term_fg[TermColour::Black]);
+            putchar(source[i]);
+            printf("%s", term_reset);
+        }
+    }
+
+    printf("\n");
+}
+
 void syntax_highlight_print(
     const std::string &source, const TokenStream &tokens) {
-    for(unsigned int i = 0; i < source.size(); i++) {
+    syntax_highlight_print(source, tokens, 0, source.size());
+}
+
+void syntax_highlight_print(
+    const std::string &source, const TokenStream &tokens,
+    size_t start, size_t end
+) {
+    for(size_t i = start; i < end; i++) {
         set_colour(i, tokens);
         putchar(source[i]);
     }

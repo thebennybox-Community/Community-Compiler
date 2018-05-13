@@ -1,7 +1,10 @@
 #include "Semantics.h"
 
+#include <string>
 #include "Ast.h"
 #include "CodeGen.h"
+
+using namespace std::literals::string_literals;
 
 static AstType *clone_type(const AstType *type) {
     auto clone = new AstType();
@@ -221,9 +224,10 @@ void Semantics::p2_affix(AstAffix *node) {
 
     if(node->return_type) {
         if(!p1_has_symbol(node->return_type)) {
-            printf(
-                "The type \"%s\" does not exist\n",
-                node->return_type->name.c_str());
+            this->errors.emplace_back(
+                ErrorType::TypeNotFound, node->return_type,
+                "Type does not exist"
+            );
             return;
         }
     }
@@ -231,8 +235,10 @@ void Semantics::p2_affix(AstAffix *node) {
     for(auto param : node->params) {
         if(param->type) {
             if(!p1_has_symbol(param->type)) {
-                printf(
-                    "The type \"%s\" does not exist\n", param->type->name.c_str());
+                this->errors.emplace_back(
+                    ErrorType::TypeNotFound, param->type,
+                    "Type does not exist"
+                );
                 return;
             }
         }
@@ -256,9 +262,10 @@ void Semantics::p2_fn(AstFn *node) {
 
     if(node->type_self != "") {
         if(!p1_has_symbol(node->type_self)) {
-            printf(
-                "The type \"%s\" does not exist\n",
-                node->type_self.c_str());
+            this->errors.emplace_back(
+                ErrorType::TypeNotFound, node,
+                "Type does not exist"
+            );
             return;
         }
 
@@ -274,9 +281,10 @@ void Semantics::p2_fn(AstFn *node) {
 
     if(node->return_type) {
         if(!p1_has_symbol(node->return_type)) {
-            printf(
-                "The type \"%s\" does not exist\n",
-                node->return_type->name.c_str());
+            this->errors.emplace_back(
+                ErrorType::TypeNotFound, node->return_type,
+                "Type does not exist"
+            );
             return;
         }
     }
@@ -284,9 +292,10 @@ void Semantics::p2_fn(AstFn *node) {
     for(auto param : node->params) {
         if(param->type) {
             if(!p1_has_symbol(param->type)) {
-                printf(
-                    "The type \"%s\" does not exist\n",
-                    param->type->name.c_str());
+                this->errors.emplace_back(
+                    ErrorType::TypeNotFound, param->type,
+                    "Type does not exist"
+                );
                 return;
             }
         }
@@ -306,9 +315,10 @@ void Semantics::p2_struct(AstStruct *node) {
         if(stmt->node_type == AstNodeType::AstDec) {
             if(((AstDec*)stmt)->type) {
                 if(!p1_has_symbol(((AstDec*)stmt)->type)) {
-                    printf(
-                        "The type \"%s\" does not exist\n",
-                        ((AstDec*)stmt)->type->name.c_str());
+                    this->errors.emplace_back(
+                        ErrorType::TypeNotFound, ((AstDec*)stmt)->type,
+                        "Type does not exist"
+                    );
                     return;
                 }
             }
@@ -459,9 +469,10 @@ void Semantics::pass3_node(AstNode *node) {
 
         for(auto func : p2_funcs) {
             if(func != fn && func->mangled_name == fn->mangled_name) {
-                printf(
-                    "Duplicate function declaration found for \"%s\"\n",
-                    func->mangled_name.c_str());
+                this->errors.emplace_back(
+                    ErrorType::DuplicateFunctionDeclaration, fn,
+                    "Duplicate function declaration"
+                );
                 return;
             }
         }
@@ -490,7 +501,7 @@ void Semantics::pass3_node(AstNode *node) {
         {
             auto fn = p2_get_fn(fn_call->name);
 
-            if(fn->attributes.empty()) {
+            if(fn && fn->attributes.empty()) {
                 for(auto attribute : fn_call->attributes) {
                     if(attribute->name == "inline") {
                         fn_call->emit = false;
@@ -504,21 +515,28 @@ void Semantics::pass3_node(AstNode *node) {
 
             if(fn && fn->body) {
                 if(fn->params.size() > fn_call->args.size()) {
-                    printf("Too many arguments provided\n");
+                    this->errors.emplace_back(
+                        ErrorType::TooManyArguments, fn_call,
+                        "Too many arguments to function call"
+                    );
                 } else if(fn->params.size() < fn_call->args.size()) {
-                    printf("Too few arguments provided\n");
+                    this->errors.emplace_back(
+                        ErrorType::NotEnoughArguments, fn_call,
+                        "Not enough arguments to function call"
+                    );
                 } else {
                     for(size_t i = 0; i < fn->params.size(); i++) {
                         auto param_type = infer_type(fn->params.at(i));
                         auto arg_type   = infer_type(fn_call->args.at(i));
 
                         if(param_type->name != arg_type->name) {
-                            printf(
-                                "Expecting type \"%s\" at argument %zu, \"%s\" "
-                                "provided\n",
-                                param_type->name.c_str(),
-                                i + 1,
-                                arg_type->name.c_str());
+                            this->errors.emplace_back(
+                                ErrorType::TypeMismatch, param_type,
+                                "Type mismatch: expected "s +
+                                param_type->name.c_str() + " at argument " +
+                                std::to_string(i + 1) + ", got " +
+                                arg_type->name.c_str()
+                            );
                         }
                     }
                 }
@@ -679,34 +697,59 @@ void Semantics::p3_struct(AstStruct *node) {}
 void Semantics::p3_affix(AstAffix *node) {
     switch(node->affix_type) {
     case AffixType::Prefix:
-        if(node->params.size() != 1) {
-            printf(
-                "The Prefix \"%s\" must have only one parameter\n",
-                node->name.c_str());
+        if(node->params.size() > 1) {
+            this->errors.emplace_back(
+                ErrorType::TooManyArguments, node,
+                "Too many arguments: prefix functions can only have one "
+                "parameter"
+            );
+        } else if(node->params.size() < 1) {
+            this->errors.emplace_back(
+                ErrorType::NotEnoughArguments, node,
+                "Not enough arguments: prefix functions must have one "
+                "parameter"
+            );
         }
 
         break;
 
     case AffixType::Suffix:
-        if(node->params.size() != 1) {
-            printf(
-                "The Suffix \"%s\" must have only one parameter\n",
-                node->name.c_str());
+        if(node->params.size() > 1) {
+            this->errors.emplace_back(
+                ErrorType::TooManyArguments, node,
+                "Too many arguments: suffix functions can only have one "
+                "parameter"
+            );
+        } else if(node->params.size() < 1) {
+            this->errors.emplace_back(
+                ErrorType::NotEnoughArguments, node,
+                "Not enough arguments: suffix functions must have one "
+                "parameter"
+            );
         }
 
         break;
 
     case AffixType::Infix:
-        if(node->params.size() != 2) {
-            printf(
-                "The Infix \"%s\" must have only two parameters\n",
-                node->name.c_str());
+        if(node->params.size() > 2) {
+            this->errors.emplace_back(
+                ErrorType::TooManyArguments, node,
+                "Too many arguments: infix functions can only have two "
+                "parameters"
+            );
+        } else if(node->params.size() < 2) {
+            this->errors.emplace_back(
+                ErrorType::NotEnoughArguments, node,
+                "Not enough arguments: infix functions must have two "
+                "parameters"
+            );
         }
 
         if(!node->return_type) {
-            printf(
-                "The Infix \"%s\" must have an return type\n",
-                node->name.c_str());
+            this->errors.emplace_back(
+                ErrorType::NoType, node,
+                "Infix functions must have a return type"
+            );
         }
 
         break;
@@ -798,7 +841,10 @@ AstType *Semantics::infer_type(AstNode *node) {
     }
 
     case AstNodeType::AstIf:
-        printf("wtf, a if cant evaluate");
+        this->errors.emplace_back(
+            ErrorType::CompilerError, node,
+            "Attempt to infer the type of an if statement"
+        );
         break;
 
     case AstNodeType::AstFn: {
@@ -827,15 +873,24 @@ AstType *Semantics::infer_type(AstNode *node) {
     }
 
     case AstNodeType::AstLoop:
-        printf("wtf, a loop cant evaluate");
+        this->errors.emplace_back(
+            ErrorType::CompilerError, node,
+            "Attempt to infer the type of a loop statement"
+        );
         break;
 
     case AstNodeType::AstContinue:
-        printf("wtf, an continue cant evaluate");
+        this->errors.emplace_back(
+            ErrorType::CompilerError, node,
+            "Attempt to infer the type of a continue statement"
+        );
         break;
 
     case AstNodeType::AstBreak:
-        printf("wtf, an break cant evaluate");
+        this->errors.emplace_back(
+            ErrorType::CompilerError, node,
+            "Attempt to infer the type of a break statement"
+        );
         break;
 
     case AstNodeType::AstStruct: {
@@ -845,11 +900,17 @@ AstType *Semantics::infer_type(AstNode *node) {
     }
 
     case AstNodeType::AstImpl:
-        printf("wtf, an impl cant evaluate");
+        this->errors.emplace_back(
+            ErrorType::CompilerError, node,
+            "Attempt to infer the type of an impl statement"
+        );
         break;
 
     case AstNodeType::AstAttribute:
-        printf("wtf, an attribute cant evaluate");
+        this->errors.emplace_back(
+            ErrorType::CompilerError, node,
+            "Attempt to infer the type of an attribute"
+        );
         break;
 
     case AstNodeType::AstAffix:
@@ -932,11 +993,17 @@ AstType *Semantics::infer_type(AstNode *node) {
     }
 
     case AstNodeType::AstReturn:
-        printf("wtf, an return cant evaluate");
+        this->errors.emplace_back(
+            ErrorType::CompilerError, node,
+            "Attempt to infer the type of a return statement"
+        );
         break;
 
     case AstNodeType::AstExtern:
-        printf("wtf, an extern cant evaluate");
+        this->errors.emplace_back(
+            ErrorType::CompilerError, node,
+            "Attempt to infer the type of an extern statement"
+        );
         break;
     }
 
