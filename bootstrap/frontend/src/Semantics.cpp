@@ -513,7 +513,29 @@ void Semantics::pass3_node(AstNode *node)
         break;
 
     case AstNodeType::AstArray:
-        break;
+    {
+        auto array = (AstArray *)node;
+
+        if (array->elements.size() == 0 && !array->ele_type)
+        {
+            printf("The type of the array can not be inferred, please provide type information\n");
+        }
+
+        if (!array->ele_type)
+        {
+            array->ele_type = infer_type(array);
+        }
+
+        for (auto ele : array->elements)
+        {
+            if (infer_type(ele)->name != array->ele_type->subtype->name)
+            {
+                printf("The element(s) in the array are not of the same type\n");
+                break;
+            }
+        }
+    }
+    break;
 
     case AstNodeType::AstDec:
     {
@@ -532,6 +554,12 @@ void Semantics::pass3_node(AstNode *node)
                     x->type->name.c_str());
             }
         }*/
+
+        if (decl->value->node_type == AstNodeType::AstArray)
+        {
+            auto arry = (AstArray *)decl->value;
+            arry->ele_type = decl->type;
+        }
 
         if (decl->value)
         {
@@ -991,8 +1019,20 @@ AstType *Semantics::infer_type(AstNode *node)
 
     case AstNodeType::AstArray:
     {
-        //auto x = (AstArray *)node;
-        // fml
+        auto x = (AstArray *)node;
+        if (x->ele_type)
+        {
+            return x->ele_type;
+        }
+        else
+        {
+            auto tp = infer_type(x->elements[0]);
+            auto re = new AstType();
+            re->subtype = new AstType();
+            re->subtype->name = tp->name;
+            re->is_array = true;
+            return re;
+        }
         break;
     }
 

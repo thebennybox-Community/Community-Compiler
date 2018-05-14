@@ -15,7 +15,8 @@ struct point
 
 fn main()
 {
-    var p = point(15, 5, 21);
-    printf("x: %d, y: %d, z:%d\n", p.x, p.y, p.z);
-    free(p);
+   var x = [10, 15, 4];
+   printf("%d, %d, %d\n", x[0], x[1], x[2]);
+
+   printf([0x000A6948])
 }
