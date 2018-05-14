@@ -6,6 +6,33 @@
 
 using namespace std::literals::string_literals;
 
+static const std::map<std::string, int> type_size_map = {
+    {"u8", 1},
+    {"bool", 1},
+    {"u16", 2},
+    {"u32", 4},
+    {"u64", 8},
+    {"i8", 1},
+    {"i16", 2},
+    {"i32", 4},
+    {"i64", 8},
+    {"f32", 4},
+    {"f64", 8},
+    {"str", 1},
+    {"ptr", 4},
+    {"void", 1},
+};
+
+int type_to_size(AstType *type)
+{
+    if (!type || type->is_array)
+    {
+        return type_to_size(type->subtype);
+    }
+
+    return type_size_map.at(type->name);
+}
+
 static unsigned char type_to_il_type(const AstType *type)
 {
     if (!type)
@@ -148,8 +175,28 @@ void AstBoolean::code_gen(ILemitter &il, Semantics &sem)
 
 void AstArray::code_gen(ILemitter &il, Semantics &sem)
 {
-    (void)il;
-    (void)sem;
+    il.push_u32(type_to_size(ele_type) * elements.size());
+    il.call("malloc");
+    unsigned int offset = 0;
+
+    for (int i = 0; i < elements.size(); i++)
+    {
+        il.duplicate();
+    }
+
+    for (int i = 0; i < elements.size(); i++)
+    {
+
+        generate_il(elements[i], il, sem);
+        //il.push_u32(40);
+        il.swap();
+
+        il.push_u32(offset);
+        offset += type_to_size(ele_type);
+        il.integer_add();
+
+        il.write();
+    }
 }
 
 void AstDec::code_gen(ILemitter &il, Semantics &sem)
@@ -290,33 +337,6 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem)
 
         il._return();
     }
-}
-
-static const std::map<std::string, int> type_size_map = {
-    {"u8", 1},
-    {"bool", 1},
-    {"u16", 2},
-    {"u32", 4},
-    {"u64", 8},
-    {"i8", 1},
-    {"i16", 2},
-    {"i32", 4},
-    {"i64", 8},
-    {"f32", 4},
-    {"f64", 8},
-    {"str", 1},
-    {"ptr", 4},
-    {"void", 1},
-};
-
-int type_to_size(AstType *type)
-{
-    if (type->is_array)
-    {
-        type_to_size(type->subtype);
-    }
-
-    return type_size_map.at(type->name);
 }
 
 unsigned int calculate_struct_size(AstStruct *node)
@@ -632,9 +652,16 @@ void AstBinaryExpr::code_gen(ILemitter &il, Semantics &sem)
 
 void AstIndex::code_gen(ILemitter &il, Semantics &sem)
 {
+    if (!array)
+        return;
+
     generate_il(array, il, sem);
 
     auto type = sem.infer_type(array);
+
+    if (!type)
+        return;
+
     auto size = type_to_size(type);
 
     il.address_stack();
@@ -648,7 +675,7 @@ void AstIndex::code_gen(ILemitter &il, Semantics &sem)
 
     il.read();
 
-    delete type;
+    //delete type;
 }
 
 void AstType::code_gen(ILemitter &il, Semantics &sem)
