@@ -3,35 +3,19 @@ extern {
     fn fopen(filename : str, mode : str) : u32;
     fn getc(stream : u32) : i32;
     fn fclose(stream : u32) : i32;
-    fn malloc(size : u32) : str;
-    fn free(ptr: str);
 }
+
+struct point
+{   
+    x: u32
+    y: u32
+    z: u32
+}
+
 
 fn main()
 {
-
-    var x = malloc(512;
-
-    var c : i32 = 1;
-    var file = fopen("test.txt", "r");
-
-    var index: i32 = 0;
-
-    if (file != 0))
-    {
-        loop({c = getc(file); c} > 0)
-        {
-            x[index] = c;
-            index = index + 1;
-        }
-
-        if(fclose(file) != 0)
-        {
-            printf("error closing file.");
-        }
-    }
-
-    printf("%s\n", x);
-
-    free(x);
+    var p = point(15, 5, 21);
+    printf("x: %d, y: %d, z:%d\n", p.x, p.y, p.z);
+    free(p);
 }

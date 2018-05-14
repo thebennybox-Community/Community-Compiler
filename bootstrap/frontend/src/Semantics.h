@@ -6,8 +6,9 @@
 #include "AstDefs.h"
 #include "Error.h"
 
-class Semantics {
-public:
+class Semantics
+{
+  public:
     void pass1(Ast &ast);
     void pass2(Ast &ast);
     void pass3(Ast &ast);
@@ -16,6 +17,8 @@ public:
     bool p1_has_symbol(const AstType *type);
     AstFn *p2_get_fn(const AstSymbol *name);
     AstFn *p2_get_fn(const std::string &name);
+    AstStruct *p2_get_struct(const AstSymbol *name);
+    AstStruct *p2_get_struct(const std::string &name);
     AstFn *p2_get_fn_unmangled(const std::string &name);
     AstFn *p2_get_fn_unmangled(const AstSymbol *name);
     AstAffix *p2_get_affix(const AstSymbol *name);
@@ -27,14 +30,14 @@ public:
 
     std::vector<Error> errors;
 
-private:
-    std::vector<AstFn*> p2_funcs;
-    std::vector<AstAffix*> p2_affixes;
-    std::vector<AstStruct*> p2_structs;
-    std::vector<AstDec*> p2_dec;
+  private:
+    std::vector<AstFn *> p2_funcs;
+    std::vector<AstAffix *> p2_affixes;
+    std::vector<AstStruct *> p2_structs;
+    std::vector<AstDec *> p2_dec;
 
     bool nest_flag = false;
-    std::vector<AstAttribute*> attributes;
+    std::vector<AstAttribute *> attributes;
 
     std::vector<std::string> p1_funcs;
     std::vector<std::string> p1_structs;
