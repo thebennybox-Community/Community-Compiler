@@ -3,27 +3,26 @@ extern {
     fn fopen(filename : str, mode : str) : u32;
     fn getc(stream : u32) : i32;
     fn fclose(stream : u32) : i32;
+    fn malloc(size : u32) : str;
+    fn free(ptr: str);
 }
-
-
-
 
 fn main()
 {
-    var x = "_______________\n";
+
+    var x = malloc(512;
 
     var c : i32 = 1;
     var file = fopen("test.txt", "r");
 
     var index: i32 = 0;
 
-    if (file != 0)
+    if (file != 0))
     {
         loop({c = getc(file); c} > 0)
         {
             x[index] = c;
             index = index + 1;
-            printf("%c", c);
         }
 
         if(fclose(file) != 0)
@@ -32,11 +31,7 @@ fn main()
         }
     }
 
-    printf(x);
+    printf("%s\n", x);
 
-    /*var z = 0;
-    loop({ z = z + 1; z } < 10)
-    {
-        printf("test\n");
-    }*/
+    free(x);
 }

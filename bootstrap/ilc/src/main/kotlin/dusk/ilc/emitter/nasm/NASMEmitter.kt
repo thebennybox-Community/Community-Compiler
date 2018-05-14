@@ -43,7 +43,7 @@ class NASMEmitter(val underscores: Boolean) : dusk.ilc.emitter.Emitter {
 		writer.appendln("SECTION .text")
 		sectionText.forEach { writer.appendln(it.text) }
 
-		writer.appendln().appendln("SECTION .rodata")
+		writer.appendln().appendln("SECTION .data")
 		sectionData.forEach { writer.appendln(it.text) }
 
 		writer.close()

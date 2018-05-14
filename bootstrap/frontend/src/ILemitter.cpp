@@ -1,5 +1,10 @@
 #include "ILemitter.h"
 
+void ILemitter::remove_last()
+{
+    stream.pop_back();
+}
+
 void ILemitter::no_operation() {
     w(NOOP);
 }
