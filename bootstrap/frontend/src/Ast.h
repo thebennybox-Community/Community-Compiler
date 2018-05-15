@@ -100,6 +100,22 @@ struct AstBoolean : public AstNode
     virtual void code_gen(ILemitter &il, Semantics &sem);
 };
 
+struct AstType : public AstNode
+{
+    std::string name;
+    bool is_array = false;
+    AstType *subtype = nullptr;
+
+    AstType(unsigned int line = 0, unsigned int column = 0) : AstNode(AstNodeType::AstType, line, column) {}
+
+    virtual void code_gen(ILemitter &il, Semantics &sem);
+
+    virtual ~AstType()
+    {
+        delete subtype;
+    }
+};
+
 struct AstArray : public AstNode
 {
     std::vector<AstNode *> elements;
@@ -111,6 +127,7 @@ struct AstArray : public AstNode
 
     virtual ~AstArray()
     {
+        delete ele_type;
         for (auto p : elements)
         {
             delete p;
@@ -144,22 +161,6 @@ struct AstBlock : public AstNode
     }
 };
 
-struct AstType : public AstNode
-{
-    std::string name;
-    bool is_array = false;
-    AstType *subtype = nullptr;
-
-    AstType(unsigned int line = 0, unsigned int column = 0) : AstNode(AstNodeType::AstType, line, column) {}
-
-    virtual void code_gen(ILemitter &il, Semantics &sem);
-
-    virtual ~AstType()
-    {
-        delete subtype;
-    }
-};
-
 struct AstDec : public AstNode
 {
     std::string name;
@@ -173,7 +174,7 @@ struct AstDec : public AstNode
 
     virtual ~AstDec()
     {
-        //     delete type; //im sorry oliver ... ):
+        delete type;
         delete value;
     }
 };

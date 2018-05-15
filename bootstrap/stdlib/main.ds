@@ -20,7 +20,6 @@ impl vec3
     }
 }
 
-
 fn main()
 {
     var a = vec3(5, 5, 21); 

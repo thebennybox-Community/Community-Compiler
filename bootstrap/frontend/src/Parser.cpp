@@ -5,9 +5,19 @@
 #define cur_tok (this->tokens[this->token_index])
 #define peek_tok (this->tokens[this->token_index + 1])
 
-Ast Parser::parse(const std::vector<Token> &tokens)
-{
+std::map<std::string, int> Parser::operator_precedences = {
+    {".", 0},
+    {"=", 1000},
+};
+
+std::map<std::string, AffixType> Parser::affix_types = {};
+
+Ast Parser::parse(const std::vector<Token> &tokens) {
     this->tokens = tokens;
+    return parse_root();
+}
+
+Ast Parser::parse_root() {
     Ast ast;
     ast.root = new AstBlock();
 
@@ -25,6 +35,7 @@ Ast Parser::parse(const std::vector<Token> &tokens)
         }
     }
 
+    passes_done++;
     return ast;
 }
 
@@ -710,6 +721,8 @@ AstAttribute *Parser::parse_attr()
         }
     }
 
+    this->attributes.push_back(result);
+
     return result;
 }
 
@@ -758,9 +771,20 @@ AstAffix *Parser::parse_affix()
             delete result;
             return nullptr;
         }
-    }
-    else if (cur_tok.type == TokenType::Fn)
-    {
+
+        Parser::affix_types[result->unmangled_name] = result->affix_type;
+
+        if(result->affix_type == AffixType::Infix) {
+            for(auto attr : this->attributes) {
+                if(attr->name == "precedence") {
+                    if(attr->args[0]->node_type == AstNodeType::AstNumber) {
+                        operator_precedences[result->unmangled_name] =
+                            (int)((AstNumber*)attr->args[0])->value.i;
+                    }
+                }
+            }
+        }
+    } else if(cur_tok.type == TokenType::Fn) {
         AstFn *fn = parse_fn();
 
         if (!fn)
@@ -770,22 +794,20 @@ AstAffix *Parser::parse_affix()
         }
 
         result->unmangled_name = fn->unmangled_name;
-        result->unmangled_name = fn->mangled_name;
-        result->params = fn->params;
-        result->return_type = fn->return_type;
-        result->body = fn->body;
+        result->mangled_name   = fn->mangled_name;
+        result->params         = fn->params;
+        result->return_type    = fn->return_type;
+        result->body           = fn->body;
 
         fn->params.clear();
-        fn->unmangled_name = nullptr;
-        fn->mangled_name = nullptr;
         fn->return_type = nullptr;
-        fn->body = nullptr;
-    }
-    else
-    {
+        fn->body        = nullptr;
+    } else {
         delete result;
         return nullptr;
     }
+
+    this->attributes.clear();
 
     return result;
 }
@@ -869,41 +891,86 @@ AstExtern *Parser::parse_extern()
     return result;
 }
 
-AstNode *Parser::parse_expr()
-{
-    unsigned int line = cur_tok.line, column = cur_tok.column;
+AstNode *Parser::parse_expr_rhs(AstNode *lhs, int prev_precedence) {
+    while(true) {
+        if(!token_type_is_operator(cur_tok.type)) {
+            return lhs;
+        }
 
-    AstNode *result = parse_expr_primary();
+        std::string op = cur_tok.raw;
 
-    if (!result)
-    {
-        delete result;
+        int precedence = 999; // TODO: Magic number
+        if(operator_precedences.count(op)) {
+            precedence = operator_precedences.at(op);
+        }
+
+        if(precedence > prev_precedence) {
+            return lhs;
+        }
+
+        next_token();
+
+        AstNode *rhs = parse_expr_primary();
+        if(!rhs) {
+            delete lhs;
+            return nullptr;
+        }
+
+        if(!token_type_is_operator(cur_tok.type)) {
+            AstBinaryExpr *result = new AstBinaryExpr(lhs->line, lhs->column);
+            result->lhs = lhs;
+            result->rhs = rhs;
+            result->op  = op;
+            return result;
+        }
+
+        std::string next_op = cur_tok.raw;
+
+        int next_precedence = 999;
+        if(operator_precedences.count(next_op)) {
+            next_precedence = operator_precedences.at(next_op);
+        }
+
+        if(precedence > next_precedence) {
+            rhs = parse_expr_rhs(rhs, prev_precedence);
+            if(!rhs) {
+                delete lhs;
+                return nullptr;
+            }
+        }
+
+        AstBinaryExpr *new_lhs = new AstBinaryExpr(lhs->line, lhs->column);
+        new_lhs->lhs = lhs;
+        new_lhs->rhs = rhs;
+        new_lhs->op  = op;
+
+        lhs = new_lhs;
+    }
+}
+
+AstNode *Parser::parse_expr() {
+    AstNode *lhs = parse_expr_primary();
+
+    if(!lhs) {
+        delete lhs;
         return nullptr;
     }
 
-    if (!token_type_is_operator(cur_tok.type))
-    {
-        return result;
-    }
-
-    AstBinaryExpr *expr = new AstBinaryExpr(line, column);
-
-    expr->op = cur_tok.raw;
-
-    next_token();
-
-    expr->lhs = result;
-    expr->rhs = parse_expr();
-
-    return expr;
+    return parse_expr_rhs(lhs, 2147483647);
 }
 
-AstNode *Parser::parse_expr_primary()
-{
+AstNode *Parser::parse_expr_primary() {
     AstNode *result;
 
-    switch (cur_tok.type)
-    {
+    switch(cur_tok.type) {
+    case TokenType::CustomOperator: {
+        AstUnaryExpr *un_expr = new AstUnaryExpr(cur_tok.line, cur_tok.column);
+        un_expr->op = cur_tok.raw;
+        next_token();
+        un_expr->expr = parse_expr_primary();
+        result = un_expr;
+    } break;
+
     case TokenType::Symbol:
         result = parse_symbol();
         break;
