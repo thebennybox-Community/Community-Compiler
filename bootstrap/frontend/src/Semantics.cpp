@@ -342,6 +342,11 @@ void Semantics::p2_fn(AstFn *node)
 
     if (node->type_self != "")
     {
+
+        node->mangled_name = node->type_self + "_" + node->mangled_name;
+
+        //  printf("%s \n", node->mangled_name.c_str());
+
         if (!p1_has_symbol(node->type_self))
         {
             this->errors.emplace_back(
@@ -358,6 +363,7 @@ void Semantics::p2_fn(AstFn *node)
         self->type->name = node->type_self;
 
         node->params.insert(node->params.begin(), self);
+        add_arg(self);
     }
 
     if (node->return_type)
@@ -634,9 +640,14 @@ void Semantics::pass3_node(AstNode *node)
         if (!fn_call->mangled && fn && fn->body)
         {
             fn_call->mangled = true;
-
-            for (auto arg : fn_call->args)
+            int i = 0;
+            if (fn->type_self != "")
             {
+                i = 0;
+            }
+            for (; i < fn_call->args.size(); i++)
+            {
+                auto arg = fn_call->args[i];
                 fn_call->name += type_to_string(infer_type(arg));
             }
         }
@@ -731,13 +742,13 @@ void Semantics::pass3_node(AstNode *node)
     case AstNodeType::AstImpl:
     {
         auto impl = (AstImpl *)node;
-
+        push_scope();
         for (auto stmt : impl->block->statements)
         {
             pass3_node(stmt);
             stmt = inline_if_need_be(stmt);
         }
-
+        pop_scope();
         break;
     }
 
@@ -801,9 +812,22 @@ void Semantics::pass3_node(AstNode *node)
             bin_expr->op += type_to_string(infer_type(bin_expr->rhs));
             bin_expr->mangled = true;
         }
-        pass3_node(bin_expr->lhs);
-        pass3_node(bin_expr->rhs);
 
+        pass3_node(bin_expr->lhs);
+
+        if (bin_expr->rhs->node_type == AstNodeType::AstFnCall)
+        {
+            auto x = (AstFnCall *)bin_expr->rhs;
+            if (!x->mangled)
+            {
+                x->name = infer_type(bin_expr->lhs)->name + "_" + x->name;
+                x->mangled = true;
+            }
+        }
+        else
+        {
+            pass3_node(bin_expr->rhs);
+        }
         bin_expr->lhs = inline_if_need_be(bin_expr->lhs);
         bin_expr->rhs = inline_if_need_be(bin_expr->rhs);
         break;
@@ -917,6 +941,7 @@ void Semantics::p3_affix(AstAffix *node)
 
 AstNode *Semantics::inline_if_need_be(AstNode *node)
 {
+
     bool flag = false;
 
     if (node->attributes.empty())
@@ -1145,6 +1170,8 @@ AstType *Semantics::infer_type(AstNode *node)
     {
         auto bin_expr = (AstBinaryExpr *)node;
 
+        bin_expr->rhs = inline_if_need_be(bin_expr->rhs);
+        bin_expr->lhs = inline_if_need_be(bin_expr->lhs);
         {
             auto type = infer_type(p2_get_fn(bin_expr->op));
 
@@ -1197,6 +1224,15 @@ AstType *Semantics::infer_type(AstNode *node)
             if (local)
             {
                 return local->type;
+            }
+        }
+
+        {
+            auto arg = get_arg(symbol->name);
+
+            if (arg)
+            {
+                return arg->type;
             }
         }
 
