@@ -12,20 +12,18 @@ struct vec3
     z: u32
 }
 
-
-/*infix op +(a: vec3, b: vec3) : vec3
+impl vec3
 {
-  vec3((a.x) + (b.x), (a.y) + (b.y), (a.z) + (b.z))
-}*/
+    fn print()
+    {
+        printf("Vec3 {X: %d, Y: %d, Z: %d}\n", self.x, self.y, self.z);
+    }
+}
+
 
 fn main()
 {
-    var a = vec3(5, 5, 21);
-    var b = vec3(6, 5, 21);
-    var z = (a.x) + (b.x);
-    //printf("%d\n", 4s);
-
-   // var p = vec3(, (a.y) + (b.y), (a.z) + (b.z));
-    //printf("x: %d, y: %d, z:%d\n", p.x, p.y, p.z);
+    var a = vec3(5, 5, 21); 
+    a.print();
 }
  

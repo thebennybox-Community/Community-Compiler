@@ -116,7 +116,7 @@ int main(int argc, char **argv)
     for (size_t i = 0; i < asts.size(); i++)
     {
         sem.pass3(asts[i]);
-        pretty_print_ast(asts[i]);
+        //  pretty_print_ast(asts[i]);
     }
 
     if (!sem.errors.empty())

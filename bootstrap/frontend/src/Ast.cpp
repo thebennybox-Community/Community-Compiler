@@ -250,6 +250,7 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem)
 
     if (body)
     {
+
         for (auto param : params)
         {
             il.function_parameter(
@@ -257,7 +258,6 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem)
                 param->name.c_str(),
                 type_to_il_type(param->type));
         }
-
         il.internal_function(
             mangled_name.c_str(), type_to_il_type(return_type));
     }
@@ -279,14 +279,8 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem)
 
     if (body)
     {
-        if (type_self != "")
-        {
-            il.function((type_self + "_" + mangled_name).c_str());
-        }
-        else
-        {
-            il.function(mangled_name.c_str());
-        }
+
+        il.function(mangled_name.c_str());
 
         push_scope();
 
@@ -383,14 +377,15 @@ void AstFnCall::code_gen(ILemitter &il, Semantics &sem)
 
     for (size_t i = args.size(); i; i--)
     {
-        generate_il(args[i - 1], il, sem);
+        auto z = args[i - 1];
+        generate_il(z, il, sem);
     }
 
     if (fn && fn->attributes.size() == 0)
     {
         il.call(name.c_str());
     }
-    else
+    else if (fn)
     {
         for (auto attribute : fn->attributes)
         {
@@ -588,6 +583,17 @@ void AstBinaryExpr::code_gen(ILemitter &il, Semantics &sem)
 
     if (op == ".")
     {
+
+        if (rhs->node_type == AstNodeType::AstFnCall)
+        {
+            auto call = (AstFnCall *)rhs;
+
+            generate_il(lhs, il, sem);
+            generate_il(call, il, sem);
+
+            return;
+        }
+
         //we have a struct
         auto x = sem.infer_type(lhs);
         auto sct = sem.p2_get_struct(x->name);
