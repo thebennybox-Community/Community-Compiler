@@ -5,7 +5,7 @@ extern {
     fn fclose(stream : u32) : i32;
 }
 
-struct point
+struct vec3
 {   
     x: u32
     y: u32
@@ -13,10 +13,19 @@ struct point
 }
 
 
+/*infix op +(a: vec3, b: vec3) : vec3
+{
+  vec3((a.x) + (b.x), (a.y) + (b.y), (a.z) + (b.z))
+}*/
+
 fn main()
 {
-   var x = [10, 15, 4];
-   printf("%d, %d, %d\n", x[0], x[1], x[2]);
+    var a = vec3(5, 5, 21);
+    var b = vec3(6, 5, 21);
+    var z = (a.x) + (b.x);
+    //printf("%d\n", 4s);
 
-   printf([0x000A6948])
+   // var p = vec3(, (a.y) + (b.y), (a.z) + (b.z));
+    //printf("x: %d, y: %d, z:%d\n", p.x, p.y, p.z);
 }
+ 

@@ -122,6 +122,24 @@ AstFn *Semantics::p2_get_fn_unmangled(const AstSymbol *name)
     return p2_get_fn_unmangled(name->name);
 }
 
+AstAffix *Semantics::p2_get_affix_unmangled(const AstSymbol *name)
+{
+    return p2_get_affix_unmangled(name->name);
+}
+
+AstAffix *Semantics::p2_get_affix_unmangled(const std::string &name)
+{
+    for (auto sym : p2_affixes)
+    {
+        if (sym->unmangled_name == name)
+        {
+            return sym;
+        }
+    }
+
+    return nullptr;
+}
+
 AstAffix *Semantics::p2_get_affix(const AstSymbol *name)
 {
     return p2_get_affix(name->name);
@@ -131,7 +149,7 @@ AstAffix *Semantics::p2_get_affix(const std::string &name)
 {
     for (auto sym : p2_affixes)
     {
-        if (sym->name == name)
+        if (sym->mangled_name == name)
         {
             return sym;
         }
@@ -179,7 +197,7 @@ void Semantics::pass1_node(AstNode *node)
         break;
 
     case AstNodeType::AstAffix:
-        p1_funcs.push_back(((AstAffix *)node)->name);
+        p1_funcs.push_back(((AstAffix *)node)->mangled_name);
         break;
 
     case AstNodeType::AstStruct:
@@ -278,9 +296,11 @@ static std::string type_to_string(const AstType *node)
 
 void Semantics::p2_affix(AstAffix *node)
 {
-    /*for(auto a : node->params) {
-        // node->name += type_to_string(a->type);
-    }*/
+    node->mangled_name += node->unmangled_name;
+    for (auto a : node->params)
+    {
+        node->mangled_name += type_to_string(a->type);
+    }
 
     if (node->return_type)
     {
@@ -306,12 +326,6 @@ void Semantics::p2_affix(AstAffix *node)
             }
         }
     }
-
-    /*if(node->body) {
-        for(auto a : node->params) {
-            // node->name += type_to_string(a->type);
-        }
-    }*/
 
     p2_affixes.push_back(node);
 }
@@ -370,12 +384,6 @@ void Semantics::p2_fn(AstFn *node)
             }
         }
     }
-
-    /*if(node->body) {
-        for(auto a : node->params) {
-            // node->name += type_to_string(a->type);
-        }
-    }*/
 
     p2_funcs.push_back(node);
 }
@@ -541,8 +549,6 @@ void Semantics::pass3_node(AstNode *node)
     {
         auto decl = (AstDec *)node;
 
-        add_local(decl);
-
         if (!decl->type)
         {
             decl->type = infer_type(decl->value);
@@ -566,7 +572,7 @@ void Semantics::pass3_node(AstNode *node)
             pass3_node(decl->value);
             decl->value = inline_if_need_be(decl->value);
         }
-
+        add_local(decl);
         break;
     }
 
@@ -789,30 +795,12 @@ void Semantics::pass3_node(AstNode *node)
     case AstNodeType::AstBinaryExpr:
     {
         auto bin_expr = (AstBinaryExpr *)node;
-
+        if (bin_expr->op != "." && !bin_expr->mangled)
         {
-            auto name = p2_get_fn(bin_expr->op);
-
-            if (name && name->body)
-            {
-                for (auto param : name->params)
-                {
-                    bin_expr->op += type_to_string(param->type);
-                }
-            }
+            bin_expr->op += type_to_string(infer_type(bin_expr->lhs));
+            bin_expr->op += type_to_string(infer_type(bin_expr->rhs));
+            bin_expr->mangled = true;
         }
-        {
-            auto name = p2_get_affix(bin_expr->op);
-
-            if (name && name->body)
-            {
-                for (auto param : name->params)
-                {
-                    bin_expr->op += type_to_string(param->type);
-                }
-            }
-        }
-
         pass3_node(bin_expr->lhs);
         pass3_node(bin_expr->rhs);
 
@@ -861,6 +849,7 @@ void Semantics::p3_struct(AstStruct *node) {}
  */
 void Semantics::p3_affix(AstAffix *node)
 {
+
     switch (node->affix_type)
     {
     case AffixType::Prefix:
@@ -1165,11 +1154,11 @@ AstType *Semantics::infer_type(AstNode *node)
             }
         }
         {
-            auto type = infer_type(p2_get_affix(bin_expr->op));
+            auto type = p2_get_affix(bin_expr->op);
 
             if (type)
             {
-                return type;
+                return type->return_type;
             }
         }
 
@@ -1207,7 +1196,7 @@ AstType *Semantics::infer_type(AstNode *node)
 
             if (local)
             {
-                return infer_type(local->value);
+                return local->type;
             }
         }
 
