@@ -173,7 +173,7 @@ struct AstDec : public AstNode
 
     virtual ~AstDec()
     {
-        delete type;
+        //     delete type; //im sorry oliver ... ):
         delete value;
     }
 };
@@ -321,11 +321,13 @@ struct AstAttribute : public AstNode
 
 struct AstAffix : public AstNode
 {
-    std::string name;
+    std::string unmangled_name;
+    std::string mangled_name;
     std::vector<AstDec *> params;
     AstType *return_type = nullptr;
     AstBlock *body = nullptr;
     AffixType affix_type;
+    bool mangled = false;
 
     AstAffix(unsigned int line = 0, unsigned int column = 0) : AstNode(AstNodeType::AstAffix, line, column) {}
 
@@ -376,6 +378,7 @@ struct AstBinaryExpr : public AstNode
 {
     std::string op;
     AstNode *lhs = nullptr, *rhs = nullptr;
+    bool mangled = false;
 
     AstBinaryExpr(unsigned int line = 0, unsigned int column = 0) : AstNode(AstNodeType::AstBinaryExpr, line, column) {}
 

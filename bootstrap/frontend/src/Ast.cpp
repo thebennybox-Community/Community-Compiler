@@ -248,12 +248,6 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem)
 {
     scope_owner = mangled_name;
 
-    // if(body != nullptr) {
-    //     for(auto a : params) {
-    //         mangled_name += type_to_string(a->type);
-    //     }
-    // }
-
     if (body)
     {
         for (auto param : params)
@@ -526,14 +520,9 @@ void AstAttribute::code_gen(ILemitter &il, Semantics &sem)
 
 void AstAffix::code_gen(ILemitter &il, Semantics &sem)
 {
-    for (auto param : params)
-    {
-        name += type_to_string(param->type);
-    }
+    il.internal_function(mangled_name.c_str(), type_to_il_type(return_type));
 
-    il.internal_function(name.c_str(), type_to_il_type(return_type));
-
-    il.function(name.c_str());
+    il.function(mangled_name.c_str());
 
     generate_il(body, il, sem);
 
@@ -600,7 +589,8 @@ void AstBinaryExpr::code_gen(ILemitter &il, Semantics &sem)
     if (op == ".")
     {
         //we have a struct
-        auto sct = sem.p2_get_struct(sem.infer_type(lhs)->name);
+        auto x = sem.infer_type(lhs);
+        auto sct = sem.p2_get_struct(x->name);
         if (sct)
         {
             unsigned int offset = 0;
@@ -625,27 +615,23 @@ void AstBinaryExpr::code_gen(ILemitter &il, Semantics &sem)
     generate_il(lhs, il, sem);
     generate_il(rhs, il, sem);
     // il.call(op.c_str());
-
-    {
-        auto fn = sem.p2_get_fn(op);
-
-        if (fn)
-        {
-            for (auto stmt : fn->body->statements)
-            {
-                generate_il(stmt, il, sem);
-            }
-        }
-    }
     {
         auto fn = sem.p2_get_affix(op);
 
         if (fn)
         {
-            for (auto stmt : fn->body->statements)
+            for (auto attribute : fn->attributes)
             {
-                generate_il(stmt, il, sem);
+                if (attribute->name == "inline")
+                {
+                    for (auto stmt : fn->body->statements)
+                    {
+                        generate_il(stmt, il, sem);
+                    }
+                    return;
+                }
             }
+            il.call(op.c_str());
         }
     }
 }
