@@ -55,7 +55,8 @@ int main(int argc, char **argv)
         else
         {
             Parser parser;
-            asts.push_back(parser.parse(stream.tokens));
+            Ast ast = parser.parse(stream.tokens);
+            delete ast.root;
 
             if (!parser.errors.empty())
             {
@@ -99,6 +100,12 @@ int main(int argc, char **argv)
 
         printf("\n------------------------\nErrors occurred, exiting\n");
         return 1;
+    }
+
+    for(auto &stream : toks) {
+        Parser parser;
+        asts.push_back(parser.parse(stream.tokens));
+        pretty_print_ast(asts.back());
     }
 
     Semantics sem;
