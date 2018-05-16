@@ -40,16 +40,17 @@ int main(int argc, char **argv)
         if (!stream.errors.empty())
         {
             errors_occurred = true;
-            for (LexerError error : stream.errors)
+            for (Error error : stream.errors)
             {
                 printf("\n%s%s @ %s%s%d%s:%s%d%s\n",
                        term_fg[TermColour::Yellow],
-                       error.to_string().c_str(),
+                       error.message.c_str(),
                        term_reset,
                        term_fg[TermColour::Blue], error.line, term_reset,
                        term_fg[TermColour::Blue], error.column, term_reset);
-                syntax_highlight_print_line(
-                    file_contents, stream, error.offset, error.raw.size());
+                syntax_highlight_print_error(
+                    file_contents, stream,
+                    error.line, error.offset, error.count);
             }
         }
         else
@@ -64,28 +65,16 @@ int main(int argc, char **argv)
                 for (Error error : parser.errors)
                 {
                     printf("\n-----------------------------\n\n");
-                    if (error.type == ErrorType::UnexpectedToken)
-                    {
-                        printf(
-                            "%s, got \"%s\" (%s) at %u:%u\n",
-                            error.message.c_str(),
-                            error.token.raw.c_str(),
-                            token_type_names[(int)error.token.type],
-                            error.token.line,
-                            error.token.column);
-                    }
-                    else
-                    {
-                        printf(
-                            "%s: \"%s\" (%s) at %u:%u\n",
-                            error.message.c_str(),
-                            error.token.raw.c_str(),
-                            token_type_names[(int)error.token.type],
-                            error.token.line,
-                            error.token.column);
-                    }
-                    syntax_highlight_print_line(
-                        file_contents, stream, error.token.offset, error.token.raw.size());
+                    printf("\n%s%s @ %s%s%d%s:%s%d%s\n",
+                        term_fg[TermColour::Yellow],
+                        error.message.c_str(),
+                        term_reset,
+                        term_fg[TermColour::Blue], error.line, term_reset,
+                        term_fg[TermColour::Blue], error.column, term_reset
+                    );
+                    syntax_highlight_print_error(
+                        file_contents, stream,
+                        error.line, error.offset, error.count);
                 }
             }
         }
@@ -105,7 +94,6 @@ int main(int argc, char **argv)
     for(auto &stream : toks) {
         Parser parser;
         asts.push_back(parser.parse(stream.tokens));
-        pretty_print_ast(asts.back());
     }
 
     Semantics sem;
