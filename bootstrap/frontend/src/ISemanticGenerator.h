@@ -15,9 +15,9 @@ public:
     AstNodeType type_handler;
     uint32_t pass;
 
-    static std::vector<ISemanticGenerator> handlers;
+    static std::vector<ISemanticGenerator *> handlers;
 };
 
-std::vector<ISemanticGenerator> ISemanticGenerator::handlers;
+
 
 #endif /* ISEMANTICGENERATOR_H */

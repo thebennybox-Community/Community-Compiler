@@ -8,20 +8,108 @@
 #include "ISemanticAnalysis.h"
 #include "ISemanticGenerator.h"
 #include "ICodeGenerator.h"
+#include "SemanticGenerator.cpp"
+#include "SemanticsAnalysis.cpp"
+#include "CodeGen.cpp"
+
+std::vector<ISemanticGenerator *> ISemanticGenerator::handlers;
+std::vector<ICodeGenerator *> ICodeGenerator::handlers;
+std::vector<ISemanticAnalysis *> ISemanticAnalysis::handlers;
+
+DuskAssembly::DuskAssembly() {
+    ISemanticAnalysis::handlers.push_back(new AstBlockAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstStringAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstNumberAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstBooleanAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstArrayAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstDecAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstIfAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstFnAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstFnCallAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstLoopAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstContinueAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstBreakAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstStructAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstImplAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstAttributeAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstAffixAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstUnaryExprAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstBinaryExprAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstIndexAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstTypeAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstSymbolAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstReturnAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstExternAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstUseAnalysis());
+    ISemanticAnalysis::handlers.push_back(new AstNamespaceAnalysis());
+
+
+    ISemanticGenerator::handlers.push_back(new AstBlockGenerator());
+    ISemanticGenerator::handlers.push_back(new AstStringGenerator());
+    ISemanticGenerator::handlers.push_back(new AstNumberGenerator());
+    ISemanticGenerator::handlers.push_back(new AstBooleanGenerator());
+    ISemanticGenerator::handlers.push_back(new AstArrayGenerator());
+    ISemanticGenerator::handlers.push_back(new AstDecGenerator());
+    ISemanticGenerator::handlers.push_back(new AstIfGenerator());
+    ISemanticGenerator::handlers.push_back(new AstFnGenerator());
+    ISemanticGenerator::handlers.push_back(new AstFnCallGenerator());
+    ISemanticGenerator::handlers.push_back(new AstLoopGenerator());
+    ISemanticGenerator::handlers.push_back(new AstContinueGenerator());
+    ISemanticGenerator::handlers.push_back(new AstBreakGenerator());
+    ISemanticGenerator::handlers.push_back(new AstStructGenerator());
+    ISemanticGenerator::handlers.push_back(new AstImplGenerator());
+    ISemanticGenerator::handlers.push_back(new AstAttributeGenerator());
+    ISemanticGenerator::handlers.push_back(new AstAffixGenerator());
+    ISemanticGenerator::handlers.push_back(new AstUnaryExprGenerator());
+    ISemanticGenerator::handlers.push_back(new AstBinaryExprGenerator());
+    ISemanticGenerator::handlers.push_back(new AstIndexGenerator());
+    ISemanticGenerator::handlers.push_back(new AstTypeGenerator());
+    ISemanticGenerator::handlers.push_back(new AstSymbolGenerator());
+    ISemanticGenerator::handlers.push_back(new AstReturnGenerator());
+    ISemanticGenerator::handlers.push_back(new AstExternGenerator());
+    ISemanticGenerator::handlers.push_back(new AstUseGenerator());
+    ISemanticGenerator::handlers.push_back(new AstNamespaceGenerator());
+
+    ICodeGenerator::handlers.push_back(new AstBlockCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstStringCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstNumberCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstBooleanCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstArrayCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstDecCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstIfCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstFnCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstFnCallCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstLoopCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstContinueCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstBreakCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstStructCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstImplCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstAttributeCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstAffixCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstUnaryExprCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstBinaryExprCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstIndexCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstTypeCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstSymbolCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstReturnCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstExternCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstUseCodeGenerator());
+    ICodeGenerator::handlers.push_back(new AstNamespaceCodeGenerator());
+}
 
 
 static int find_total_passes() {
     int ret = 0;
 
     for(auto &handler : ISemanticAnalysis::handlers) {
-        if(handler.pass > ret) {
-            ret = handler.pass;
+        if(handler->pass > ret) {
+            ret = handler->pass;
         }
     }
 
     for(auto &handler : ISemanticGenerator::handlers) {
-        if(handler.pass > ret) {
-            ret = handler.pass;
+        if(handler->pass > ret) {
+            ret = handler->pass;
         }
     }
 

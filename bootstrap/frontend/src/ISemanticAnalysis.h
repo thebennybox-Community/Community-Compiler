@@ -17,9 +17,9 @@ public:
     AstNodeType type_handler;
     uint32_t pass;
 
-    static std::vector<ISemanticAnalysis> handlers;
+    static std::vector<ISemanticAnalysis *> handlers;
 };
 
-std::vector<ISemanticAnalysis> ISemanticAnalysis::handlers;
+
 
 #endif /* ISEMANTICANALYSIS_H */

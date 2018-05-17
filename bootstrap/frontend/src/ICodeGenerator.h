@@ -15,9 +15,7 @@ public:
 
     AstNodeType type_handler;
 
-    static std::vector<ICodeGenerator> handlers;
+    static std::vector<ICodeGenerator *> handlers;
 };
-
-std::vector<ICodeGenerator> ICodeGenerator::handlers;
 
 #endif /* ICODEGENERATOR_H */

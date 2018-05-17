@@ -6,12 +6,12 @@ public:
     AstBlockCodeGenerator() {
         type_handler = AstNodeType::AstBlock;
 
-
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary)  {
+
     }
 
 
@@ -26,9 +26,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -43,9 +44,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -60,9 +62,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -77,9 +80,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -94,9 +98,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -111,9 +116,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -128,9 +134,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -145,9 +152,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -162,9 +170,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -179,9 +188,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -196,9 +206,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -213,9 +224,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -230,9 +242,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -247,9 +260,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -264,9 +278,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -281,9 +296,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -298,9 +314,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -315,9 +332,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -332,9 +350,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -349,9 +368,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -366,9 +386,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -383,9 +404,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -400,9 +422,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 
@@ -417,9 +440,10 @@ public:
 
     }
 
-    virtual AstNode *generate(DuskAssembly &ds, ScopeContext *scope,
-                              AstNode *node) {
-        return nullptr;
+    virtual void generate(
+        DuskAssembly &ds, ScopeContext *scope, AstNode *node,
+        ILemitter &binary) {
+
     }
 
 

@@ -17,6 +17,7 @@ public:
     ScopeContext *find_scope(AstNamespace *ns);
     void queue_file(std::string filename);
     void compile_write_binary(std::string out_file);
+    DuskAssembly();
 
 private:
     Ast parse_file(std::string filename);
