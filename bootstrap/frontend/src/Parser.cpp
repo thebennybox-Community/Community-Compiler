@@ -87,6 +87,12 @@ AstNode *Parser::parse_stmt() {
     case TokenType::Extern:
         return parse_extern();
 
+    case TokenType::Use:
+        return parse_use();
+
+    case TokenType::Namespace:
+        return parse_namespace();
+
     case TokenType::MultilineComment:  // Fall through
     case TokenType::SingleLineComment: // Fall through
     case TokenType::SemiColon:
@@ -768,6 +774,46 @@ AstExtern *Parser::parse_extern() {
         }
 
         result->decls.push_back(decl);
+    }
+
+    return result;
+}
+
+AstUse *Parser::parse_use() {
+    AstUse *result = new AstUse(cur_tok.line, cur_tok.column);
+
+    next_token();
+
+    while(!accept(TokenType::SemiColon)) {
+        result->name += cur_tok.raw;
+
+        if(!accept(TokenType::Symbol)) {
+            if(!expect(TokenType::Dot, "Expected name or dot in use "
+                                       "statement")) {
+                delete result;
+                return nullptr;
+            }
+        }
+    }
+
+    return result;
+}
+
+AstNamespace *Parser::parse_namespace() {
+    AstNamespace *result = new AstNamespace(cur_tok.line, cur_tok.column);
+
+    next_token();
+
+    while(!accept(TokenType::SemiColon)) {
+        result->name += cur_tok.raw;
+
+        if(!accept(TokenType::Symbol)) {
+            if(!expect(TokenType::Dot, "Expected name or dot in namespace "
+                                       "statement")) {
+                delete result;
+                return nullptr;
+            }
+        }
     }
 
     return result;
