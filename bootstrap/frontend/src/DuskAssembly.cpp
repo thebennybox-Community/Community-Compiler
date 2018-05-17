@@ -189,325 +189,209 @@ bool DuskAssembly::semantic_generation(Ast &ast, int pass) {
     return semantic_generation_node(ast.root, pass);
 }
 
+
 bool DuskAssembly::semantic_generation_node(AstNode *node, int pass) {
+
+    for(auto handler : ISemanticGenerator::handlers) {
+        if(handler->type_handler == node->node_type && handler->pass == pass) {
+            handler->generate(*this, scopes.front(), node);
+            break;
+        }
+    }
+
     switch(node->node_type) {
-    case AstNodeType::AstBlock:
+    case AstNodeType::AstBlock: {
+        AstBlock *block = (AstBlock *) node;
 
-        break;
+        for(auto stmt : block->statements) {
+            semantic_generation_node(stmt, pass);
+        }
+    }
+    break;
 
-    case AstNodeType::AstString:
+    case AstNodeType::AstIf: {
+        auto x = (AstIf *) node;
+        semantic_generation_node(x->true_block, pass);
+        semantic_generation_node(x->false_block, pass);
+    }
 
-        break;
+    break;
 
-    case AstNodeType::AstNumber:
+    case AstNodeType::AstFn: {
+        auto x = (AstFn *) node;
+        semantic_generation_node(x->body, pass);
+    }
+    break;
 
-        break;
+    case AstNodeType::AstLoop: {
+        auto x = (AstLoop *) node;
+        semantic_generation_node(x->body, pass);
+    }
+    break;
 
-    case AstNodeType::AstBoolean:
+    case AstNodeType::AstImpl: {
+        auto x = (AstImpl *) node;
+        semantic_generation_node(x->block, pass);
+    }
+    break;
 
-        break;
 
-    case AstNodeType::AstArray:
+    case AstNodeType::AstAffix: {
+        auto x = (AstAffix *) node;
+        semantic_generation_node(x->body, pass);
+    }
+    break;
 
-        break;
+    case AstNodeType::AstExtern: {
+        auto x = (AstExtern *) node;
 
-    case AstNodeType::AstDec:
+        for(auto stmt : x->decls) {
+            semantic_generation_node(stmt, pass);
+        }
+    }
+    break;
 
-        break;
-
-    case AstNodeType::AstIf:
-
-        break;
-
-    case AstNodeType::AstFn:
-
-        break;
-
-    case AstNodeType::AstFnCall:
-
-        break;
-
-    case AstNodeType::AstLoop:
-
-        break;
-
-    case AstNodeType::AstContinue:
-
-        break;
-
-    case AstNodeType::AstBreak:
-
-        break;
-
-    case AstNodeType::AstStruct:
-
-        break;
-
-    case AstNodeType::AstImpl:
-
-        break;
-
-    case AstNodeType::AstAttribute:
-
-        break;
-
-    case AstNodeType::AstAffix:
-
-        break;
-
-    case AstNodeType::AstUnaryExpr:
-
-        break;
-
-    case AstNodeType::AstBinaryExpr:
-
-        break;
-
-    case AstNodeType::AstIndex:
-
-        break;
-
-    case AstNodeType::AstType:
-
-        break;
-
-    case AstNodeType::AstSymbol:
-
-        break;
-
-    case AstNodeType::AstReturn:
-
-        break;
-
-    case AstNodeType::AstExtern:
-
-        break;
-
-    case AstNodeType::AstUse:
-
-        break;
-
-    case AstNodeType::AstNamespace:
-
-        break;
     }
 }
+
 
 bool DuskAssembly::semantic_analysis(Ast &ast, int pass) {
     return semantic_analyse_node(ast.root, pass);
 }
 
 bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
+    for(auto handler : ISemanticAnalysis::handlers) {
+        if(handler->type_handler == node->node_type && handler->pass == pass) {
+            handler->validate_semantics(*this, scopes.front(), node);
+            handler->validate_types(*this, scopes.front(), node);
+            break;
+        }
+    }
+
     switch(node->node_type) {
-    case AstNodeType::AstBlock:
+    case AstNodeType::AstBlock: {
+        AstBlock *block = (AstBlock *) node;
 
-        break;
+        for(auto stmt : block->statements) {
+            semantic_analyse_node(stmt, pass);
+        }
+    }
+    break;
 
-    case AstNodeType::AstString:
+    case AstNodeType::AstIf: {
+        auto x = (AstIf *) node;
+        semantic_analyse_node(x->true_block, pass);
+        semantic_analyse_node(x->false_block, pass);
+    }
 
-        break;
+    break;
 
-    case AstNodeType::AstNumber:
+    case AstNodeType::AstFn: {
+        auto x = (AstFn *) node;
+        semantic_analyse_node(x->body, pass);
+    }
+    break;
 
-        break;
+    case AstNodeType::AstLoop: {
+        auto x = (AstLoop *) node;
+        semantic_analyse_node(x->body, pass);
+    }
+    break;
 
-    case AstNodeType::AstBoolean:
+    case AstNodeType::AstImpl: {
+        auto x = (AstImpl *) node;
+        semantic_analyse_node(x->block, pass);
+    }
+    break;
 
-        break;
 
-    case AstNodeType::AstArray:
+    case AstNodeType::AstAffix: {
+        auto x = (AstAffix *) node;
+        semantic_analyse_node(x->body, pass);
+    }
+    break;
 
-        break;
+    case AstNodeType::AstExtern: {
+        auto x = (AstExtern *) node;
 
-    case AstNodeType::AstDec:
+        for(auto stmt : x->decls) {
+            semantic_analyse_node(stmt, pass);
+        }
+    }
+    break;
 
-        break;
-
-    case AstNodeType::AstIf:
-
-        break;
-
-    case AstNodeType::AstFn:
-
-        break;
-
-    case AstNodeType::AstFnCall:
-
-        break;
-
-    case AstNodeType::AstLoop:
-
-        break;
-
-    case AstNodeType::AstContinue:
-
-        break;
-
-    case AstNodeType::AstBreak:
-
-        break;
-
-    case AstNodeType::AstStruct:
-
-        break;
-
-    case AstNodeType::AstImpl:
-
-        break;
-
-    case AstNodeType::AstAttribute:
-
-        break;
-
-    case AstNodeType::AstAffix:
-
-        break;
-
-    case AstNodeType::AstUnaryExpr:
-
-        break;
-
-    case AstNodeType::AstBinaryExpr:
-
-        break;
-
-    case AstNodeType::AstIndex:
-
-        break;
-
-    case AstNodeType::AstType:
-
-        break;
-
-    case AstNodeType::AstSymbol:
-
-        break;
-
-    case AstNodeType::AstReturn:
-
-        break;
-
-    case AstNodeType::AstExtern:
-
-        break;
-
-    case AstNodeType::AstUse:
-
-        break;
-
-    case AstNodeType::AstNamespace:
-
-        break;
     }
 }
+
 
 bool DuskAssembly::generate_code(Ast &ast) {
     return generate_code_node(ast.root);
 }
 
 bool DuskAssembly::generate_code_node(AstNode *node) {
+
+    for(auto handler : ICodeGenerator::handlers) {
+        if(handler->type_handler == node->node_type) {
+            handler->generate(*this, scopes.front(), node, il_emitter);
+            break;
+        }
+    }
+
     switch(node->node_type) {
-    case AstNodeType::AstBlock:
+    case AstNodeType::AstBlock: {
+        AstBlock *block = (AstBlock *) node;
 
-        break;
+        for(auto stmt : block->statements) {
+            generate_code_node(stmt);
+        }
+    }
+    break;
 
-    case AstNodeType::AstString:
+    case AstNodeType::AstIf: {
+        auto x = (AstIf *) node;
+        generate_code_node(x->true_block);
+        generate_code_node(x->false_block);
+    }
 
-        break;
+    break;
 
-    case AstNodeType::AstNumber:
+    case AstNodeType::AstFn: {
+        auto x = (AstFn *) node;
+        generate_code_node(x->body);
+    }
+    break;
 
-        break;
+    case AstNodeType::AstLoop: {
+        auto x = (AstLoop *) node;
+        generate_code_node(x->body);
+    }
+    break;
 
-    case AstNodeType::AstBoolean:
+    case AstNodeType::AstImpl: {
+        auto x = (AstImpl *) node;
+        generate_code_node(x->block);
+    }
+    break;
 
-        break;
 
-    case AstNodeType::AstArray:
+    case AstNodeType::AstAffix: {
+        auto x = (AstAffix *) node;
+        generate_code_node(x->body);
+    }
+    break;
 
-        break;
+    case AstNodeType::AstExtern: {
+        auto x = (AstExtern *) node;
 
-    case AstNodeType::AstDec:
+        for(auto stmt : x->decls) {
+            generate_code_node(stmt);
+        }
+    }
+    break;
 
-        break;
-
-    case AstNodeType::AstIf:
-
-        break;
-
-    case AstNodeType::AstFn:
-
-        break;
-
-    case AstNodeType::AstFnCall:
-
-        break;
-
-    case AstNodeType::AstLoop:
-
-        break;
-
-    case AstNodeType::AstContinue:
-
-        break;
-
-    case AstNodeType::AstBreak:
-
-        break;
-
-    case AstNodeType::AstStruct:
-
-        break;
-
-    case AstNodeType::AstImpl:
-
-        break;
-
-    case AstNodeType::AstAttribute:
-
-        break;
-
-    case AstNodeType::AstAffix:
-
-        break;
-
-    case AstNodeType::AstUnaryExpr:
-
-        break;
-
-    case AstNodeType::AstBinaryExpr:
-
-        break;
-
-    case AstNodeType::AstIndex:
-
-        break;
-
-    case AstNodeType::AstType:
-
-        break;
-
-    case AstNodeType::AstSymbol:
-
-        break;
-
-    case AstNodeType::AstReturn:
-
-        break;
-
-    case AstNodeType::AstExtern:
-
-        break;
-
-    case AstNodeType::AstUse:
-
-        break;
-
-    case AstNodeType::AstNamespace:
-
-        break;
     }
 }
+
 
 bool DuskAssembly::handle_errors(
     std::vector<Error> errors,
