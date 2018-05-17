@@ -476,9 +476,9 @@ void pretty_print_ast(Ast &ast) {
     pretty_print_block(ast.root, "");
 }
 
-static void set_colour(size_t i, const TokenStream &tokens) {
-    for(size_t j = 0; j < tokens.tokens.size(); j++) {
-        const auto &token = tokens.tokens[j];
+static void set_colour(size_t i, const std::vector<Token> &tokens) {
+    for(size_t j = 0; j < tokens.size(); j++) {
+        const auto &token = tokens[j];
 
         if(token.offset <= i && token.offset + token.raw.size() > i) {
             switch(token.type) {
@@ -516,10 +516,10 @@ static void set_colour(size_t i, const TokenStream &tokens) {
                 break;
 
             case TokenType::Symbol:
-                if(tokens.tokens[j + 1].type == TokenType::OpenParenthesis) {
+                if(tokens[j + 1].type == TokenType::OpenParenthesis) {
                     // Function
                     printf("%s", term_fg[TermColour::Blue]);
-                } else if(tokens.tokens[j - 1].type == TokenType::Colon) {
+                } else if(tokens[j - 1].type == TokenType::Colon) {
                     // Type
                     printf("%s", term_fg[TermColour::Red]);
                 } else {
@@ -537,7 +537,7 @@ static void set_colour(size_t i, const TokenStream &tokens) {
 }
 
 void syntax_highlight_print_error(
-    const std::string &source, const TokenStream &tokens,
+    const std::string &source, const std::vector<Token> &tokens,
     unsigned int error_line, size_t error_start, size_t error_len,
     size_t context_lines
 ) {
@@ -635,12 +635,12 @@ void syntax_highlight_print_error(
 }
 
 void syntax_highlight_print(
-    const std::string &source, const TokenStream &tokens) {
+    const std::string &source, const std::vector<Token> &tokens) {
     syntax_highlight_print(source, tokens, 0, source.size());
 }
 
 void syntax_highlight_print(
-    const std::string &source, const TokenStream &tokens,
+    const std::string &source, const std::vector<Token> &tokens,
     size_t start, size_t end
 ) {
     for(size_t i = start; i < end; i++) {

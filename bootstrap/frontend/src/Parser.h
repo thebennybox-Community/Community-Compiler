@@ -190,6 +190,23 @@ private:
     AstExtern *parse_extern();
 
     /**
+     * Parses a use statement. Expects the current token to be "use". After this
+     * function, the current token is the one after the semicolon.
+     *
+     * @return The use node
+     */
+    AstUse *parse_use();
+
+    /**
+     * Parses a namespace declaration. Expects the current token to be
+     * "namespace". After this function, the current token is the one after the
+     * closing curly bracket.
+     *
+     * @return The namespace node
+     */
+    AstNamespace *parse_namespace();
+
+    /**
      * Parses the right side of an expression, stopping at an appropriate
      * operator.
      *
