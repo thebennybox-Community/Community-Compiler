@@ -409,8 +409,7 @@ AstFn *Parser::parse_fn(bool require_body) {
 
     next_token();
 
-    result->unmangled_name = cur_tok.raw;
-    result->mangled_name = cur_tok.raw;
+    result->name = cur_tok.raw;
 
     if(!expect(TokenType::Symbol,
                "Expected function or type name after `fn`")) {
@@ -419,10 +418,9 @@ AstFn *Parser::parse_fn(bool require_body) {
     }
 
     if(accept(TokenType::Dot)) {
-        result->type_self = result->unmangled_name;
+        result->type_self = result->name;
 
-        result->unmangled_name = cur_tok.raw;
-        result->mangled_name = cur_tok.raw;
+        result->name = cur_tok.raw;
 
         if(!expect(TokenType::Symbol,
                    "Expected function name after `.` in function "
@@ -649,7 +647,7 @@ AstAffix *Parser::parse_affix() {
     next_token();
 
     if(accept(TokenType::Op)) {
-        result->unmangled_name = cur_tok.raw;
+        result->name = cur_tok.raw;
 
         if(!expect(TokenType::CustomOperator,
                    "Expected operator after `op`")) {
@@ -674,14 +672,14 @@ AstAffix *Parser::parse_affix() {
             return nullptr;
         }
 
-        Parser::affix_types[result->unmangled_name] = result->affix_type;
+        Parser::affix_types[result->name] = result->affix_type;
 
         if(result->affix_type == AffixType::Infix) {
             for(auto attr : this->attributes) {
                 if(attr->name == "precedence") {
                     if(attr->args[0]->node_type == AstNodeType::AstNumber) {
-                        operator_precedences[result->unmangled_name] =
-                            (int)((AstNumber*)attr->args[0])->value.i;
+                        operator_precedences[result->name] =
+                            (int)((AstNumber *)attr->args[0])->value.i;
                     }
                 }
             }
@@ -694,8 +692,7 @@ AstAffix *Parser::parse_affix() {
             return nullptr;
         }
 
-        result->unmangled_name = fn->unmangled_name;
-        result->mangled_name   = fn->mangled_name;
+        result->name = fn->name;
         result->params         = fn->params;
         result->return_type    = fn->return_type;
         result->body           = fn->body;
@@ -789,7 +786,7 @@ AstUse *Parser::parse_use() {
 
         if(!accept(TokenType::Symbol)) {
             if(!expect(TokenType::Dot, "Expected name or dot in use "
-                                       "statement")) {
+                       "statement")) {
                 delete result;
                 return nullptr;
             }
@@ -809,7 +806,7 @@ AstNamespace *Parser::parse_namespace() {
 
         if(!accept(TokenType::Symbol)) {
             if(!expect(TokenType::Dot, "Expected name or dot in namespace "
-                                       "statement")) {
+                       "statement")) {
                 delete result;
                 return nullptr;
             }
@@ -828,6 +825,7 @@ AstNode *Parser::parse_expr_rhs(AstNode *lhs, int prev_precedence) {
         std::string op = cur_tok.raw;
 
         int precedence = 999; // TODO: Magic number
+
         if(operator_precedences.count(op)) {
             precedence = operator_precedences.at(op);
         }
@@ -839,6 +837,7 @@ AstNode *Parser::parse_expr_rhs(AstNode *lhs, int prev_precedence) {
         next_token();
 
         AstNode *rhs = parse_expr_primary();
+
         if(!rhs) {
             delete lhs;
             return nullptr;
@@ -855,12 +854,14 @@ AstNode *Parser::parse_expr_rhs(AstNode *lhs, int prev_precedence) {
         std::string next_op = cur_tok.raw;
 
         int next_precedence = 999;
+
         if(operator_precedences.count(next_op)) {
             next_precedence = operator_precedences.at(next_op);
         }
 
         if(precedence > next_precedence) {
             rhs = parse_expr_rhs(rhs, prev_precedence);
+
             if(!rhs) {
                 delete lhs;
                 return nullptr;

@@ -13,7 +13,8 @@ struct AstNode {
 
     std::vector<AstAttribute *> attributes;
 
-    AstNode(AstNodeType node_type, unsigned int line, unsigned int column) : node_type(node_type), line(line), column(column) {}
+    AstNode(AstNodeType node_type, unsigned int line,
+            unsigned int column) : node_type(node_type), line(line), column(column) {}
 
     virtual ~AstNode() {}
 };
@@ -69,7 +70,8 @@ struct AstArray : public AstNode {
 
     virtual ~AstArray() {
         delete ele_type;
-        for (auto p : elements) {
+
+        for(auto p : elements) {
             delete p;
         }
     }
@@ -89,7 +91,7 @@ struct AstBlock : public AstNode {
         AstNode(AstNodeType::AstBlock, line, column) {}
 
     virtual ~AstBlock() {
-        for (auto *p : statements) {
+        for(auto *p : statements) {
             delete p;
         }
     }
@@ -125,8 +127,7 @@ struct AstIf : public AstNode {
 };
 
 struct AstFn : public AstNode {
-    std::string unmangled_name;
-    std::string mangled_name;
+    std::string name;
     std::string type_self;
     std::vector<AstDec *> params;
     AstType *return_type = nullptr;
@@ -139,7 +140,7 @@ struct AstFn : public AstNode {
         delete return_type;
         delete body;
 
-        for (auto *p : params) {
+        for(auto *p : params) {
             delete p;
         }
     }
@@ -154,7 +155,7 @@ struct AstFnCall : public AstNode {
         AstNode(AstNodeType::AstFnCall, line, column) {}
 
     virtual ~AstFnCall() {
-        for (auto *p : args) {
+        for(auto *p : args) {
             delete p;
         }
     }
@@ -217,15 +218,14 @@ struct AstAttribute : public AstNode {
         AstNode(AstNodeType::AstAttribute, line, column) {}
 
     virtual ~AstAttribute() {
-        for (auto *p : args) {
+        for(auto *p : args) {
             delete p;
         }
     }
 };
 
 struct AstAffix : public AstNode {
-    std::string unmangled_name;
-    std::string mangled_name;
+    std::string name;
     std::vector<AstDec *> params;
     AstType *return_type = nullptr;
     AstBlock *body = nullptr;
@@ -239,7 +239,7 @@ struct AstAffix : public AstNode {
         delete return_type;
         delete body;
 
-        for (auto *p : params) {
+        for(auto *p : params) {
             delete p;
         }
     }
@@ -301,7 +301,7 @@ struct AstExtern : public AstNode {
         AstNode(AstNodeType::AstExtern, line, column) {}
 
     virtual ~AstExtern() {
-        for (auto *p : decls) {
+        for(auto *p : decls) {
             delete p;
         }
     }
