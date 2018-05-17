@@ -13,7 +13,7 @@ enum class ErrorType {
     InvalidEscapeSequence,
 
     UnexpectedToken,
-    InvalidDec,
+    InvalidDecl,
 
     TypeNotFound,
     NoType,
@@ -23,30 +23,19 @@ enum class ErrorType {
     NotEnoughArguments,
 };
 
-class Error {
-public:
-    Error(ErrorType type, Token token, std::string message):
-        type(type), token(token), message(message) {}
-
-    Error(ErrorType type, const AstNode* node, std::string message):
-        type(type), message(message), node(node) {}
-
-    ErrorType   type;
-    Token       token;
-    std::string message;
-    const AstNode *node;
-};
-
-struct LexerError {
+struct Error {
     ErrorType type;
     unsigned int line, column;
-    unsigned int offset;
-    std::string raw;
+    unsigned int offset, count;
     std::string message;
 
-    std::string to_string() {
-        return message;
-    }
+    // Don't break the semantic analyser now
+    // Remove these when it's rewritten
+    Error(ErrorType, AstNode*, std::string) {}
+    Error(ErrorType type, unsigned int line, unsigned int column,
+            unsigned int offset, unsigned int count, std::string message):
+        type(type), line(line), column(column), offset(offset), count(count),
+        message(message) {}
 };
 
 #endif // SRC_ERROR_H

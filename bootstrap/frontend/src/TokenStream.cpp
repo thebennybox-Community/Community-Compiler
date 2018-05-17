@@ -4,27 +4,29 @@
 #include <map>
 
 static const std::map<std::string, TokenType> keywords = {
-    {"var",      TokenType::Var},
-    {"let",      TokenType::Let},
-    {"fn",       TokenType::Fn},
-    {"loop",     TokenType::Loop},
-    {"in",       TokenType::In},
-    {"continue", TokenType::Continue},
-    {"break",    TokenType::Break},
-    {"if",       TokenType::If},
-    {"else",     TokenType::Else},
-    {"return",   TokenType::Return},
-    {"struct",   TokenType::Struct},
-    {"get",      TokenType::Get},
-    {"set",      TokenType::Set},
-    {"impl",     TokenType::Impl},
-    {"op",       TokenType::Op},
-    {"suffix",   TokenType::Suffix},
-    {"prefix",   TokenType::Prefix},
-    {"infix",    TokenType::Infix},
-    {"extern",   TokenType::Extern},
-    {"true",     TokenType::Boolean},
-    {"false",    TokenType::Boolean},
+    {"var",       TokenType::Var},
+    {"let",       TokenType::Let},
+    {"fn",        TokenType::Fn},
+    {"loop",      TokenType::Loop},
+    {"in",        TokenType::In},
+    {"continue",  TokenType::Continue},
+    {"break",     TokenType::Break},
+    {"if",        TokenType::If},
+    {"else",      TokenType::Else},
+    {"return",    TokenType::Return},
+    {"struct",    TokenType::Struct},
+    {"get",       TokenType::Get},
+    {"set",       TokenType::Set},
+    {"impl",      TokenType::Impl},
+    {"op",        TokenType::Op},
+    {"suffix",    TokenType::Suffix},
+    {"prefix",    TokenType::Prefix},
+    {"infix",     TokenType::Infix},
+    {"extern",    TokenType::Extern},
+    {"use",       TokenType::Use},
+    {"namespace", TokenType::Namespace},
+    {"true",      TokenType::Boolean},
+    {"false",     TokenType::Boolean},
 };
 
 static const std::map<std::string, TokenType> operators = {
@@ -499,7 +501,7 @@ void TokenStream::lex(std::string src) {
                 } else if(src[i] == '\n') {
                     // TODO: Should we stop parsing a string here?
                     error(ErrorType::NewLineInString,
-                          line, column, i, "\n",
+                          line, column, i, 1, //"\n",
                           "Unexpected new line in string");
 
                     i++;
@@ -533,8 +535,7 @@ void TokenStream::lex(std::string src) {
                         token.raw.replace(j, 2, "\"");
                     } else {
                         error(ErrorType::InvalidEscapeSequence,
-                              error_line, start_column + j, start + j,
-                              token.raw.substr(j, 2),
+                              error_line, start_column + j, start + j, 2,
                               "Unexpected character in escape sequence");
                     }
                 }
@@ -545,7 +546,7 @@ void TokenStream::lex(std::string src) {
 
         default: {
             error(ErrorType::UnrecognisedCharacter,
-                  line, column, i, std::string(1, src[i]),
+                  line, column, i, 1,
                   "Unrecognised character in input");
 
             i++, column++;
@@ -569,8 +570,9 @@ void TokenStream::lex(std::string src) {
 
 void TokenStream::error(
     ErrorType type,
-    unsigned int line, unsigned int column, unsigned int offset,
-    std::string raw, std::string message
+    unsigned int line, unsigned int column,
+    unsigned int offset, unsigned int count,
+    std::string message
 ) {
-    this->errors.push_back({type, line, column, offset, raw, message});
+    this->errors.push_back({type, line, column, offset, count, message});
 }

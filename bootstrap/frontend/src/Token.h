@@ -45,6 +45,8 @@
     F(Loop), \
     F(In), \
     F(Extern), \
+    F(Use), \
+    F(Namespace), \
     \
     F(Colon), \
     F(SemiColon), \

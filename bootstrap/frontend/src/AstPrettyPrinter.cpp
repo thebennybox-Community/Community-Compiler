@@ -476,9 +476,9 @@ void pretty_print_ast(Ast &ast) {
     pretty_print_block(ast.root, "");
 }
 
-static void set_colour(size_t i, const TokenStream &tokens) {
-    for(size_t j = 0; j < tokens.tokens.size(); j++) {
-        const auto &token = tokens.tokens[j];
+static void set_colour(size_t i, const std::vector<Token> &tokens) {
+    for(size_t j = 0; j < tokens.size(); j++) {
+        const auto &token = tokens[j];
 
         if(token.offset <= i && token.offset + token.raw.size() > i) {
             switch(token.type) {
@@ -516,10 +516,10 @@ static void set_colour(size_t i, const TokenStream &tokens) {
                 break;
 
             case TokenType::Symbol:
-                if(tokens.tokens[j + 1].type == TokenType::OpenParenthesis) {
+                if(tokens[j + 1].type == TokenType::OpenParenthesis) {
                     // Function
                     printf("%s", term_fg[TermColour::Blue]);
-                } else if(tokens.tokens[j - 1].type == TokenType::Colon) {
+                } else if(tokens[j - 1].type == TokenType::Colon) {
                     // Type
                     printf("%s", term_fg[TermColour::Red]);
                 } else {
@@ -536,14 +536,21 @@ static void set_colour(size_t i, const TokenStream &tokens) {
     }
 }
 
-void syntax_highlight_print_line(
-    const std::string &source, const TokenStream &tokens,
-    size_t error_start, size_t error_len, size_t context_lines
+void syntax_highlight_print_error(
+    const std::string &source, const std::vector<Token> &tokens,
+    unsigned int error_line, size_t error_start, size_t error_len,
+    size_t context_lines
 ) {
     int lines, columns;
     get_term_size(&lines, &columns);
 
     size_t i = error_start, end = error_start;
+
+    // If the error is at a new line character, we get too few context lines
+    // before, so start before it.
+    if(source[i] == '\n') {
+        i--;
+    }
 
     for(size_t j = 0; j <= (context_lines - 1) / 2; j++) {
         while(i > 0 && source[i] != '\n') {
@@ -553,9 +560,13 @@ void syntax_highlight_print_line(
             break;
         }
         i--;
+        error_line--;
     }
+
     if(i != 0) {
+        // Start at the character after the last new line we passed
         i += 2;
+        error_line++;
     }
 
     for(size_t j = 0; j <= (context_lines - 1) / 2; j++) {
@@ -567,11 +578,14 @@ void syntax_highlight_print_line(
         }
         end++;
     }
+
     if(end != source.size()) {
         end--;
     }
 
-    int column = 0;
+    int column = 5; // TODO: Magic number
+
+    printf("%-5u", error_line++);
 
     for(; i < end; i++) {
         column++;
@@ -602,8 +616,11 @@ void syntax_highlight_print_line(
                 putchar(' ');
                 column++;
             }
-            column = 0;
+            column = 5; // TODO: Magic number
             putchar('\n');
+            if(i != end) {
+                printf("%s%-5u", term_reset, error_line++);
+            }
         }
 
         printf("%s", term_reset);
@@ -618,12 +635,12 @@ void syntax_highlight_print_line(
 }
 
 void syntax_highlight_print(
-    const std::string &source, const TokenStream &tokens) {
+    const std::string &source, const std::vector<Token> &tokens) {
     syntax_highlight_print(source, tokens, 0, source.size());
 }
 
 void syntax_highlight_print(
-    const std::string &source, const TokenStream &tokens,
+    const std::string &source, const std::vector<Token> &tokens,
     size_t start, size_t end
 ) {
     for(size_t i = start; i < end; i++) {

@@ -13,19 +13,21 @@ add_executable(
 		main.cpp
 		Token.h
 		Error.h
+        AstDefs.h
+		Ast.h
         Terminal.h
+        ICodeGenerator.h
+        ISemanticAnalysis.h
+        ISemanticGenerator.h
+        ScopeContext.h
+        Scope.h
+        DuskAssembly.cpp
+        DuskAssembly.h
 		TokenStream.cpp
 		TokenStream.h
 		Parser.cpp
 		Parser.h
-		Ast.cpp
-		Ast.h
-        AstDefs.h
 		AstPrettyPrinter.cpp
 		AstPrettyPrinter.h
-		Semantics.cpp
-		Semantics.h
-		CodeGen.cpp
-		CodeGen.h
 		ILemitter.cpp
 		ILemitter.h)
