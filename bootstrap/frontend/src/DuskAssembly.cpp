@@ -5,6 +5,28 @@
 #include "Parser.h"
 #include "Terminal.h"
 #include "AstPrettyPrinter.h"
+#include "ISemanticAnalysis.h"
+#include "ISemanticGenerator.h"
+#include "ICodeGenerator.h"
+
+
+static int find_total_passes() {
+    int ret = 0;
+
+    for(auto &handler : ISemanticAnalysis::handlers) {
+        if(handler.pass > ret) {
+            ret = handler.pass;
+        }
+    }
+
+    for(auto &handler : ISemanticGenerator::handlers) {
+        if(handler.pass > ret) {
+            ret = handler.pass;
+        }
+    }
+
+    return ret;
+}
 
 static std::string read_file(std::string filename) {
     std::ifstream stream(filename);
@@ -28,8 +50,25 @@ void DuskAssembly::queue_file(std::string filename) {
     this->queued_files.push_back(filename);
 }
 
+
 void DuskAssembly::compile_write_binary(std::string out_file) {
 
+    std::vector<Ast> asts;
+
+    for(auto file : queued_files) {
+        asts.push_back(parse_file(file));
+    }
+
+    for(int pass = 0; pass < find_total_passes(); pass++) {
+        for(auto ast : asts) {
+            semantic_generation(ast, pass);
+            semantic_analysis(ast, pass);
+        }
+    }
+
+    for(auto ast : asts) {
+        generate_code(ast);
+    }
 }
 
 Ast DuskAssembly::parse_file(std::string filename) {
@@ -57,11 +96,12 @@ Ast DuskAssembly::parse_file(std::string filename) {
     return ast;
 }
 
-bool DuskAssembly::semantic_analysis(Ast &ast) {
-    return semantic_analyse_node(ast.root);
+
+bool DuskAssembly::semantic_generation(Ast &ast, int pass) {
+    return semantic_generation_node(ast.root, pass);
 }
 
-bool DuskAssembly::semantic_analyse_node(AstNode *node) {
+bool DuskAssembly::semantic_generation_node(AstNode *node, int pass) {
     switch(node->node_type) {
     case AstNodeType::AstBlock:
 
@@ -82,63 +122,191 @@ bool DuskAssembly::semantic_analyse_node(AstNode *node) {
     case AstNodeType::AstArray:
 
         break;
+
     case AstNodeType::AstDec:
 
         break;
+
     case AstNodeType::AstIf:
 
         break;
+
     case AstNodeType::AstFn:
 
         break;
+
     case AstNodeType::AstFnCall:
 
         break;
+
     case AstNodeType::AstLoop:
 
         break;
+
     case AstNodeType::AstContinue:
 
         break;
+
     case AstNodeType::AstBreak:
 
         break;
+
     case AstNodeType::AstStruct:
 
         break;
+
     case AstNodeType::AstImpl:
 
         break;
+
     case AstNodeType::AstAttribute:
 
         break;
+
     case AstNodeType::AstAffix:
 
         break;
+
     case AstNodeType::AstUnaryExpr:
 
         break;
+
     case AstNodeType::AstBinaryExpr:
 
         break;
+
     case AstNodeType::AstIndex:
 
         break;
+
     case AstNodeType::AstType:
 
         break;
+
     case AstNodeType::AstSymbol:
 
         break;
+
     case AstNodeType::AstReturn:
 
         break;
+
     case AstNodeType::AstExtern:
 
         break;
+
     case AstNodeType::AstUse:
 
         break;
+
+    case AstNodeType::AstNamespace:
+
+        break;
+    }
+}
+
+bool DuskAssembly::semantic_analysis(Ast &ast, int pass) {
+    return semantic_analyse_node(ast.root, pass);
+}
+
+bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
+    switch(node->node_type) {
+    case AstNodeType::AstBlock:
+
+        break;
+
+    case AstNodeType::AstString:
+
+        break;
+
+    case AstNodeType::AstNumber:
+
+        break;
+
+    case AstNodeType::AstBoolean:
+
+        break;
+
+    case AstNodeType::AstArray:
+
+        break;
+
+    case AstNodeType::AstDec:
+
+        break;
+
+    case AstNodeType::AstIf:
+
+        break;
+
+    case AstNodeType::AstFn:
+
+        break;
+
+    case AstNodeType::AstFnCall:
+
+        break;
+
+    case AstNodeType::AstLoop:
+
+        break;
+
+    case AstNodeType::AstContinue:
+
+        break;
+
+    case AstNodeType::AstBreak:
+
+        break;
+
+    case AstNodeType::AstStruct:
+
+        break;
+
+    case AstNodeType::AstImpl:
+
+        break;
+
+    case AstNodeType::AstAttribute:
+
+        break;
+
+    case AstNodeType::AstAffix:
+
+        break;
+
+    case AstNodeType::AstUnaryExpr:
+
+        break;
+
+    case AstNodeType::AstBinaryExpr:
+
+        break;
+
+    case AstNodeType::AstIndex:
+
+        break;
+
+    case AstNodeType::AstType:
+
+        break;
+
+    case AstNodeType::AstSymbol:
+
+        break;
+
+    case AstNodeType::AstReturn:
+
+        break;
+
+    case AstNodeType::AstExtern:
+
+        break;
+
+    case AstNodeType::AstUse:
+
+        break;
+
     case AstNodeType::AstNamespace:
 
         break;
@@ -150,7 +318,107 @@ bool DuskAssembly::generate_code(Ast &ast) {
 }
 
 bool DuskAssembly::generate_code_node(AstNode *node) {
+    switch(node->node_type) {
+    case AstNodeType::AstBlock:
 
+        break;
+
+    case AstNodeType::AstString:
+
+        break;
+
+    case AstNodeType::AstNumber:
+
+        break;
+
+    case AstNodeType::AstBoolean:
+
+        break;
+
+    case AstNodeType::AstArray:
+
+        break;
+
+    case AstNodeType::AstDec:
+
+        break;
+
+    case AstNodeType::AstIf:
+
+        break;
+
+    case AstNodeType::AstFn:
+
+        break;
+
+    case AstNodeType::AstFnCall:
+
+        break;
+
+    case AstNodeType::AstLoop:
+
+        break;
+
+    case AstNodeType::AstContinue:
+
+        break;
+
+    case AstNodeType::AstBreak:
+
+        break;
+
+    case AstNodeType::AstStruct:
+
+        break;
+
+    case AstNodeType::AstImpl:
+
+        break;
+
+    case AstNodeType::AstAttribute:
+
+        break;
+
+    case AstNodeType::AstAffix:
+
+        break;
+
+    case AstNodeType::AstUnaryExpr:
+
+        break;
+
+    case AstNodeType::AstBinaryExpr:
+
+        break;
+
+    case AstNodeType::AstIndex:
+
+        break;
+
+    case AstNodeType::AstType:
+
+        break;
+
+    case AstNodeType::AstSymbol:
+
+        break;
+
+    case AstNodeType::AstReturn:
+
+        break;
+
+    case AstNodeType::AstExtern:
+
+        break;
+
+    case AstNodeType::AstUse:
+
+        break;
+
+    case AstNodeType::AstNamespace:
+
+        break;
+    }
 }
 
 bool DuskAssembly::handle_errors(
@@ -170,5 +438,7 @@ bool DuskAssembly::handle_errors(
             file_contents, tokens,
             error.line, error.offset, error.count);
     }
+
+    return errors.empty();
 }
 

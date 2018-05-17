@@ -20,4 +20,6 @@ public:
     static std::vector<ISemanticAnalysis> handlers;
 };
 
+std::vector<ISemanticAnalysis> ISemanticAnalysis::handlers;
+
 #endif /* ISEMANTICANALYSIS_H */

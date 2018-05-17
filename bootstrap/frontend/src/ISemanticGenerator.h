@@ -7,9 +7,9 @@
 #include "ScopeContext.h"
 #include "DuskAssembly.h"
 
-class ICodeGenerator {
+class ISemanticGenerator {
 public:
-    virtual AstNode* generate(
+    virtual AstNode *generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node) = 0;
 
     AstNodeType type_handler;
@@ -17,5 +17,7 @@ public:
 
     static std::vector<ISemanticGenerator> handlers;
 };
+
+std::vector<ISemanticGenerator> ISemanticGenerator::handlers;
 
 #endif /* ISEMANTICGENERATOR_H */
