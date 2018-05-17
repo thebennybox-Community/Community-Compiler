@@ -193,7 +193,8 @@ bool DuskAssembly::semantic_generation(Ast &ast, int pass) {
 bool DuskAssembly::semantic_generation_node(AstNode *node, int pass) {
 
     for(auto handler : ISemanticGenerator::handlers) {
-        if(handler->type_handler == node->node_type && handler->pass == pass) {
+        if(handler->type_handler == node->node_type) {
+            handler->pass = pass;
             handler->generate(*this, scopes.front(), node);
             break;
         }
@@ -261,7 +262,8 @@ bool DuskAssembly::semantic_analysis(Ast &ast, int pass) {
 
 bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
     for(auto handler : ISemanticAnalysis::handlers) {
-        if(handler->type_handler == node->node_type && handler->pass == pass) {
+        if(handler->type_handler == node->node_type) {
+            handler->pass = pass;
             handler->validate_semantics(*this, scopes.front(), node);
             handler->validate_types(*this, scopes.front(), node);
             break;

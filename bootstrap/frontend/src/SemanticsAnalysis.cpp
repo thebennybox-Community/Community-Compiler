@@ -153,6 +153,12 @@ public:
 
     virtual bool validate_semantics(DuskAssembly &ds, ScopeContext *scope,
                                     AstNode *node) {
+
+        if(pass == 0) {
+            scope->func_add((AstFn *)node);
+            return true;
+        }
+
         return false;
     }
 
@@ -253,6 +259,11 @@ public:
 
     virtual bool validate_semantics(DuskAssembly &ds, ScopeContext *scope,
                                     AstNode *node) {
+        if(pass == 0) {
+            scope->struct_add((AstStruct *)node);
+            return true;
+        }
+
         return false;
     }
 
@@ -313,6 +324,11 @@ public:
 
     virtual bool validate_semantics(DuskAssembly &ds, ScopeContext *scope,
                                     AstNode *node) {
+        if(pass == 0) {
+            scope->affix_add((AstAffix *)node);
+            return true;
+        }
+
         return false;
     }
 
