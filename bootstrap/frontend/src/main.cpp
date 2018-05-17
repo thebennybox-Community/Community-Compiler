@@ -7,6 +7,10 @@
 #include "TokenStream.h"
 #include "Terminal.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 std::string load_text_from_file(std::string filepath)
 {
     std::ifstream stream(filepath);
@@ -24,6 +28,27 @@ int main(int argc, char **argv)
         return 1;
     }
 
+#ifdef _WIN32
+    // Set output mode to handle virtual terminal sequences
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut == INVALID_HANDLE_VALUE)
+    {
+        return GetLastError();
+    }
+
+    DWORD dwMode = 0;
+    if (!GetConsoleMode(hOut, &dwMode))
+    {
+        return GetLastError();
+    }
+
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    if (!SetConsoleMode(hOut, dwMode))
+    {
+        return GetLastError();
+    }
+#endif
+
     std::vector<TokenStream> toks;
     std::vector<Ast> asts;
 
@@ -40,16 +65,17 @@ int main(int argc, char **argv)
         if (!stream.errors.empty())
         {
             errors_occurred = true;
-            for (LexerError error : stream.errors)
+            for (Error error : stream.errors)
             {
                 printf("\n%s%s @ %s%s%d%s:%s%d%s\n",
                        term_fg[TermColour::Yellow],
-                       error.to_string().c_str(),
+                       error.message.c_str(),
                        term_reset,
                        term_fg[TermColour::Blue], error.line, term_reset,
                        term_fg[TermColour::Blue], error.column, term_reset);
-                syntax_highlight_print_line(
-                    file_contents, stream, error.offset, error.raw.size());
+                syntax_highlight_print_error(
+                    file_contents, stream,
+                    error.line, error.offset, error.count);
             }
         }
         else
@@ -64,28 +90,16 @@ int main(int argc, char **argv)
                 for (Error error : parser.errors)
                 {
                     printf("\n-----------------------------\n\n");
-                    if (error.type == ErrorType::UnexpectedToken)
-                    {
-                        printf(
-                            "%s, got \"%s\" (%s) at %u:%u\n",
-                            error.message.c_str(),
-                            error.token.raw.c_str(),
-                            token_type_names[(int)error.token.type],
-                            error.token.line,
-                            error.token.column);
-                    }
-                    else
-                    {
-                        printf(
-                            "%s: \"%s\" (%s) at %u:%u\n",
-                            error.message.c_str(),
-                            error.token.raw.c_str(),
-                            token_type_names[(int)error.token.type],
-                            error.token.line,
-                            error.token.column);
-                    }
-                    syntax_highlight_print_line(
-                        file_contents, stream, error.token.offset, error.token.raw.size());
+                    printf("\n%s%s @ %s%s%d%s:%s%d%s\n",
+                        term_fg[TermColour::Yellow],
+                        error.message.c_str(),
+                        term_reset,
+                        term_fg[TermColour::Blue], error.line, term_reset,
+                        term_fg[TermColour::Blue], error.column, term_reset
+                    );
+                    syntax_highlight_print_error(
+                        file_contents, stream,
+                        error.line, error.offset, error.count);
                 }
             }
         }
@@ -105,7 +119,6 @@ int main(int argc, char **argv)
     for(auto &stream : toks) {
         Parser parser;
         asts.push_back(parser.parse(stream.tokens));
-        pretty_print_ast(asts.back());
     }
 
     Semantics sem;

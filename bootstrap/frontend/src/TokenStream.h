@@ -11,7 +11,7 @@ public:
     std::vector<Token> tokens;
 
     /** The list of errors generated while lexing */
-    std::vector<LexerError> errors;
+    std::vector<Error> errors;
 
     /**
      * Lexes a string into a list of tokens.
@@ -39,9 +39,9 @@ private:
      */
     void error(
         ErrorType type,
-        unsigned int line, unsigned int column, unsigned int offset,
-        std::string raw, std::string message
-    );
+        unsigned int line, unsigned int column,
+        unsigned int offset, unsigned int count,
+        std::string message);
 };
 
 #endif // SRC_TOKENSTREAM_H

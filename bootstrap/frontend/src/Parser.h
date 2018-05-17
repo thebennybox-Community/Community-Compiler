@@ -264,6 +264,12 @@ private:
      */
     bool expect(TokenType type, std::string message);
 
+    void error(
+        ErrorType type,
+        unsigned int line, unsigned int column,
+        unsigned int offset, unsigned int count,
+        std::string message);
+
     /** Local copy of the token stream */
     std::vector<Token> tokens;
 
