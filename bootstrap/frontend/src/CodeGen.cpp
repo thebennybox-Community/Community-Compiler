@@ -1,9 +1,9 @@
 #include "ICodeGenerator.h"
 
-class AstBlockGenerator : public ICodeGenerator {
+class AstBlockCodeGenerator : public ICodeGenerator {
 public:
 
-    AstBlockGenerator() {
+    AstBlockCodeGenerator() {
         type_handler = AstNodeType::AstBlock;
 
 
@@ -17,10 +17,10 @@ public:
 
 };
 
-class AstStringGenerator : public ICodeGenerator {
+class AstStringCodeGenerator : public ICodeGenerator {
 public:
 
-    AstStringGenerator() {
+    AstStringCodeGenerator() {
         type_handler = AstNodeType::AstString;
 
 
@@ -34,10 +34,10 @@ public:
 
 };
 
-class AstNumberGenerator : public ICodeGenerator {
+class AstNumberCodeGenerator : public ICodeGenerator {
 public:
 
-    AstNumberGenerator() {
+    AstNumberCodeGenerator() {
         type_handler = AstNodeType::AstNumber;
 
 
@@ -51,10 +51,10 @@ public:
 
 };
 
-class AstBooleanGenerator : public ICodeGenerator {
+class AstBooleanCodeGenerator : public ICodeGenerator {
 public:
 
-    AstBooleanGenerator() {
+    AstBooleanCodeGenerator() {
         type_handler = AstNodeType::AstBoolean;
 
 
@@ -68,10 +68,10 @@ public:
 
 };
 
-class AstArrayGenerator : public ICodeGenerator {
+class AstArrayCodeGenerator : public ICodeGenerator {
 public:
 
-    AstArrayGenerator() {
+    AstArrayCodeGenerator() {
         type_handler = AstNodeType::AstArray;
 
 
@@ -85,10 +85,10 @@ public:
 
 };
 
-class AstDecGenerator : public ICodeGenerator {
+class AstDecCodeGenerator : public ICodeGenerator {
 public:
 
-    AstDecGenerator() {
+    AstDecCodeGenerator() {
         type_handler = AstNodeType::AstDec;
 
 
@@ -102,10 +102,10 @@ public:
 
 };
 
-class AstIfGenerator : public ICodeGenerator {
+class AstIfCodeGenerator : public ICodeGenerator {
 public:
 
-    AstIfGenerator() {
+    AstIfCodeGenerator() {
         type_handler = AstNodeType::AstIf;
 
 
@@ -119,10 +119,10 @@ public:
 
 };
 
-class AstFnGenerator : public ICodeGenerator {
+class AstFnCodeGenerator : public ICodeGenerator {
 public:
 
-    AstFnGenerator() {
+    AstFnCodeGenerator() {
         type_handler = AstNodeType::AstFn;
 
 
@@ -136,10 +136,10 @@ public:
 
 };
 
-class AstFnCallGenerator : public ICodeGenerator {
+class AstFnCallCodeGenerator : public ICodeGenerator {
 public:
 
-    AstFnCallGenerator() {
+    AstFnCallCodeGenerator() {
         type_handler = AstNodeType::AstFnCall;
 
 
@@ -153,10 +153,10 @@ public:
 
 };
 
-class AstLoopGenerator : public ICodeGenerator {
+class AstLoopCodeGenerator : public ICodeGenerator {
 public:
 
-    AstLoopGenerator() {
+    AstLoopCodeGenerator() {
         type_handler = AstNodeType::AstLoop;
 
 
@@ -170,10 +170,10 @@ public:
 
 };
 
-class AstContinueGenerator : public ICodeGenerator {
+class AstContinueCodeGenerator : public ICodeGenerator {
 public:
 
-    AstContinueGenerator() {
+    AstContinueCodeGenerator() {
         type_handler = AstNodeType::AstContinue;
 
 
@@ -187,10 +187,10 @@ public:
 
 };
 
-class AstBreakGenerator : public ICodeGenerator {
+class AstBreakCodeGenerator : public ICodeGenerator {
 public:
 
-    AstBreakGenerator() {
+    AstBreakCodeGenerator() {
         type_handler = AstNodeType::AstBreak;
 
 
@@ -204,10 +204,10 @@ public:
 
 };
 
-class AstStructGenerator : public ICodeGenerator {
+class AstStructCodeGenerator : public ICodeGenerator {
 public:
 
-    AstStructGenerator() {
+    AstStructCodeGenerator() {
         type_handler = AstNodeType::AstStruct;
 
 
@@ -221,10 +221,10 @@ public:
 
 };
 
-class AstImplGenerator : public ICodeGenerator {
+class AstImplCodeGenerator : public ICodeGenerator {
 public:
 
-    AstImplGenerator() {
+    AstImplCodeGenerator() {
         type_handler = AstNodeType::AstImpl;
 
 
@@ -238,10 +238,10 @@ public:
 
 };
 
-class AstAttributeGenerator : public ICodeGenerator {
+class AstAttributeCodeGenerator : public ICodeGenerator {
 public:
 
-    AstAttributeGenerator() {
+    AstAttributeCodeGenerator() {
         type_handler = AstNodeType::AstAttribute;
 
 
@@ -255,10 +255,10 @@ public:
 
 };
 
-class AstAffixGenerator : public ICodeGenerator {
+class AstAffixCodeGenerator : public ICodeGenerator {
 public:
 
-    AstAffixGenerator() {
+    AstAffixCodeGenerator() {
         type_handler = AstNodeType::AstAffix;
 
 
@@ -272,10 +272,10 @@ public:
 
 };
 
-class AstUnaryExprGenerator : public ICodeGenerator {
+class AstUnaryExprCodeGenerator : public ICodeGenerator {
 public:
 
-    AstUnaryExprGenerator() {
+    AstUnaryExprCodeGenerator() {
         type_handler = AstNodeType::AstUnaryExpr;
 
 
@@ -289,10 +289,10 @@ public:
 
 };
 
-class AstBinaryExprGenerator : public ICodeGenerator {
+class AstBinaryExprCodeGenerator : public ICodeGenerator {
 public:
 
-    AstBinaryExprGenerator() {
+    AstBinaryExprCodeGenerator() {
         type_handler = AstNodeType::AstBinaryExpr;
 
 
@@ -306,10 +306,10 @@ public:
 
 };
 
-class AstIndexGenerator : public ICodeGenerator {
+class AstIndexCodeGenerator : public ICodeGenerator {
 public:
 
-    AstIndexGenerator() {
+    AstIndexCodeGenerator() {
         type_handler = AstNodeType::AstIndex;
 
 
@@ -323,10 +323,10 @@ public:
 
 };
 
-class AstTypeGenerator : public ICodeGenerator {
+class AstTypeCodeGenerator : public ICodeGenerator {
 public:
 
-    AstTypeGenerator() {
+    AstTypeCodeGenerator() {
         type_handler = AstNodeType::AstType;
 
 
@@ -340,10 +340,10 @@ public:
 
 };
 
-class AstSymbolGenerator : public ICodeGenerator {
+class AstSymbolCodeGenerator : public ICodeGenerator {
 public:
 
-    AstSymbolGenerator() {
+    AstSymbolCodeGenerator() {
         type_handler = AstNodeType::AstSymbol;
 
 
@@ -357,10 +357,10 @@ public:
 
 };
 
-class AstReturnGenerator : public ICodeGenerator {
+class AstReturnCodeGenerator : public ICodeGenerator {
 public:
 
-    AstReturnGenerator() {
+    AstReturnCodeGenerator() {
         type_handler = AstNodeType::AstReturn;
 
 
@@ -374,10 +374,10 @@ public:
 
 };
 
-class AstExternGenerator : public ICodeGenerator {
+class AstExternCodeGenerator : public ICodeGenerator {
 public:
 
-    AstExternGenerator() {
+    AstExternCodeGenerator() {
         type_handler = AstNodeType::AstExtern;
 
 
@@ -391,10 +391,10 @@ public:
 
 };
 
-class AstUseGenerator : public ICodeGenerator {
+class AstUseCodeGenerator : public ICodeGenerator {
 public:
 
-    AstUseGenerator() {
+    AstUseCodeGenerator() {
         type_handler = AstNodeType::AstUse;
 
 
@@ -408,10 +408,10 @@ public:
 
 };
 
-class AstNamespaceGenerator : public ICodeGenerator {
+class AstNamespaceCodeGenerator : public ICodeGenerator {
 public:
 
-    AstNamespaceGenerator() {
+    AstNamespaceCodeGenerator() {
         type_handler = AstNodeType::AstNamespace;
 
 
