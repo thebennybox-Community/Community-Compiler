@@ -20,6 +20,7 @@ add_executable(
         ISemanticAnalysis.h
         ISemanticGenerator.h
         ScopeContext.h
+		ScopeContext.cpp
         Scope.h
         DuskAssembly.cpp
         DuskAssembly.h
