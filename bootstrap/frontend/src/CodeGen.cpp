@@ -1,4 +1,7 @@
 #include "ICodeGenerator.h"
+#include "Ast.h"
+
+static unsigned int g_counter = 0;
 
 class AstBlockCodeGenerator : public ICodeGenerator {
 public:
@@ -11,6 +14,7 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary)  {
+
 
     }
 
@@ -29,7 +33,8 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
-
+        auto x = (AstString *)node;
+        binary.push_str(x->value.c_str());
     }
 
 
@@ -47,7 +52,57 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
+        auto x = (AstNumber *)node;
 
+        switch(x->bits) {
+        case 8:
+            if(x->is_float) {
+                printf("Internal compiler error: 8 bit floats\n");
+            } else if(x->is_signed) {
+                binary.push_i8((int8_t)x->value.i);
+            } else {
+                binary.push_u8((uint8_t)x->value.u);
+            }
+
+            break;
+
+        case 16:
+            if(x->is_float) {
+                printf("Internal compiler error: 16 bit floats\n");
+            } else if(x->is_signed) {
+                binary.push_i16((int16_t)x->value.i);
+            } else {
+                binary.push_u16((uint16_t)x->value.u);
+            }
+
+            break;
+
+        case 32:
+            if(x->is_float) {
+                binary.push_f32((float)x->value.f);
+            } else if(x->is_signed) {
+                binary.push_i32((int32_t)x->value.i);
+            } else {
+                binary.push_u32((uint32_t)x->value.u);
+            }
+
+            break;
+
+        case 64:
+            if(x->is_float) {
+                binary.push_f64(x->value.f);
+            } else if(x->is_signed) {
+                binary.push_i64(x->value.i);
+            } else {
+                binary.push_u64(x->value.u);
+            }
+
+            break;
+
+        default:
+            printf("Internal compiler error: unknown number of bits");
+            break;
+        }
     }
 
 
@@ -66,6 +121,11 @@ public:
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
 
+        if(x->value) {
+            binary.push_true();
+        } else {
+            binary.push_false();
+        }
     }
 
 
@@ -83,7 +143,26 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
+        binary.push_u32(type_to_size(ele_type) * x->elements.size());
+        binary.call("malloc");
+        unsigned int offset = 0;
 
+        for(int i = 0; i < x->elements.size(); i++) {
+            binary.duplicate();
+        }
+
+        for(int i = 0; i < x->elements.size(); i++) {
+
+            generate_il(x->elements[i], il, sem);
+            //binary.push_u32(40);
+            binary.swap();
+
+            binary.push_u32(offset);
+            offset += type_to_size(ele_type);
+            binary.integer_add();
+
+            binary.write();
+        }
     }
 
 
@@ -101,7 +180,18 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
+        scope->local_add(node);
 
+        binary.function_local( // TODO
+            scope_owner.c_str(),
+            name.c_str(),
+            type_to_il_type(type));
+
+        if(value) {
+            generate_il(value, il, sem);
+        }
+
+        binary.store_local(name.c_str());
     }
 
 
