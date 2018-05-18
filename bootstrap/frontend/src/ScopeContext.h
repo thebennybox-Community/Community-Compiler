@@ -14,7 +14,7 @@ public:
     void import_scope(ScopeContext *scope);
 
     void enter(AstNode *node);
-    void leave(AstNode *node);
+    void leave();
 
     bool func_exists(std::string name, std::vector<AstType *> param_types);
     AstFn *func_get(std::string name, std::vector<AstType *> param_types);

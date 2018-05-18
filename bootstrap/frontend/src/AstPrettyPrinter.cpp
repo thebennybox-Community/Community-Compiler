@@ -252,7 +252,7 @@ void pretty_print_fn(const AstFn *node, std::string indent) {
         term_fg[TermColour::Yellow],
         term_reset,
         term_fg[TermColour::Blue],
-        node->mangled_name.c_str(),
+        node->name.c_str(),
         term_reset);
 
     if(node->return_type) {
@@ -556,9 +556,11 @@ void syntax_highlight_print_error(
         while(i > 0 && source[i] != '\n') {
             i--;
         }
+
         if(i == 0) {
             break;
         }
+
         i--;
         error_line--;
     }
@@ -573,9 +575,11 @@ void syntax_highlight_print_error(
         while(end < source.size() && source[end] != '\n') {
             end++;
         }
+
         if(end == source.size()) {
             break;
         }
+
         end++;
     }
 
@@ -593,31 +597,38 @@ void syntax_highlight_print_error(
         if(i < error_start || i > error_start + error_len - 1) {
             set_colour(i, tokens);
             printf("%s", code_bg_esc_seq);
+
             if(source[i] == '\n') {
                 putchar(' ');
             } else {
                 putchar(source[i]);
             }
+
             printf("%s", term_reset);
         } else {
             printf("%s%s",
                    term_bg[TermColour::Red], term_fg[TermColour::Black]);
+
             if(source[i] == '\n') {
                 printf(" %s", term_reset);
             } else {
                 putchar(source[i]);
             }
+
             printf("%s", term_reset);
         }
 
         if(source[i] == '\n') {
             printf("%s", code_bg_esc_seq);
+
             while(column < columns) {
                 putchar(' ');
                 column++;
             }
+
             column = 5; // TODO: Magic number
             putchar('\n');
+
             if(i != end) {
                 printf("%s%-5u", term_reset, error_line++);
             }
@@ -627,10 +638,12 @@ void syntax_highlight_print_error(
     }
 
     printf(code_bg_esc_seq);
+
     while(column < columns) {
         putchar(' ');
         column++;
     }
+
     printf("%s\n", term_reset);
 }
 

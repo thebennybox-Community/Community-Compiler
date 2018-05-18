@@ -95,6 +95,9 @@ DuskAssembly::DuskAssembly() {
     ICodeGenerator::handlers.push_back(new AstExternCodeGenerator());
     ICodeGenerator::handlers.push_back(new AstUseCodeGenerator());
     ICodeGenerator::handlers.push_back(new AstNamespaceCodeGenerator());
+
+
+
 }
 
 
@@ -147,15 +150,22 @@ void DuskAssembly::compile_write_binary(std::string out_file) {
         asts.push_back(parse_file(file));
     }
 
-    for(int pass = 0; pass < find_total_passes(); pass++) {
+
+
+    for(int pass = 0; pass < 10; pass++) {
         for(auto ast : asts) {
+            scopes.push_back(new ScopeContext());
             semantic_generation(ast, pass);
             semantic_analysis(ast, pass);
+            scopes.pop_back();
         }
     }
 
+
     for(auto ast : asts) {
+        scopes.push_back(new ScopeContext());
         generate_code(ast);
+        scopes.pop_back();
     }
 }
 
@@ -193,11 +203,15 @@ bool DuskAssembly::semantic_generation(Ast &ast, int pass) {
 bool DuskAssembly::semantic_generation_node(AstNode *node, int pass) {
 
     for(auto handler : ISemanticGenerator::handlers) {
+        scopes.front()->enter(node);
+
         if(handler->type_handler == node->node_type) {
             handler->pass = pass;
             handler->generate(*this, scopes.front(), node);
             break;
         }
+
+        scopes.front()->leave();
     }
 
     switch(node->node_type) {
@@ -220,7 +234,10 @@ bool DuskAssembly::semantic_generation_node(AstNode *node, int pass) {
 
     case AstNodeType::AstFn: {
         auto x = (AstFn *) node;
-        semantic_generation_node(x->body, pass);
+
+        if(x->body) {
+            semantic_generation_node(x->body, pass);
+        }
     }
     break;
 
@@ -263,6 +280,7 @@ bool DuskAssembly::semantic_analysis(Ast &ast, int pass) {
 bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
     for(auto handler : ISemanticAnalysis::handlers) {
         if(handler->type_handler == node->node_type) {
+
             handler->pass = pass;
             handler->validate_semantics(*this, scopes.front(), node);
             handler->validate_types(*this, scopes.front(), node);
@@ -290,7 +308,10 @@ bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
 
     case AstNodeType::AstFn: {
         auto x = (AstFn *) node;
-        semantic_analyse_node(x->body, pass);
+
+        if(x->body) {
+            semantic_analyse_node(x->body, pass);
+        }
     }
     break;
 
@@ -359,7 +380,10 @@ bool DuskAssembly::generate_code_node(AstNode *node) {
 
     case AstNodeType::AstFn: {
         auto x = (AstFn *) node;
-        generate_code_node(x->body);
+
+        if(x->body) {
+            generate_code_node(x->body);
+        }
     }
     break;
 

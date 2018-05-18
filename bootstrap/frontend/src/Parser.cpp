@@ -14,6 +14,7 @@ std::map<std::string, AffixType> Parser::affix_types = {};
 
 Ast Parser::parse(const std::vector<Token> &tokens) {
     this->tokens = tokens;
+    this->token_index = 0;
     return parse_root();
 }
 

@@ -10,7 +10,7 @@ void ScopeContext::enter(AstNode *node) {
     sp->owner = node;
     scope_stack.push_back(sp);
 }
-void ScopeContext::leave(AstNode *node) {
+void ScopeContext::leave() {
     scope_stack.pop_back();
 }
 
