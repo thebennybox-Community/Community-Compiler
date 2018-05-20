@@ -391,14 +391,16 @@ bool DuskAssembly::generate_code(Ast &ast) {
     return generate_code_node(ast.root);
 }
 
-bool DuskAssembly::generate_code_node(AstNode *node) {
-
+void DuskAssembly::generate_code_node_helper(AstNode *node) {
     for(auto handler : ICodeGenerator::handlers) {
         if(handler->type_handler == node->node_type) {
             handler->generate(*this, scopes.front(), node, il_emitter);
             break;
         }
     }
+}
+
+bool DuskAssembly::generate_code_node(AstNode *node) {
 
     switch(node->node_type) {
     case AstNodeType::AstBlock: {
@@ -408,13 +410,14 @@ bool DuskAssembly::generate_code_node(AstNode *node) {
             generate_code_node(stmt);
         }
 
+        generate_code_node_helper(node);
     }
     break;
 
     case AstNodeType::AstIf: {
         auto x = (AstIf *) node;
         scopes.front()->enter(node, "if");
-
+        generate_code_node_helper(node);
         generate_code_node(x->true_block);
         generate_code_node(x->false_block);
         scopes.front()->leave();
@@ -425,6 +428,7 @@ bool DuskAssembly::generate_code_node(AstNode *node) {
     case AstNodeType::AstFn: {
         auto x = (AstFn *) node;
         scopes.front()->enter(node, x->name);
+        generate_code_node_helper(node);
 
         if(x->body) {
             generate_code_node(x->body);
@@ -439,7 +443,7 @@ bool DuskAssembly::generate_code_node(AstNode *node) {
     case AstNodeType::AstLoop: {
         auto x = (AstLoop *) node;
         scopes.front()->enter(node, "loop");
-
+        generate_code_node_helper(node);
         generate_code_node(x->body);
         scopes.front()->leave();
     }
@@ -448,7 +452,7 @@ bool DuskAssembly::generate_code_node(AstNode *node) {
     case AstNodeType::AstImpl: {
         auto x = (AstImpl *) node;
         scopes.front()->enter(node, x->name);
-
+        generate_code_node_helper(node);
         generate_code_node(x->block);
         scopes.front()->leave();
     }
@@ -458,7 +462,7 @@ bool DuskAssembly::generate_code_node(AstNode *node) {
     case AstNodeType::AstAffix: {
         auto x = (AstAffix *) node;
         scopes.front()->enter(node, x->name);
-
+        generate_code_node_helper(node);
         generate_code_node(x->body);
         scopes.front()->leave();
     }
@@ -467,6 +471,7 @@ bool DuskAssembly::generate_code_node(AstNode *node) {
     case AstNodeType::AstExtern: {
         auto x = (AstExtern *) node;
         scopes.front()->enter(node, "extern");
+        generate_code_node_helper(node);
 
         for(auto stmt : x->decls) {
             generate_code_node(stmt);
@@ -476,6 +481,9 @@ bool DuskAssembly::generate_code_node(AstNode *node) {
     }
     break;
 
+    default:
+        generate_code_node_helper(node);
+        break;
     }
 }
 

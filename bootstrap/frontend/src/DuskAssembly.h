@@ -30,6 +30,9 @@ public:
                        std::string file_contents, std::vector<Token> tokens);
 
     std::vector<std::string> queued_files;
+
+private:
+    void generate_code_node_helper(AstNode *node);
 };
 
 #endif /* DUSKASSEMBLY_H */

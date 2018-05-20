@@ -276,8 +276,6 @@ public:
 
     AstFnCodeGenerator() {
         type_handler = AstNodeType::AstFn;
-
-
     }
 
     virtual void generate(
@@ -293,6 +291,8 @@ public:
                     x->name.c_str(), //TODO: Mnagle that shit
                     param->name.c_str(),
                     type_to_il_type(param->type));
+
+                scope->arg_add(param);
             }
 
             binary.internal_function(
@@ -341,8 +341,9 @@ public:
 
         auto target = scope->func_get(x->name, types);
 
-        for(auto arg : x->args) {
-            ds.generate_code_node(arg);
+        for(size_t i = x->args.size(); i; i--) {
+            auto z = x->args[i - 1];
+            ds.generate_code_node(z);
         }
 
         if(target->body) {
@@ -615,7 +616,9 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
-
+        auto x = (AstReturn *)node;
+        ds.generate_code_node(x->expr);
+        binary._return();
     }
 
 

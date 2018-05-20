@@ -404,21 +404,21 @@ AstType *ScopeContext::infer_type(AstNode *node) {
             auto z = global_get(x->name);
 
             if(z) {
-                return infer_type(z);
+                return z->type;
             }
         }
         {
             auto z = arg_get(x->name);
 
             if(z) {
-                return infer_type(z);
+                return z->type;
             }
         }
         {
             auto z = local_get(x->name);
 
             if(z) {
-                return infer_type(z);
+                return z->type;
             }
         }
         break;
