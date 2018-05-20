@@ -299,9 +299,6 @@ public:
                 x->name.c_str(), type_to_il_type(x->return_type));
 
             binary.function(x->name.c_str());
-
-            //gen body
-
         } else {
             //external method
 
@@ -335,9 +332,29 @@ public:
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
 
-        auto x = (AstFn *)node;
+        auto x = (AstFnCall *)node;
+        auto types = std::vector<AstType *>();
 
-        auto target = scope->func_get(x->name, x->params);
+        for(auto arg : x->args) {
+            types.push_back(scope->infer_type(arg));
+        }
+
+        auto target = scope->func_get(x->name, types);
+
+        for(auto arg : x->args) {
+            ds.generate_code_node(arg);
+        }
+
+        if(target->body) {
+            //internal
+            //dont mangle shit
+
+        } else {
+            //external
+            //we need to mangle that up sone
+        }
+
+        binary.call(x->name.c_str());
 
     }
 
@@ -554,10 +571,36 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
+        auto x = (AstSymbol *)node;
+        {
+            auto z = scope->struct_get(x->name);
 
+            if(z) {
+                //todo
+            }
+        }
+        {
+            auto z = scope->global_get(x->name);
+
+            if(z) {
+                //todo
+            }
+        }
+        {
+            auto z = scope->arg_get(x->name);
+
+            if(z) {
+                binary.load_argument(z->name.c_str());
+            }
+        }
+        {
+            auto z = scope->local_get(x->name);
+
+            if(z) {
+                binary.load_local(z->name.c_str());
+            }
+        }
     }
-
-
 };
 
 class AstReturnCodeGenerator : public ICodeGenerator {

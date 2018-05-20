@@ -5,8 +5,14 @@ extern {
     fn fclose(stream : u32) : i32;
 }
 
+fn test()
+{
+    printf("\nBob the builder\n");
+}
+
 fn main()
 {
-    let x = "Hello world!\n";
+    let x : str = "Hello world!\n";
     printf(x);
+    test();
 }

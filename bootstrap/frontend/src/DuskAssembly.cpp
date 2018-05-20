@@ -150,26 +150,25 @@ void DuskAssembly::compile_write_binary(std::string out_file) {
 
     for(auto file : queued_files) {
         asts.push_back(parse_file(file));
-        pretty_print_ast(asts.front());
+        //pretty_print_ast(asts.front());
     }
 
-
+    //hackotron 900
+    scopes.push_back(new ScopeContext());
 
     for(int pass = 0; pass < 10; pass++) {
         for(auto ast : asts) {
-            scopes.push_back(new ScopeContext());
             semantic_generation(ast, pass);
             semantic_analysis(ast, pass);
-            scopes.pop_back();
         }
     }
 
 
     for(auto ast : asts) {
-        scopes.push_back(new ScopeContext());
         generate_code(ast);
-        scopes.pop_back();
     }
+
+    scopes.pop_back();
 
     FILE *file = fopen(out_file.c_str(), "wb");
     size_t size = il_emitter.stream.size();

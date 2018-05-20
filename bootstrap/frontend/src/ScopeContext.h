@@ -7,6 +7,8 @@
 #include "AstDefs.h"
 #include "Scope.h"
 
+
+
 class ScopeContext {
 public:
     AstNamespace *ns;
@@ -17,8 +19,8 @@ public:
     void leave();
 
     bool func_exists(std::string name, std::vector<AstType *> param_types);
-    AstFn *func_get(std::string name, std::vector<AstType *> param_types);
-    AstFn *func_get(std::string name, std::vector<AstDec *> param_types);
+    AstFn *func_get(std::string name, const std::vector<AstType *> &param_types);
+    AstFn *func_get(std::string name, const std::vector<AstDec *> &param_types);
     void func_add(AstFn *fn);
 
     bool affix_exists(std::string name, std::vector<AstType *> param_types);
@@ -43,6 +45,7 @@ public:
     void local_add(AstDec *local);
 
     std::vector<Scope *> scope_stack;
+    AstType *infer_type(AstNode *node);
 
 private:
     std::vector<AstFn *> funcs_global;
