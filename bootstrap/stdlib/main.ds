@@ -7,5 +7,6 @@ extern {
 
 fn main()
 {
-    printf("Hello world!\n");
+    let x = "Hello world!\n";
+    printf(x);
 }

@@ -5,9 +5,10 @@ void ScopeContext::import_scope(ScopeContext *scope) {
 
 }
 
-void ScopeContext::enter(AstNode *node) {
+void ScopeContext::enter(AstNode *node, std::string name) {
     auto sp = new Scope();
     sp->owner = node;
+    sp->owner_name = name;
     scope_stack.push_back(sp);
 }
 void ScopeContext::leave() {

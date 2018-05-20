@@ -13,7 +13,7 @@ public:
 
     void import_scope(ScopeContext *scope);
 
-    void enter(AstNode *node);
+    void enter(AstNode *node, std::string name);
     void leave();
 
     bool func_exists(std::string name, std::vector<AstType *> param_types);
@@ -40,12 +40,14 @@ public:
     AstDec *local_get(std::string name);
     void local_add(AstDec *local);
 
+    std::vector<Scope *> scope_stack;
+
 private:
     std::vector<AstFn *> funcs_global;
     std::vector<AstAffix *> affixes_global;
     std::vector<AstDec *> decs_global;
     std::vector<AstStruct *> structs_global;
-    std::vector<Scope *> scope_stack;
+
 };
 
 #endif /* SCOPE_CONTEXT_H */

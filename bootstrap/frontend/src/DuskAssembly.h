@@ -19,7 +19,6 @@ public:
     void compile_write_binary(std::string out_file);
     DuskAssembly();
 
-private:
     Ast parse_file(std::string filename);
     bool semantic_analysis(Ast &ast, int pass);
     bool semantic_analyse_node(AstNode *node, int pass);

@@ -3,6 +3,58 @@
 
 static unsigned int g_counter = 0;
 
+
+static const std::map<std::string, int> type_size_map = {
+    {"u8", 1},
+    {"bool", 1},
+    {"u16", 2},
+    {"u32", 4},
+    {"u64", 8},
+    {"i8", 1},
+    {"i16", 2},
+    {"i32", 4},
+    {"i64", 8},
+    {"f32", 4},
+    {"f64", 8},
+    {"str", 1},
+    {"ptr", 4},
+    {"void", 1},
+};
+
+static int type_to_size(AstType *type) {
+    if(!type || type->is_array) {
+        return type_to_size(type->subtype);
+    }
+
+    return type_size_map.at(type->name);
+}
+
+static unsigned char type_to_il_type(const AstType *type) {
+    if(!type) {
+        return VOID;
+    }
+
+    if(type->is_array) {
+        return type_to_il_type(type->subtype);
+    }
+
+    for(auto x : type_map) {
+        if(x.first == type->name) {
+            return type_map.at(type->name);
+        }
+    }
+
+    return U32;
+}
+
+static std::string type_to_string(const AstType *type) {
+    if(type->is_array) {
+        return type_to_string(type->subtype) + "Arr";
+    }
+
+    return type->name;
+}
+
 class AstBlockCodeGenerator : public ICodeGenerator {
 public:
 
@@ -120,6 +172,7 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
+        auto x = (AstBoolean *)node;
 
         if(x->value) {
             binary.push_true();
@@ -143,7 +196,9 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
-        binary.push_u32(type_to_size(ele_type) * x->elements.size());
+        auto x = (AstArray *)node;
+
+        binary.push_u32(type_to_size(x->ele_type) * x->elements.size());
         binary.call("malloc");
         unsigned int offset = 0;
 
@@ -153,12 +208,12 @@ public:
 
         for(int i = 0; i < x->elements.size(); i++) {
 
-            generate_il(x->elements[i], il, sem);
+            ds.generate_code_node(x->elements[i]);
             //binary.push_u32(40);
             binary.swap();
 
             binary.push_u32(offset);
-            offset += type_to_size(ele_type);
+            offset += type_to_size(x->ele_type);
             binary.integer_add();
 
             binary.write();
@@ -180,18 +235,19 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
-        scope->local_add(node);
+        auto x = (AstDec *)node;
+        scope->local_add(x);
 
         binary.function_local( // TODO
-            scope_owner.c_str(),
-            name.c_str(),
-            type_to_il_type(type));
+            scope->scope_stack.front()->owner_name.c_str(),
+            x->name.c_str(),
+            type_to_il_type(x->type));
 
-        if(value) {
-            generate_il(value, il, sem);
+        if(x->value) {
+            ds.generate_code_node(x->value);
         }
 
-        binary.store_local(name.c_str());
+        binary.store_local(x->name.c_str());
     }
 
 

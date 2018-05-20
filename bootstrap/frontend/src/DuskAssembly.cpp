@@ -1,6 +1,7 @@
 #include "DuskAssembly.h"
 
 #include <fstream>
+#include <iostream>
 #include "TokenStream.h"
 #include "Parser.h"
 #include "Terminal.h"
@@ -11,6 +12,7 @@
 #include "SemanticGenerator.cpp"
 #include "SemanticsAnalysis.cpp"
 #include "CodeGen.cpp"
+#include "AstPrettyPrinter.h"
 
 std::vector<ISemanticGenerator *> ISemanticGenerator::handlers;
 std::vector<ICodeGenerator *> ICodeGenerator::handlers;
@@ -148,6 +150,7 @@ void DuskAssembly::compile_write_binary(std::string out_file) {
 
     for(auto file : queued_files) {
         asts.push_back(parse_file(file));
+        pretty_print_ast(asts.front());
     }
 
 
@@ -167,6 +170,11 @@ void DuskAssembly::compile_write_binary(std::string out_file) {
         generate_code(ast);
         scopes.pop_back();
     }
+
+    FILE *file = fopen(out_file.c_str(), "wb");
+    size_t size = il_emitter.stream.size();
+    fwrite(&il_emitter.stream[0], size, 1, file);
+    fclose(file);
 }
 
 Ast DuskAssembly::parse_file(std::string filename) {
@@ -203,15 +211,11 @@ bool DuskAssembly::semantic_generation(Ast &ast, int pass) {
 bool DuskAssembly::semantic_generation_node(AstNode *node, int pass) {
 
     for(auto handler : ISemanticGenerator::handlers) {
-        scopes.front()->enter(node);
-
         if(handler->type_handler == node->node_type) {
             handler->pass = pass;
             handler->generate(*this, scopes.front(), node);
             break;
         }
-
-        scopes.front()->leave();
     }
 
     switch(node->node_type) {
@@ -226,46 +230,64 @@ bool DuskAssembly::semantic_generation_node(AstNode *node, int pass) {
 
     case AstNodeType::AstIf: {
         auto x = (AstIf *) node;
+        scopes.front()->enter(node, "if");
         semantic_generation_node(x->true_block, pass);
         semantic_generation_node(x->false_block, pass);
+        scopes.front()->leave();
     }
 
     break;
 
     case AstNodeType::AstFn: {
+
         auto x = (AstFn *) node;
+        scopes.front()->enter(node, x->name);
 
         if(x->body) {
             semantic_generation_node(x->body, pass);
         }
+
+        scopes.front()->leave();
     }
     break;
 
     case AstNodeType::AstLoop: {
         auto x = (AstLoop *) node;
+        scopes.front()->enter(node, "loop");
+
         semantic_generation_node(x->body, pass);
+        scopes.front()->leave(); scopes.front()->leave();
     }
     break;
 
     case AstNodeType::AstImpl: {
         auto x = (AstImpl *) node;
+        scopes.front()->enter(node, x->name);
+
         semantic_generation_node(x->block, pass);
+        scopes.front()->leave();
     }
     break;
 
 
     case AstNodeType::AstAffix: {
         auto x = (AstAffix *) node;
+        scopes.front()->enter(node, x->name);
+
         semantic_generation_node(x->body, pass);
+        scopes.front()->leave();
     }
     break;
 
     case AstNodeType::AstExtern: {
         auto x = (AstExtern *) node;
+        scopes.front()->enter(node, "extern");
 
         for(auto stmt : x->decls) {
             semantic_generation_node(stmt, pass);
         }
+
+        scopes.front()->leave();
     }
     break;
 
@@ -295,51 +317,70 @@ bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
         for(auto stmt : block->statements) {
             semantic_analyse_node(stmt, pass);
         }
+
     }
     break;
 
     case AstNodeType::AstIf: {
         auto x = (AstIf *) node;
+        scopes.front()->enter(node, "if");
+
         semantic_analyse_node(x->true_block, pass);
         semantic_analyse_node(x->false_block, pass);
+        scopes.front()->leave();
     }
 
     break;
 
     case AstNodeType::AstFn: {
         auto x = (AstFn *) node;
+        scopes.front()->enter(node, x->name);
 
         if(x->body) {
             semantic_analyse_node(x->body, pass);
         }
+
+        scopes.front()->leave();
     }
     break;
 
     case AstNodeType::AstLoop: {
         auto x = (AstLoop *) node;
+        scopes.front()->enter(node, "loop");
+
         semantic_analyse_node(x->body, pass);
+        scopes.front()->leave();
     }
     break;
 
     case AstNodeType::AstImpl: {
         auto x = (AstImpl *) node;
+        scopes.front()->enter(node, x->name);
+
         semantic_analyse_node(x->block, pass);
+        scopes.front()->leave();
     }
     break;
 
 
     case AstNodeType::AstAffix: {
         auto x = (AstAffix *) node;
+        scopes.front()->enter(node, x->name);
+
         semantic_analyse_node(x->body, pass);
+        scopes.front()->leave();
     }
     break;
 
     case AstNodeType::AstExtern: {
         auto x = (AstExtern *) node;
+        scopes.front()->enter(node, "extern");
 
         for(auto stmt : x->decls) {
             semantic_analyse_node(stmt, pass);
         }
+
+        scopes.front()->leave();
     }
     break;
 
@@ -367,51 +408,70 @@ bool DuskAssembly::generate_code_node(AstNode *node) {
         for(auto stmt : block->statements) {
             generate_code_node(stmt);
         }
+
     }
     break;
 
     case AstNodeType::AstIf: {
         auto x = (AstIf *) node;
+        scopes.front()->enter(node, "if");
+
         generate_code_node(x->true_block);
         generate_code_node(x->false_block);
+        scopes.front()->leave();
     }
 
     break;
 
     case AstNodeType::AstFn: {
         auto x = (AstFn *) node;
+        scopes.front()->enter(node, x->name);
 
         if(x->body) {
             generate_code_node(x->body);
         }
+
+        scopes.front()->leave();
     }
     break;
 
     case AstNodeType::AstLoop: {
         auto x = (AstLoop *) node;
+        scopes.front()->enter(node, "loop");
+
         generate_code_node(x->body);
+        scopes.front()->leave();
     }
     break;
 
     case AstNodeType::AstImpl: {
         auto x = (AstImpl *) node;
+        scopes.front()->enter(node, x->name);
+
         generate_code_node(x->block);
+        scopes.front()->leave();
     }
     break;
 
 
     case AstNodeType::AstAffix: {
         auto x = (AstAffix *) node;
+        scopes.front()->enter(node, x->name);
+
         generate_code_node(x->body);
+        scopes.front()->leave();
     }
     break;
 
     case AstNodeType::AstExtern: {
         auto x = (AstExtern *) node;
+        scopes.front()->enter(node, "extern");
 
         for(auto stmt : x->decls) {
             generate_code_node(stmt);
         }
+
+        scopes.front()->leave();
     }
     break;
 

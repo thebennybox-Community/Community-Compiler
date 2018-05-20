@@ -11,7 +11,7 @@ if [ ! -d bin/duskilc-0.1 ]; then
 	clear
 fi
 
-../frontend/build/frontend ./bin/out.fil *.ds
+../frontend/build/frontend ./bin/out.fil ./main.ds # *.ds
 
 ./bin/duskilc-0.1/bin/duskilc -v --no-optimization -o ./bin/test.il -e text -p bin ./bin/out.fil
 ./bin/duskilc-0.1/bin/duskilc -v --no-optimization -o ./bin/test.asm -e nasm -p bin ./bin/out.fil
