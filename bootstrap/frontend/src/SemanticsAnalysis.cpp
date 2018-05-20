@@ -1,5 +1,6 @@
-#include "ISemanticGenerator.h"
+#include "Ast.h"
 #include "ISemanticAnalysis.h"
+
 
 
 class AstBlockAnalysis : public ISemanticAnalysis {
@@ -113,6 +114,23 @@ public:
 
     virtual bool validate_semantics(DuskAssembly &ds, ScopeContext *scope,
                                     AstNode *node) {
+        auto x = (AstDec *)node;
+
+        if(!x->type) {
+            x->type = scope->infer_type(x->value);
+        }
+
+        auto type = scope->infer_type(x->value);
+
+        if(x->type->name != type->name) {
+            printf("You can not assign an '%s' to and '%s'\n",
+                   type->name.c_str(), x->type->name.c_str());
+        }
+
+        if(pass == 0) {
+            scope->local_add(x);
+        }
+
         return false;
     }
 
@@ -154,10 +172,19 @@ public:
     virtual bool validate_semantics(DuskAssembly &ds, ScopeContext *scope,
                                     AstNode *node) {
 
+        auto x = (AstFn *)node;
+
         if(pass == 0) {
-            scope->func_add((AstFn *)node);
+            scope->func_add(x);
+
+            for(auto param : x->params) {
+                scope->arg_add(param);
+            }
+
             return true;
         }
+
+
 
         return false;
     }
@@ -179,6 +206,32 @@ public:
 
     virtual bool validate_semantics(DuskAssembly &ds, ScopeContext *scope,
                                     AstNode *node) {
+
+        auto x = (AstFnCall *)node;
+        auto types = std::vector<AstType *>();
+
+        for(auto arg : x->args) {
+            types.push_back(scope->infer_type(arg));
+        }
+
+        auto fn = scope->func_get(x->name, types);
+
+        if(x->args.size() == fn->params.size()) {
+
+            for(int i = 0; i < fn->params.size(); i++) {
+                auto a = fn->params[i];
+                auto b = scope->infer_type(x->args[i]);
+
+                if(a->type->name != b->name) {
+                    printf("Invalid Argument provided in invoke of '%s' at offset '%d' of type '%s'"
+                           "expected type '%s'\n",
+                           x->name.c_str(), i + 1, b->name.c_str(), a->type->name.c_str());
+                }
+            }
+        } else {
+            printf("Invalid Amount of arguments provided\n");
+        }
+
         return false;
     }
 

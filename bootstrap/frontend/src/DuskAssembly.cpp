@@ -298,7 +298,7 @@ bool DuskAssembly::semantic_analysis(Ast &ast, int pass) {
     return semantic_analyse_node(ast.root, pass);
 }
 
-bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
+void DuskAssembly::semantic_analyse_node_helper(AstNode *node, int pass) {
     for(auto handler : ISemanticAnalysis::handlers) {
         if(handler->type_handler == node->node_type) {
 
@@ -308,6 +308,10 @@ bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
             break;
         }
     }
+}
+
+bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
+
 
     switch(node->node_type) {
     case AstNodeType::AstBlock: {
@@ -323,7 +327,7 @@ bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
     case AstNodeType::AstIf: {
         auto x = (AstIf *) node;
         scopes.front()->enter(node, "if");
-
+        semantic_analyse_node_helper(node, pass);
         semantic_analyse_node(x->true_block, pass);
         semantic_analyse_node(x->false_block, pass);
         scopes.front()->leave();
@@ -334,6 +338,7 @@ bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
     case AstNodeType::AstFn: {
         auto x = (AstFn *) node;
         scopes.front()->enter(node, x->name);
+        semantic_analyse_node_helper(node, pass);
 
         if(x->body) {
             semantic_analyse_node(x->body, pass);
@@ -346,7 +351,7 @@ bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
     case AstNodeType::AstLoop: {
         auto x = (AstLoop *) node;
         scopes.front()->enter(node, "loop");
-
+        semantic_analyse_node_helper(node, pass);
         semantic_analyse_node(x->body, pass);
         scopes.front()->leave();
     }
@@ -355,7 +360,7 @@ bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
     case AstNodeType::AstImpl: {
         auto x = (AstImpl *) node;
         scopes.front()->enter(node, x->name);
-
+        semantic_analyse_node_helper(node, pass);
         semantic_analyse_node(x->block, pass);
         scopes.front()->leave();
     }
@@ -365,7 +370,7 @@ bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
     case AstNodeType::AstAffix: {
         auto x = (AstAffix *) node;
         scopes.front()->enter(node, x->name);
-
+        semantic_analyse_node_helper(node, pass);
         semantic_analyse_node(x->body, pass);
         scopes.front()->leave();
     }
@@ -374,6 +379,7 @@ bool DuskAssembly::semantic_analyse_node(AstNode *node, int pass) {
     case AstNodeType::AstExtern: {
         auto x = (AstExtern *) node;
         scopes.front()->enter(node, "extern");
+        semantic_analyse_node_helper(node, pass);
 
         for(auto stmt : x->decls) {
             semantic_analyse_node(stmt, pass);

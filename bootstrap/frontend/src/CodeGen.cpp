@@ -519,6 +519,7 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
+        auto x = (AstBinaryExpr *)node;
 
     }
 

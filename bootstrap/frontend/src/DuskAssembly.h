@@ -33,6 +33,7 @@ public:
 
 private:
     void generate_code_node_helper(AstNode *node);
+    void semantic_analyse_node_helper(AstNode *node, int pass);
 };
 
 #endif /* DUSKASSEMBLY_H */

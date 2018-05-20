@@ -5,13 +5,32 @@ extern {
     fn fclose(stream : u32) : i32;
 }
 
+struct str{}
+struct i32{}
+struct u32{}
+
 fn println(foo: str)
 {
     printf("%s\n", foo);
+}
+
+
+fn qaz(bar: i32)
+{
+    printf("%d\n", bar);
+}
+
+fn bar() : i32
+{
+    50
 }
 
 fn main()
 {
     println("Shout it to the world !!!");
     println("Hello Wolrd !!");
+
+  //  let z = bar();
+
+   // qaz(z);
 }
