@@ -21,10 +21,15 @@ void ScopeContext::import_scope(ScopeContext *scope) {
 
 }
 
+static int g_counter = 0;
+
 void ScopeContext::enter(AstNode *node, std::string name) {
     auto sp = new Scope();
     sp->owner = node;
     sp->owner_name = name;
+    sp->id = g_counter++;
+    sp->entry_label = "enter_scope_" + std::to_string(sp->id);
+    sp->exit_label = "exit_scope_" + std::to_string(sp->id);
     scope_stack.push_back(sp);
 }
 void ScopeContext::leave() {
