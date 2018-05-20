@@ -429,9 +429,11 @@ bool DuskAssembly::generate_code_node(AstNode *node) {
 
         if(x->body) {
             generate_code_node(x->body);
+            il_emitter._return();
         }
 
         scopes.front()->leave();
+
     }
     break;
 

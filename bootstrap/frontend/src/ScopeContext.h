@@ -18,10 +18,12 @@ public:
 
     bool func_exists(std::string name, std::vector<AstType *> param_types);
     AstFn *func_get(std::string name, std::vector<AstType *> param_types);
+    AstFn *func_get(std::string name, std::vector<AstDec *> param_types);
     void func_add(AstFn *fn);
 
     bool affix_exists(std::string name, std::vector<AstType *> param_types);
     AstAffix *affix_get(std::string name, std::vector<AstType *> param_types);
+    AstAffix *affix_get(std::string name, std::vector<AstDec *> param_types);
     void affix_add(AstAffix *affix);
 
     bool struct_exists(std::string name);

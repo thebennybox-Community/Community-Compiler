@@ -36,6 +36,27 @@ bool ScopeContext::func_exists(std::string name,
 
 
 AstFn *ScopeContext::func_get(std::string name,
+                              std::vector<AstDec *> param_types) {
+    for(auto func : funcs_global) {
+        if(func->name == name) {
+            int c = 0;
+
+            for(auto param : func->params) {
+                if(param->type->name != param_types[c++]->type->name) {
+                    break;
+                }
+            }
+
+            return func;
+        }
+    }
+
+    return nullptr;
+
+}
+
+
+AstFn *ScopeContext::func_get(std::string name,
                               std::vector<AstType *> param_types) {
     for(auto func : funcs_global) {
         if(func->name == name) {
@@ -97,6 +118,24 @@ AstAffix *ScopeContext::affix_get(std::string name,
     return nullptr;
 }
 
+AstAffix *ScopeContext::affix_get(std::string name,
+                                  std::vector<AstDec *> param_types) {
+    for(auto func : affixes_global) {
+        if(func->name == name) {
+            int c = 0;
+
+            for(auto param : func->params) {
+                if(param->type->name != param_types[c++]->type->name) {
+                    break;
+                }
+            }
+
+            return func;
+        }
+    }
+
+    return nullptr;
+}
 void ScopeContext::affix_add(AstAffix *affix) {
     affixes_global.push_back(affix);
 }

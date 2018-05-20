@@ -283,7 +283,40 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
+        auto x = (AstFn *)node;
 
+        if(x->body) {
+            //internal method
+
+            for(auto param : x->params) {
+                binary.function_parameter(
+                    x->name.c_str(), //TODO: Mnagle that shit
+                    param->name.c_str(),
+                    type_to_il_type(param->type));
+            }
+
+            binary.internal_function(
+                x->name.c_str(), type_to_il_type(x->return_type));
+
+            binary.function(x->name.c_str());
+
+            //gen body
+
+        } else {
+            //external method
+
+            unsigned char args[x->params.size()];
+
+            for(size_t i = 0; i < x->params.size(); i++) {
+                args[i] = type_to_il_type(x->params[i]->type);
+            }
+
+            binary.external_function(
+                x->name.c_str(),
+                type_to_il_type(x->return_type),
+                (uint32_t)x->params.size(),
+                args);
+        }
     }
 
 
@@ -301,6 +334,10 @@ public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
         ILemitter &binary) {
+
+        auto x = (AstFn *)node;
+
+        auto target = scope->func_get(x->name, x->params);
 
     }
 
