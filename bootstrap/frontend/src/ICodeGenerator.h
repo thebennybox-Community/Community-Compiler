@@ -11,11 +11,11 @@ class ICodeGenerator {
 public:
     virtual void generate(
         DuskAssembly &ds, ScopeContext *scope, AstNode *node,
-        ILBinary &binary) = 0;
+        ILemitter &binary) = 0;
 
     AstNodeType type_handler;
 
-    static std::vector<ICodeGenerator> handlers;
+    static std::vector<ICodeGenerator *> handlers;
 };
 
 #endif /* ICODEGENERATOR_H */

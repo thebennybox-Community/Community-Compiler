@@ -5,23 +5,32 @@ extern {
     fn fclose(stream : u32) : i32;
 }
 
-struct vec3
-{   
-    x: u32
-    y: u32
-    z: u32
+struct str{}
+struct i32{}
+struct u32{}
+
+fn println(foo: str)
+{
+    printf("%s\n", foo);
 }
 
-impl vec3
+
+fn qaz(bar: i32)
 {
-    fn print()
-    {
-        printf("Vec3 {X: %d, Y: %d, Z: %d}\n", self.x, self.y, self.z);
-    }
+    printf("%d\n", bar);
+}
+
+fn bar() : i32
+{
+    50
 }
 
 fn main()
 {
-    var a = vec3(5, 5, 21); 
-    a.print();
+    println("Shout it to the world !!!");
+    println("Hello Wolrd !!");
+
+  //  let z = bar();
+
+   // qaz(z);
 }

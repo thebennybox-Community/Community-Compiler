@@ -12,7 +12,7 @@
             "args": [
                 "./bin/out.fil",
                 "./main.ds",
-                "./il.ds",
+                /*  "./il.ds",
                 "./bool.ds",
                 "./f32.ds",
                 "./f64.ds",
@@ -23,7 +23,7 @@
                 "./u16.ds",
                 "./u32.ds",
                 "./u8.ds",
-                "./mem.ds",
+                "./mem.ds",*/
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}/bootstrap/stdlib/",

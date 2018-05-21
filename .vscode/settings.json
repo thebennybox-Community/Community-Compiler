@@ -1,4 +1,5 @@
 {
+    "C_Cpp.formatting" : "disabled",
     "cmake.sourceDirectory": "${workspaceRoot}/bootstrap/frontend/src",
     "cmake.buildDirectory": "${workspaceRoot}/bootstrap/frontend/build",
     "files.associations": {
@@ -45,6 +46,10 @@
         "bitset": "cpp",
         "iomanip": "cpp",
         "sstream": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "deque": "cpp",
+        "vector": "cpp",
+        "unordered_map": "cpp"
     },
+    "astyle.astylerc": "${workspaceRoot}/.astylerc"
     }

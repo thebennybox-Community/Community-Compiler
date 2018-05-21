@@ -20,6 +20,7 @@ add_executable(
         ISemanticAnalysis.h
         ISemanticGenerator.h
         ScopeContext.h
+		ScopeContext.cpp
         Scope.h
         DuskAssembly.cpp
         DuskAssembly.h
@@ -30,4 +31,7 @@ add_executable(
 		AstPrettyPrinter.cpp
 		AstPrettyPrinter.h
 		ILemitter.cpp
-		ILemitter.h)
+		ILemitter.h
+		CodeGen.cpp
+		SemanticGenerator.cpp
+		SemanticsAnalysis.cpp)
