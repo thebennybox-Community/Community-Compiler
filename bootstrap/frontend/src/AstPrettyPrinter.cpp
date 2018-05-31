@@ -536,14 +536,21 @@ static void set_colour(size_t i, const TokenStream &tokens) {
     }
 }
 
-void syntax_highlight_print_line(
+void syntax_highlight_print_error(
     const std::string &source, const TokenStream &tokens,
-    size_t error_start, size_t error_len, size_t context_lines
+    unsigned int error_line, size_t error_start, size_t error_len,
+    size_t context_lines
 ) {
     int lines, columns;
     get_term_size(&lines, &columns);
 
     size_t i = error_start, end = error_start;
+
+    // If the error is at a new line character, we get too few context lines
+    // before, so start before it.
+    if(source[i] == '\n') {
+        i--;
+    }
 
     for(size_t j = 0; j <= (context_lines - 1) / 2; j++) {
         while(i > 0 && source[i] != '\n') {
@@ -553,9 +560,13 @@ void syntax_highlight_print_line(
             break;
         }
         i--;
+        error_line--;
     }
+
     if(i != 0) {
+        // Start at the character after the last new line we passed
         i += 2;
+        error_line++;
     }
 
     for(size_t j = 0; j <= (context_lines - 1) / 2; j++) {
@@ -567,11 +578,14 @@ void syntax_highlight_print_line(
         }
         end++;
     }
+
     if(end != source.size()) {
         end--;
     }
 
-    int column = 0;
+    int column = 5; // TODO: Magic number
+
+    printf("%-5u", error_line++);
 
     for(; i < end; i++) {
         column++;
@@ -602,8 +616,11 @@ void syntax_highlight_print_line(
                 putchar(' ');
                 column++;
             }
-            column = 0;
+            column = 5; // TODO: Magic number
             putchar('\n');
+            if(i != end) {
+                printf("%s%-5u", term_reset, error_line++);
+            }
         }
 
         printf("%s", term_reset);

@@ -10,30 +10,30 @@
 #define AstNodeType_ENUM(name) name
 #define AstNodeType_NAME_ARRAY(name) #name
 
-#define AstNodeTypes(F) \
-    F(AstBlock),        \
-    F(AstString),       \
-    F(AstNumber),       \
-    F(AstBoolean),      \
-    F(AstArray),        \
-    F(AstDec),          \
-    F(AstIf),           \
-    F(AstFn),           \
-    F(AstFnCall),       \
-    F(AstLoop),         \
-    F(AstContinue),     \
-    F(AstBreak),        \
-    F(AstStruct),       \
-    F(AstImpl),         \
-    F(AstAttribute),    \
-    F(AstAffix),        \
-    F(AstUnaryExpr),    \
-    F(AstBinaryExpr),   \
-    F(AstIndex),        \
-    F(AstType),         \
-    F(AstSymbol),       \
-    F(AstReturn),       \
-    F(AstExtern),       \
+#define AstNodeTypes(F)   \
+    F(AstBlock),          \
+        F(AstString),     \
+        F(AstNumber),     \
+        F(AstBoolean),    \
+        F(AstArray),      \
+        F(AstDec),        \
+        F(AstIf),         \
+        F(AstFn),         \
+        F(AstFnCall),     \
+        F(AstLoop),       \
+        F(AstContinue),   \
+        F(AstBreak),      \
+        F(AstStruct),     \
+        F(AstImpl),       \
+        F(AstAttribute),  \
+        F(AstAffix),      \
+        F(AstUnaryExpr),  \
+        F(AstBinaryExpr), \
+        F(AstIndex),      \
+        F(AstType),       \
+        F(AstSymbol),     \
+        F(AstReturn),     \
+        F(AstExtern),
 
 enum class AstNodeType {
     AstNodeTypes(AstNodeType_ENUM)
@@ -54,10 +54,9 @@ struct AstNode {
     unsigned int line, column;
     bool emit = true;
 
-    std::vector<AstAttribute*> attributes;
+    std::vector<AstAttribute *> attributes;
 
-    AstNode(AstNodeType node_type, unsigned int line, unsigned int column):
-        node_type(node_type), line(line), column(column) {}
+    AstNode(AstNodeType node_type, unsigned int line, unsigned int column) : node_type(node_type), line(line), column(column) {}
 
     virtual void code_gen(ILemitter &il, Semantics &sem) = 0;
 
@@ -99,8 +98,24 @@ struct AstBoolean : public AstNode {
     virtual void code_gen(ILemitter &il, Semantics &sem);
 };
 
+struct AstType : public AstNode {
+    std::string name;
+    bool is_array = false;
+    AstType *subtype = nullptr;
+
+    AstType(unsigned int line = 0, unsigned int column = 0):
+        AstNode(AstNodeType::AstType, line, column) {}
+
+    virtual void code_gen(ILemitter &il, Semantics &sem);
+
+    virtual ~AstType() {
+        delete subtype;
+    }
+};
+
 struct AstArray : public AstNode {
-    std::vector<AstNode*> elements;
+    std::vector<AstNode *> elements;
+    AstType *ele_type = nullptr;
 
     AstArray(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstArray, line, column) {}
@@ -108,7 +123,8 @@ struct AstArray : public AstNode {
     virtual void code_gen(ILemitter &il, Semantics &sem);
 
     virtual ~AstArray() {
-        for(auto p : elements) {
+        delete ele_type;
+        for (auto p : elements) {
             delete p;
         }
     }
@@ -124,7 +140,7 @@ struct AstSymbol : public AstNode {
 };
 
 struct AstBlock : public AstNode {
-    std::vector<AstNode*> statements;
+    std::vector<AstNode *> statements;
 
     AstBlock(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstBlock, line, column) {}
@@ -132,24 +148,9 @@ struct AstBlock : public AstNode {
     virtual void code_gen(ILemitter &il, Semantics &sem);
 
     virtual ~AstBlock() {
-        for(auto *p : statements) {
+        for (auto *p : statements) {
             delete p;
         }
-    }
-};
-
-struct AstType : public AstNode {
-    std::string name;
-    bool is_array    = false;
-    AstType *subtype = nullptr;
-
-    AstType(unsigned int line = 0, unsigned int column = 0):
-        AstNode(AstNodeType::AstType, line, column) {}
-
-    virtual void code_gen(ILemitter &il, Semantics &sem);
-
-    virtual ~AstType() {
-        delete subtype;
     }
 };
 
@@ -171,7 +172,7 @@ struct AstDec : public AstNode {
 };
 
 struct AstIf : public AstNode {
-    AstNode  *condition  = nullptr;
+    AstNode *condition = nullptr;
     AstBlock *true_block = nullptr, *false_block = nullptr;
 
     AstIf(unsigned int line = 0, unsigned int column = 0):
@@ -190,9 +191,9 @@ struct AstFn : public AstNode {
     std::string unmangled_name;
     std::string mangled_name;
     std::string type_self;
-    std::vector<AstDec*> params;
+    std::vector<AstDec *> params;
     AstType *return_type = nullptr;
-    AstBlock *body       = nullptr;
+    AstBlock *body = nullptr;
 
     AstFn(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstFn, line, column) {}
@@ -203,7 +204,7 @@ struct AstFn : public AstNode {
         delete return_type;
         delete body;
 
-        for(auto *p : params) {
+        for (auto *p : params) {
             delete p;
         }
     }
@@ -211,7 +212,7 @@ struct AstFn : public AstNode {
 
 struct AstFnCall : public AstNode {
     std::string name;
-    std::vector<AstNode*> args;
+    std::vector<AstNode *> args;
     bool mangled = false;
 
     AstFnCall(unsigned int line = 0, unsigned int column = 0):
@@ -220,7 +221,7 @@ struct AstFnCall : public AstNode {
     virtual void code_gen(ILemitter &il, Semantics &sem);
 
     virtual ~AstFnCall() {
-        for(auto *p : args) {
+        for (auto *p : args) {
             delete p;
         }
     }
@@ -229,8 +230,8 @@ struct AstFnCall : public AstNode {
 struct AstLoop : public AstNode {
     std::string name;
     bool is_foreach = false;
-    AstBlock *body  = nullptr;
-    AstNode *expr   = nullptr;
+    AstBlock *body = nullptr;
+    AstNode  *expr = nullptr;
 
     AstLoop(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstLoop, line, column) {}
@@ -243,14 +244,14 @@ struct AstLoop : public AstNode {
     }
 };
 
-struct AstContinue: public AstNode {
+struct AstContinue : public AstNode {
     AstContinue(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstContinue, line, column) {}
 
     virtual void code_gen(ILemitter &il, Semantics &sem);
 };
 
-struct AstBreak: public AstNode {
+struct AstBreak : public AstNode {
     AstBreak(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstBreak, line, column) {}
 
@@ -287,7 +288,7 @@ struct AstImpl : public AstNode {
 
 struct AstAttribute : public AstNode {
     std::string name;
-    std::vector<AstNode*> args;
+    std::vector<AstNode *> args;
 
     AstAttribute(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstAttribute, line, column) {}
@@ -295,18 +296,20 @@ struct AstAttribute : public AstNode {
     virtual void code_gen(ILemitter &il, Semantics &sem);
 
     virtual ~AstAttribute() {
-        for(auto *p : args) {
+        for (auto *p : args) {
             delete p;
         }
     }
 };
 
 struct AstAffix : public AstNode {
-    std::string name;
-    std::vector<AstDec*> params;
+    std::string unmangled_name;
+    std::string mangled_name;
+    std::vector<AstDec *> params;
     AstType *return_type = nullptr;
-    AstBlock *body       = nullptr;
+    AstBlock *body = nullptr;
     AffixType affix_type;
+    bool mangled = false;
 
     AstAffix(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstAffix, line, column) {}
@@ -317,7 +320,7 @@ struct AstAffix : public AstNode {
         delete return_type;
         delete body;
 
-        for(auto *p : params) {
+        for (auto *p : params) {
             delete p;
         }
     }
@@ -353,6 +356,7 @@ struct AstUnaryExpr : public AstNode {
 struct AstBinaryExpr : public AstNode {
     std::string op;
     AstNode *lhs = nullptr, *rhs = nullptr;
+    bool mangled = false;
 
     AstBinaryExpr(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstBinaryExpr, line, column) {}
@@ -380,7 +384,7 @@ struct AstIndex : public AstNode {
 };
 
 struct AstExtern : public AstNode {
-    std::vector<AstFn*> decls;
+    std::vector<AstFn *> decls;
 
     AstExtern(unsigned int line = 0, unsigned int column = 0):
         AstNode(AstNodeType::AstExtern, line, column) {}
@@ -388,7 +392,7 @@ struct AstExtern : public AstNode {
     virtual void code_gen(ILemitter &il, Semantics &sem);
 
     virtual ~AstExtern() {
-        for(auto *p : decls) {
+        for (auto *p : decls) {
             delete p;
         }
     }

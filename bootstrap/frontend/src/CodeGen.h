@@ -15,14 +15,17 @@ static std::string scope_owner;
 
 static int g_counter;
 
-static std::vector<AstDec*> scope;
-static std::vector<AstDec*> args;
-static std::stack<std::vector<AstDec*>> scope_stack;
-static std::stack<std::vector<AstDec*>> arg_stack;
+static std::vector<AstDec *> scope;
+static std::vector<AstDec *> args;
+static std::stack<std::vector<AstDec *>> scope_stack;
+static std::stack<std::vector<AstDec *>> arg_stack;
 
-static bool has_local(const std::string &name) {
-    for(auto decl : scope) {
-        if(decl->name == name) {
+static bool has_local(const std::string &name)
+{
+    for (auto decl : scope)
+    {
+        if (decl->name == name)
+        {
             return true;
         }
     }
@@ -30,13 +33,17 @@ static bool has_local(const std::string &name) {
     return false;
 }
 
-static bool has_local(const AstSymbol *name) {
+static bool has_local(const AstSymbol *name)
+{
     return has_local(name->name);
 }
 
-static bool has_arg(const std::string &name) {
-    for(auto arg : args) {
-        if(arg->name == name) {
+static bool has_arg(const std::string &name)
+{
+    for (auto arg : args)
+    {
+        if (arg->name == name)
+        {
             return true;
         }
     }
@@ -44,9 +51,12 @@ static bool has_arg(const std::string &name) {
     return false;
 }
 
-static AstDec *get_local(const std::string &name) {
-    for(auto decl : scope) {
-        if(decl->name == name) {
+static AstDec *get_arg(const std::string &name)
+{
+    for (auto decl : args)
+    {
+        if (decl->name == name)
+        {
             return decl;
         }
     }
@@ -54,28 +64,52 @@ static AstDec *get_local(const std::string &name) {
     return nullptr;
 }
 
-static AstDec *get_local(const AstSymbol *name) {
+static AstDec *get_arg(const AstSymbol *name)
+{
+    return get_arg(name->name);
+}
+
+static AstDec *get_local(const std::string &name)
+{
+    for (auto decl : scope)
+    {
+        if (decl->name == name)
+        {
+            return decl;
+        }
+    }
+
+    return nullptr;
+}
+
+static AstDec *get_local(const AstSymbol *name)
+{
     return get_local(name->name);
 }
 
-static bool has_arg(const AstSymbol *name) {
+static bool has_arg(const AstSymbol *name)
+{
     return has_arg(name->name);
 }
 
-static void add_local(AstDec *dec) {
+static void add_local(AstDec *dec)
+{
     scope.push_back(dec);
 }
 
-static void add_arg(AstDec *dec) {
+static void add_arg(AstDec *dec)
+{
     args.push_back(dec);
 }
 
-static void push_scope() {
+static void push_scope()
+{
     scope_stack.push(scope);
     arg_stack.push(args);
 }
 
-static void pop_scope() {
+static void pop_scope()
+{
     scope = scope_stack.top();
     scope_stack.pop();
 

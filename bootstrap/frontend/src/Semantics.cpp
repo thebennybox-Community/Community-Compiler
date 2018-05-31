@@ -6,28 +6,35 @@
 
 using namespace std::literals::string_literals;
 
-static AstType *clone_type(const AstType *type) {
+static AstType *clone_type(const AstType *type)
+{
     auto clone = new AstType();
     auto result = clone;
     clone->name = type->name;
-    while(type->subtype) {
+    while (type->subtype)
+    {
         clone->subtype = new AstType();
         clone->subtype->name = type->subtype->name;
-        type  = type->subtype;
+        type = type->subtype;
         clone = clone->subtype;
     }
     return result;
 }
 
-bool Semantics::p1_has_symbol(const std::string &symbol) {
-    for(auto sym : p1_funcs) {
-        if(sym == symbol) {
+bool Semantics::p1_has_symbol(const std::string &symbol)
+{
+    for (auto sym : p1_funcs)
+    {
+        if (sym == symbol)
+        {
             return true;
         }
     }
 
-    for(auto sym : p1_structs) {
-        if(sym == symbol) {
+    for (auto sym : p1_structs)
+    {
+        if (sym == symbol)
+        {
             return true;
         }
     }
@@ -35,19 +42,25 @@ bool Semantics::p1_has_symbol(const std::string &symbol) {
     return false;
 }
 
-bool Semantics::p1_has_symbol(const AstType *type) {
-    if(!type) {
+bool Semantics::p1_has_symbol(const AstType *type)
+{
+    if (!type)
+    {
         return false;
     }
 
-    for(auto sym : p1_funcs) {
-        if(sym == type->name) {
+    for (auto sym : p1_funcs)
+    {
+        if (sym == type->name)
+        {
             return true;
         }
     }
 
-    for(auto sym : p1_structs) {
-        if(sym == type->name) {
+    for (auto sym : p1_structs)
+    {
+        if (sym == type->name)
+        {
             return true;
         }
     }
@@ -55,13 +68,35 @@ bool Semantics::p1_has_symbol(const AstType *type) {
     return p1_has_symbol(type->subtype);
 }
 
-AstFn *Semantics::p2_get_fn(const AstSymbol *name) {
+AstStruct *Semantics::p2_get_struct(const AstSymbol *name)
+{
+    return p2_get_struct(name->name);
+}
+
+AstStruct *Semantics::p2_get_struct(const std::string &name)
+{
+    for (auto sym : p2_structs)
+    {
+        if (sym->name == name)
+        {
+            return sym;
+        }
+    }
+
+    return nullptr;
+}
+
+AstFn *Semantics::p2_get_fn(const AstSymbol *name)
+{
     return p2_get_fn(name->name);
 }
 
-AstFn *Semantics::p2_get_fn(const std::string &name) {
-    for(auto sym : p2_funcs) {
-        if(sym->mangled_name == name) {
+AstFn *Semantics::p2_get_fn(const std::string &name)
+{
+    for (auto sym : p2_funcs)
+    {
+        if (sym->mangled_name == name)
+        {
             return sym;
         }
     }
@@ -69,9 +104,12 @@ AstFn *Semantics::p2_get_fn(const std::string &name) {
     return nullptr;
 }
 
-AstFn *Semantics::p2_get_fn_unmangled(const std::string &name) {
-    for(auto sym : p2_funcs) {
-        if(sym->unmangled_name == name) {
+AstFn *Semantics::p2_get_fn_unmangled(const std::string &name)
+{
+    for (auto sym : p2_funcs)
+    {
+        if (sym->unmangled_name == name)
+        {
             return sym;
         }
     }
@@ -79,17 +117,40 @@ AstFn *Semantics::p2_get_fn_unmangled(const std::string &name) {
     return nullptr;
 }
 
-AstFn *Semantics::p2_get_fn_unmangled(const AstSymbol *name) {
+AstFn *Semantics::p2_get_fn_unmangled(const AstSymbol *name)
+{
     return p2_get_fn_unmangled(name->name);
 }
 
-AstAffix *Semantics::p2_get_affix(const AstSymbol *name) {
+AstAffix *Semantics::p2_get_affix_unmangled(const AstSymbol *name)
+{
+    return p2_get_affix_unmangled(name->name);
+}
+
+AstAffix *Semantics::p2_get_affix_unmangled(const std::string &name)
+{
+    for (auto sym : p2_affixes)
+    {
+        if (sym->unmangled_name == name)
+        {
+            return sym;
+        }
+    }
+
+    return nullptr;
+}
+
+AstAffix *Semantics::p2_get_affix(const AstSymbol *name)
+{
     return p2_get_affix(name->name);
 }
 
-AstAffix *Semantics::p2_get_affix(const std::string &name) {
-    for(auto sym : p2_affixes) {
-        if(sym->name == name) {
+AstAffix *Semantics::p2_get_affix(const std::string &name)
+{
+    for (auto sym : p2_affixes)
+    {
+        if (sym->mangled_name == name)
+        {
             return sym;
         }
     }
@@ -117,46 +178,54 @@ AstDec *Semantics::p2_get_dec(const std::string &name) {
     return nullptr;
 }*/
 
-void Semantics::p1_fn(AstFn *node) {
+void Semantics::p1_fn(AstFn *node)
+{
     p1_funcs.push_back(node->mangled_name);
 }
 
-void Semantics::p1_struct(AstStruct *node) {
+void Semantics::p1_struct(AstStruct *node)
+{
     p1_structs.push_back(node->name);
 }
 
-void Semantics::pass1_node(AstNode *node) {
-    switch(node->node_type) {
+void Semantics::pass1_node(AstNode *node)
+{
+    switch (node->node_type)
+    {
     case AstNodeType::AstFn:
-        p1_fn((AstFn*)node);
+        p1_fn((AstFn *)node);
         break;
 
     case AstNodeType::AstAffix:
-        p1_funcs.push_back(((AstAffix*)node)->name);
+        p1_funcs.push_back(((AstAffix *)node)->mangled_name);
         break;
 
     case AstNodeType::AstStruct:
-        p1_struct((AstStruct*)node);
+        p1_struct((AstStruct *)node);
         break;
 
     case AstNodeType::AstBlock:
-        for(auto stmt : ((AstBlock*)node)->statements) {
+        for (auto stmt : ((AstBlock *)node)->statements)
+        {
             pass1_node(stmt);
         }
         break;
 
     case AstNodeType::AstImpl:
-        for(auto stmt : ((AstImpl*)node)->block->statements) {
-            if(stmt->node_type == AstNodeType::AstFn) {
-                ((AstFn*)stmt)->type_self = ((AstImpl*)node)->name;
+        for (auto stmt : ((AstImpl *)node)->block->statements)
+        {
+            if (stmt->node_type == AstNodeType::AstFn)
+            {
+                ((AstFn *)stmt)->type_self = ((AstImpl *)node)->name;
             }
         }
 
-        pass1_node(((AstImpl*)node)->block);
+        pass1_node(((AstImpl *)node)->block);
         break;
 
     case AstNodeType::AstExtern:
-        for(auto decl : ((AstExtern*)node)->decls) {
+        for (auto decl : ((AstExtern *)node)->decls)
+        {
             pass1_node(decl);
         }
         break;
@@ -166,40 +235,46 @@ void Semantics::pass1_node(AstNode *node) {
     }
 }
 
-void Semantics::pass1(Ast &ast) {
+void Semantics::pass1(Ast &ast)
+{
     pass1_node(ast.root);
 }
 
-void Semantics::pass2(Ast &ast) {
+void Semantics::pass2(Ast &ast)
+{
     pass2_node(ast.root);
 }
 
-void Semantics::pass2_node(AstNode *node) {
-    switch(node->node_type) {
+void Semantics::pass2_node(AstNode *node)
+{
+    switch (node->node_type)
+    {
     case AstNodeType::AstFn:
-        p2_fn((AstFn*)node);
+        p2_fn((AstFn *)node);
         break;
 
     case AstNodeType::AstAffix:
-        p2_affix((AstAffix*)node);
+        p2_affix((AstAffix *)node);
         break;
 
     case AstNodeType::AstStruct:
-        p2_struct((AstStruct*)node);
+        p2_struct((AstStruct *)node);
         break;
 
     case AstNodeType::AstBlock:
-        for(auto stmt : ((AstBlock *)node)->statements) {
+        for (auto stmt : ((AstBlock *)node)->statements)
+        {
             pass2_node(stmt);
         }
         break;
 
     case AstNodeType::AstImpl:
-        pass2_node(((AstImpl*)node)->block);
+        pass2_node(((AstImpl *)node)->block);
         break;
 
     case AstNodeType::AstExtern:
-        for(auto decl : ((AstExtern*)node)->decls) {
+        for (auto decl : ((AstExtern *)node)->decls)
+        {
             pass2_node(decl);
         }
         break;
@@ -209,121 +284,136 @@ void Semantics::pass2_node(AstNode *node) {
     }
 }
 
-static std::string type_to_string(const AstType *node) {
-    if(node->is_array) {
+static std::string type_to_string(const AstType *node)
+{
+    if (node->is_array)
+    {
         return type_to_string(node->subtype) + "Arr";
     }
 
     return node->name;
 }
 
-void Semantics::p2_affix(AstAffix *node) {
-    /*for(auto a : node->params) {
-        // node->name += type_to_string(a->type);
-    }*/
+void Semantics::p2_affix(AstAffix *node)
+{
+    node->mangled_name += node->unmangled_name;
+    for (auto a : node->params)
+    {
+        node->mangled_name += type_to_string(a->type);
+    }
 
-    if(node->return_type) {
-        if(!p1_has_symbol(node->return_type)) {
+    if (node->return_type)
+    {
+        if (!p1_has_symbol(node->return_type))
+        {
             this->errors.emplace_back(
                 ErrorType::TypeNotFound, node->return_type,
-                "Type does not exist"
-            );
+                "Type does not exist");
             return;
         }
     }
 
-    for(auto param : node->params) {
-        if(param->type) {
-            if(!p1_has_symbol(param->type)) {
+    for (auto param : node->params)
+    {
+        if (param->type)
+        {
+            if (!p1_has_symbol(param->type))
+            {
                 this->errors.emplace_back(
                     ErrorType::TypeNotFound, param->type,
-                    "Type does not exist"
-                );
+                    "Type does not exist");
                 return;
             }
         }
     }
 
-    /*if(node->body) {
-        for(auto a : node->params) {
-            // node->name += type_to_string(a->type);
-        }
-    }*/
-
     p2_affixes.push_back(node);
 }
 
-void Semantics::p2_fn(AstFn *node) {
-    if(node->body) {
-        for(auto param : node->params) {
+void Semantics::p2_fn(AstFn *node)
+{
+    if (node->body)
+    {
+        for (auto param : node->params)
+        {
             node->mangled_name += type_to_string(param->type);
         }
     }
 
-    if(node->type_self != "") {
-        if(!p1_has_symbol(node->type_self)) {
+    if (node->type_self != "")
+    {
+
+        node->mangled_name = node->type_self + "_" + node->mangled_name;
+
+        //  printf("%s \n", node->mangled_name.c_str());
+
+        if (!p1_has_symbol(node->type_self))
+        {
             this->errors.emplace_back(
                 ErrorType::TypeNotFound, node,
-                "Type does not exist"
-            );
+                "Type does not exist");
             return;
         }
 
         // we need to add implicit self
         AstDec *self = new AstDec();
-        self->name   = "self";
+        self->name = "self";
 
-        self->type       = new AstType();
+        self->type = new AstType();
         self->type->name = node->type_self;
 
         node->params.insert(node->params.begin(), self);
+        add_arg(self);
     }
 
-    if(node->return_type) {
-        if(!p1_has_symbol(node->return_type)) {
+    if (node->return_type)
+    {
+        if (!p1_has_symbol(node->return_type))
+        {
             this->errors.emplace_back(
                 ErrorType::TypeNotFound, node->return_type,
-                "Type does not exist"
-            );
+                "Type does not exist");
             return;
         }
     }
 
-    for(auto param : node->params) {
-        if(param->type) {
-            if(!p1_has_symbol(param->type)) {
+    for (auto param : node->params)
+    {
+        if (param->type)
+        {
+            if (!p1_has_symbol(param->type))
+            {
                 this->errors.emplace_back(
                     ErrorType::TypeNotFound, param->type,
-                    "Type does not exist"
-                );
+                    "Type does not exist");
                 return;
             }
         }
     }
 
-    /*if(node->body) {
-        for(auto a : node->params) {
-            // node->name += type_to_string(a->type);
-        }
-    }*/
-
     p2_funcs.push_back(node);
 }
 
-void Semantics::p2_struct(AstStruct *node) {
-    for(auto stmt : node->block->statements) {
-        if(stmt->node_type == AstNodeType::AstDec) {
-            if(((AstDec*)stmt)->type) {
-                if(!p1_has_symbol(((AstDec*)stmt)->type)) {
+void Semantics::p2_struct(AstStruct *node)
+{
+    for (auto stmt : node->block->statements)
+    {
+        if (stmt->node_type == AstNodeType::AstDec)
+        {
+            if (((AstDec *)stmt)->type)
+            {
+                if (!p1_has_symbol(((AstDec *)stmt)->type))
+                {
                     this->errors.emplace_back(
-                        ErrorType::TypeNotFound, ((AstDec*)stmt)->type,
-                        "Type does not exist"
-                    );
+                        ErrorType::TypeNotFound, ((AstDec *)stmt)->type,
+                        "Type does not exist");
                     return;
                 }
             }
         }
     }
+
+    p2_structs.push_back(node);
 }
 
 /*
@@ -334,50 +424,63 @@ void Semantics::p2_struct(AstStruct *node) {
  *
  * lost exprestion is rteurn type move it into a return ast
  */
-void Semantics::pass3(Ast &ast) {
+void Semantics::pass3(Ast &ast)
+{
     pass3_nest_att(ast.root);
     pass3_node(ast.root);
 }
 
-void Semantics::pass3_nest_att(AstNode *node) {
-    if(node->node_type == AstNodeType::AstAttribute) {
+void Semantics::pass3_nest_att(AstNode *node)
+{
+    if (node->node_type == AstNodeType::AstAttribute)
+    {
         nest_flag = true;
-        attributes.push_back((AstAttribute*)node);
-    } else if(nest_flag) {
+        attributes.push_back((AstAttribute *)node);
+    }
+    else if (nest_flag)
+    {
         nest_flag = false;
 
-        for(auto attribute : attributes) {
+        for (auto attribute : attributes)
+        {
             node->attributes.push_back(attribute);
         }
 
         attributes.clear();
     }
 
-    switch(node->node_type) {
-    case AstNodeType::AstBlock: {
-        auto block = (AstBlock*)node;
+    switch (node->node_type)
+    {
+    case AstNodeType::AstBlock:
+    {
+        auto block = (AstBlock *)node;
 
-        for(auto stmt : block->statements) {
+        for (auto stmt : block->statements)
+        {
             pass3_nest_att(stmt);
         }
 
         break;
     }
 
-    case AstNodeType::AstStruct: {
-        auto struc = (AstStruct*)node;
+    case AstNodeType::AstStruct:
+    {
+        auto struc = (AstStruct *)node;
 
-        for(auto stmt : struc->block->statements) {
+        for (auto stmt : struc->block->statements)
+        {
             pass3_nest_att(stmt);
         }
 
         break;
     }
 
-    case AstNodeType::AstImpl: {
-        auto impl = (AstImpl*)node;
+    case AstNodeType::AstImpl:
+    {
+        auto impl = (AstImpl *)node;
 
-        for(auto stmt : impl->block->statements) {
+        for (auto stmt : impl->block->statements)
+        {
             pass3_nest_att(stmt);
         }
 
@@ -389,18 +492,24 @@ void Semantics::pass3_nest_att(AstNode *node) {
     }
 }
 
-void Semantics::pass3_node(AstNode *node) {
-    for(auto attribute : node->attributes) {
-        if(attribute->name == "il") {
+void Semantics::pass3_node(AstNode *node)
+{
+    for (auto attribute : node->attributes)
+    {
+        if (attribute->name == "il")
+        {
             node->emit = false;
         }
     }
 
-    switch(node->node_type) {
-    case AstNodeType::AstBlock: {
-        auto block = (AstBlock*)node;
+    switch (node->node_type)
+    {
+    case AstNodeType::AstBlock:
+    {
+        auto block = (AstBlock *)node;
 
-        for(auto stmt : block->statements) {
+        for (auto stmt : block->statements)
+        {
             pass3_node(stmt);
             stmt = inline_if_need_be(stmt);
         }
@@ -418,14 +527,36 @@ void Semantics::pass3_node(AstNode *node) {
         break;
 
     case AstNodeType::AstArray:
-        break;
+    {
+        auto array = (AstArray *)node;
 
-    case AstNodeType::AstDec: {
-        auto decl = (AstDec*)node;
+        if (array->elements.size() == 0 && !array->ele_type)
+        {
+            printf("The type of the array can not be inferred, please provide type information\n");
+        }
 
-        add_local(decl);
+        if (!array->ele_type)
+        {
+            array->ele_type = infer_type(array);
+        }
 
-        if(!decl->type) {
+        for (auto ele : array->elements)
+        {
+            if (infer_type(ele)->name != array->ele_type->subtype->name)
+            {
+                printf("The element(s) in the array are not of the same type\n");
+                break;
+            }
+        }
+    }
+    break;
+
+    case AstNodeType::AstDec:
+    {
+        auto decl = (AstDec *)node;
+
+        if (!decl->type)
+        {
             decl->type = infer_type(decl->value);
         } /*else {
             if(x->type->name != infer_type(x->value)->name) {
@@ -436,27 +567,38 @@ void Semantics::pass3_node(AstNode *node) {
             }
         }*/
 
-        if(decl->value) {
+        if (decl->value->node_type == AstNodeType::AstArray)
+        {
+            auto arry = (AstArray *)decl->value;
+            arry->ele_type = decl->type;
+        }
+
+        if (decl->value)
+        {
             pass3_node(decl->value);
             decl->value = inline_if_need_be(decl->value);
         }
-
+        add_local(decl);
         break;
     }
 
-    case AstNodeType::AstIf: {
-        auto if_stmt = (AstIf*)node;
+    case AstNodeType::AstIf:
+    {
+        auto if_stmt = (AstIf *)node;
 
         pass3_node(if_stmt->condition);
         if_stmt->condition = inline_if_need_be(if_stmt->condition);
 
-        for(auto stmt : if_stmt->true_block->statements) {
+        for (auto stmt : if_stmt->true_block->statements)
+        {
             pass3_node(stmt);
             stmt = inline_if_need_be(stmt);
         }
 
-        if(if_stmt->false_block) {
-            for(auto stmt : if_stmt->false_block->statements) {
+        if (if_stmt->false_block)
+        {
+            for (auto stmt : if_stmt->false_block->statements)
+            {
                 stmt = inline_if_need_be(stmt);
             }
         }
@@ -464,21 +606,25 @@ void Semantics::pass3_node(AstNode *node) {
         break;
     }
 
-    case AstNodeType::AstFn: {
-        auto fn = (AstFn*)node;
+    case AstNodeType::AstFn:
+    {
+        auto fn = (AstFn *)node;
 
-        for(auto func : p2_funcs) {
-            if(func != fn && func->mangled_name == fn->mangled_name) {
+        for (auto func : p2_funcs)
+        {
+            if (func != fn && func->mangled_name == fn->mangled_name)
+            {
                 this->errors.emplace_back(
                     ErrorType::DuplicateFunctionDeclaration, fn,
-                    "Duplicate function declaration"
-                );
+                    "Duplicate function declaration");
                 return;
             }
         }
 
-        if(fn->body) {
-            for(auto stmt : fn->body->statements) {
+        if (fn->body)
+        {
+            for (auto stmt : fn->body->statements)
+            {
                 pass3_node(fn->body);
             }
         }
@@ -486,14 +632,22 @@ void Semantics::pass3_node(AstNode *node) {
         break;
     }
 
-    case AstNodeType::AstFnCall: {
-        auto fn_call = (AstFnCall*)node;
+    case AstNodeType::AstFnCall:
+    {
+        auto fn_call = (AstFnCall *)node;
         auto fn = p2_get_fn_unmangled(fn_call->name);
 
-        if(!fn_call->mangled && fn && fn->body) {
+        if (!fn_call->mangled && fn && fn->body)
+        {
             fn_call->mangled = true;
-
-            for(auto arg : fn_call->args) {
+            int i = 0;
+            if (fn->type_self != "")
+            {
+                i = 0;
+            }
+            for (; i < fn_call->args.size(); i++)
+            {
+                auto arg = fn_call->args[i];
                 fn_call->name += type_to_string(infer_type(arg));
             }
         }
@@ -501,9 +655,12 @@ void Semantics::pass3_node(AstNode *node) {
         {
             auto fn = p2_get_fn(fn_call->name);
 
-            if(fn && fn->attributes.empty()) {
-                for(auto attribute : fn_call->attributes) {
-                    if(attribute->name == "inline") {
+            if (fn && fn->attributes.empty())
+            {
+                for (auto attribute : fn_call->attributes)
+                {
+                    if (attribute->name == "inline")
+                    {
                         fn_call->emit = false;
                     }
                 }
@@ -513,37 +670,43 @@ void Semantics::pass3_node(AstNode *node) {
         {
             auto fn = p2_get_fn(fn_call->name);
 
-            if(fn && fn->body) {
-                if(fn->params.size() > fn_call->args.size()) {
+            if (fn && fn->body)
+            {
+                if (fn->params.size() > fn_call->args.size())
+                {
                     this->errors.emplace_back(
                         ErrorType::TooManyArguments, fn_call,
-                        "Too many arguments to function call"
-                    );
-                } else if(fn->params.size() < fn_call->args.size()) {
+                        "Too many arguments to function call");
+                }
+                else if (fn->params.size() < fn_call->args.size())
+                {
                     this->errors.emplace_back(
                         ErrorType::NotEnoughArguments, fn_call,
-                        "Not enough arguments to function call"
-                    );
-                } else {
-                    for(size_t i = 0; i < fn->params.size(); i++) {
+                        "Not enough arguments to function call");
+                }
+                else
+                {
+                    for (size_t i = 0; i < fn->params.size(); i++)
+                    {
                         auto param_type = infer_type(fn->params.at(i));
-                        auto arg_type   = infer_type(fn_call->args.at(i));
+                        auto arg_type = infer_type(fn_call->args.at(i));
 
-                        if(param_type->name != arg_type->name) {
+                        if (param_type->name != arg_type->name)
+                        {
                             this->errors.emplace_back(
                                 ErrorType::TypeMismatch, param_type,
                                 "Type mismatch: expected "s +
-                                param_type->name.c_str() + " at argument " +
-                                std::to_string(i + 1) + ", got " +
-                                arg_type->name.c_str()
-                            );
+                                    param_type->name.c_str() + " at argument " +
+                                    std::to_string(i + 1) + ", got " +
+                                    arg_type->name.c_str());
                         }
                     }
                 }
             }
         }
 
-        for(auto arg : fn_call->args) {
+        for (auto arg : fn_call->args)
+        {
             arg = inline_if_need_be(arg);
             pass3_node(arg);
         }
@@ -551,14 +714,16 @@ void Semantics::pass3_node(AstNode *node) {
         break;
     }
 
-    case AstNodeType::AstLoop: {
-        auto loop = (AstLoop*)node;
+    case AstNodeType::AstLoop:
+    {
+        auto loop = (AstLoop *)node;
 
         pass3_node(loop->expr);
 
         loop->expr = inline_if_need_be(loop->expr);
 
-        for(auto stmt : loop->body->statements) {
+        for (auto stmt : loop->body->statements)
+        {
             stmt = inline_if_need_be(stmt);
         }
 
@@ -574,26 +739,30 @@ void Semantics::pass3_node(AstNode *node) {
     case AstNodeType::AstStruct:
         break;
 
-    case AstNodeType::AstImpl: {
-        auto impl = (AstImpl*)node;
-
-        for(auto stmt : impl->block->statements) {
+    case AstNodeType::AstImpl:
+    {
+        auto impl = (AstImpl *)node;
+        push_scope();
+        for (auto stmt : impl->block->statements)
+        {
             pass3_node(stmt);
             stmt = inline_if_need_be(stmt);
         }
-
+        pop_scope();
         break;
     }
 
     case AstNodeType::AstAttribute:
         break;
 
-    case AstNodeType::AstAffix: {
-        auto affix = (AstAffix*)node;
+    case AstNodeType::AstAffix:
+    {
+        auto affix = (AstAffix *)node;
 
         p3_affix(affix);
 
-        for(auto stmt : affix->body->statements) {
+        for (auto stmt : affix->body->statements)
+        {
             pass3_node(stmt);
             stmt = inline_if_need_be(stmt);
         }
@@ -601,14 +770,17 @@ void Semantics::pass3_node(AstNode *node) {
         break;
     }
 
-    case AstNodeType::AstUnaryExpr: {
-        auto un_expr = (AstUnaryExpr*)node;
+    case AstNodeType::AstUnaryExpr:
+    {
+        auto un_expr = (AstUnaryExpr *)node;
 
         {
             auto fn = p2_get_fn(un_expr->op);
 
-            if(fn && fn->body) {
-                for(auto param : fn->params) {
+            if (fn && fn->body)
+            {
+                for (auto param : fn->params)
+                {
                     un_expr->op += type_to_string(param->type);
                 }
             }
@@ -616,8 +788,10 @@ void Semantics::pass3_node(AstNode *node) {
         {
             auto fn = p2_get_affix(un_expr->op);
 
-            if(fn && fn->body) {
-                for(auto param : fn->params) {
+            if (fn && fn->body)
+            {
+                for (auto param : fn->params)
+                {
                     un_expr->op += type_to_string(param->type);
                 }
             }
@@ -629,31 +803,31 @@ void Semantics::pass3_node(AstNode *node) {
         break;
     }
 
-    case AstNodeType::AstBinaryExpr: {
-        auto bin_expr = (AstBinaryExpr*)node;
-
+    case AstNodeType::AstBinaryExpr:
+    {
+        auto bin_expr = (AstBinaryExpr *)node;
+        if (bin_expr->op != "." && !bin_expr->mangled)
         {
-            auto name = p2_get_fn(bin_expr->op);
-
-            if(name && name->body) {
-                for(auto param : name->params) {
-                    bin_expr->op += type_to_string(param->type);
-                }
-            }
-        }
-        {
-            auto name = p2_get_affix(bin_expr->op);
-
-            if(name && name->body) {
-                for(auto param : name->params) {
-                    bin_expr->op += type_to_string(param->type);
-                }
-            }
+            bin_expr->op += type_to_string(infer_type(bin_expr->lhs));
+            bin_expr->op += type_to_string(infer_type(bin_expr->rhs));
+            bin_expr->mangled = true;
         }
 
         pass3_node(bin_expr->lhs);
-        pass3_node(bin_expr->rhs);
 
+        if (bin_expr->rhs->node_type == AstNodeType::AstFnCall)
+        {
+            auto x = (AstFnCall *)bin_expr->rhs;
+            if (!x->mangled)
+            {
+                x->name = infer_type(bin_expr->lhs)->name + "_" + x->name;
+                x->mangled = true;
+            }
+        }
+        else
+        {
+            pass3_node(bin_expr->rhs);
+        }
         bin_expr->lhs = inline_if_need_be(bin_expr->lhs);
         bin_expr->rhs = inline_if_need_be(bin_expr->rhs);
         break;
@@ -668,17 +842,20 @@ void Semantics::pass3_node(AstNode *node) {
     case AstNodeType::AstSymbol:
         break;
 
-    case AstNodeType::AstReturn: {
-        auto ret = (AstReturn*)node;
+    case AstNodeType::AstReturn:
+    {
+        auto ret = (AstReturn *)node;
         pass3_node(ret->expr);
         ret->expr = inline_if_need_be(ret->expr);
         break;
     }
 
-    case AstNodeType::AstExtern: {
-        auto ext = (AstExtern*)node;
+    case AstNodeType::AstExtern:
+    {
+        auto ext = (AstExtern *)node;
 
-        for(auto decl : ext->decls) {
+        for (auto decl : ext->decls)
+        {
             pass3_node(decl);
         }
 
@@ -694,104 +871,122 @@ void Semantics::p3_struct(AstStruct *node) {}
  * suffix may only have one arg
  * infix must have 2 args and any return type
  */
-void Semantics::p3_affix(AstAffix *node) {
-    switch(node->affix_type) {
+void Semantics::p3_affix(AstAffix *node)
+{
+
+    switch (node->affix_type)
+    {
     case AffixType::Prefix:
-        if(node->params.size() > 1) {
+        if (node->params.size() > 1)
+        {
             this->errors.emplace_back(
                 ErrorType::TooManyArguments, node,
                 "Too many arguments: prefix functions can only have one "
-                "parameter"
-            );
-        } else if(node->params.size() < 1) {
+                "parameter");
+        }
+        else if (node->params.size() < 1)
+        {
             this->errors.emplace_back(
                 ErrorType::NotEnoughArguments, node,
                 "Not enough arguments: prefix functions must have one "
-                "parameter"
-            );
+                "parameter");
         }
 
         break;
 
     case AffixType::Suffix:
-        if(node->params.size() > 1) {
+        if (node->params.size() > 1)
+        {
             this->errors.emplace_back(
                 ErrorType::TooManyArguments, node,
                 "Too many arguments: suffix functions can only have one "
-                "parameter"
-            );
-        } else if(node->params.size() < 1) {
+                "parameter");
+        }
+        else if (node->params.size() < 1)
+        {
             this->errors.emplace_back(
                 ErrorType::NotEnoughArguments, node,
                 "Not enough arguments: suffix functions must have one "
-                "parameter"
-            );
+                "parameter");
         }
 
         break;
 
     case AffixType::Infix:
-        if(node->params.size() > 2) {
+        if (node->params.size() > 2)
+        {
             this->errors.emplace_back(
                 ErrorType::TooManyArguments, node,
                 "Too many arguments: infix functions can only have two "
-                "parameters"
-            );
-        } else if(node->params.size() < 2) {
+                "parameters");
+        }
+        else if (node->params.size() < 2)
+        {
             this->errors.emplace_back(
                 ErrorType::NotEnoughArguments, node,
                 "Not enough arguments: infix functions must have two "
-                "parameters"
-            );
+                "parameters");
         }
 
-        if(!node->return_type) {
+        if (!node->return_type)
+        {
             this->errors.emplace_back(
                 ErrorType::NoType, node,
-                "Infix functions must have a return type"
-            );
+                "Infix functions must have a return type");
         }
 
         break;
     }
 }
 
-AstNode *Semantics::inline_if_need_be(AstNode *node) {
+AstNode *Semantics::inline_if_need_be(AstNode *node)
+{
+
     bool flag = false;
 
-    if(node->attributes.empty()) {
-        for(auto attribute : node->attributes) {
-            if(attribute->name == "inline") {
+    if (node->attributes.empty())
+    {
+        for (auto attribute : node->attributes)
+        {
+            if (attribute->name == "inline")
+            {
                 flag = true;
                 break;
             }
         }
     }
 
-    if(!flag || node->node_type != AstNodeType::AstFnCall) {
+    if (!flag || node->node_type != AstNodeType::AstFnCall)
+    {
         return node;
     }
 
-    auto fn_call = (AstFnCall*)node;
+    auto fn_call = (AstFnCall *)node;
 
     return node;
 }
 
-AstType *Semantics::infer_type(AstNode *node) {
-    if(!node) {
+AstType *Semantics::infer_type(AstNode *node)
+{
+    if (!node)
+    {
         return nullptr;
     }
 
-    switch(node->node_type) {
-    case AstNodeType::AstBlock: {
-        auto block = (AstBlock*)node;
+    switch (node->node_type)
+    {
+    case AstNodeType::AstBlock:
+    {
+        auto block = (AstBlock *)node;
 
         push_scope();
 
-        for(auto stmt : block->statements) {
+        for (auto stmt : block->statements)
+        {
             auto type = infer_type(stmt);
 
-            if(type) {
+            if (type)
+            {
                 return type;
             }
         }
@@ -801,41 +996,63 @@ AstType *Semantics::infer_type(AstNode *node) {
         break;
     }
 
-    case AstNodeType::AstString: {
-        auto ret  = new AstType();
+    case AstNodeType::AstString:
+    {
+        auto ret = new AstType();
         ret->name = "str";
         return ret;
     }
 
-    case AstNodeType::AstNumber: {
-        auto number = (AstNumber*)node;
-        auto ret    = new AstType();
+    case AstNodeType::AstNumber:
+    {
+        auto number = (AstNumber *)node;
+        auto ret = new AstType();
 
-        if(number->is_float) {
+        if (number->is_float)
+        {
             ret->name = "f" + std::to_string(number->bits);
-        } else if(number->is_signed) {
+        }
+        else if (number->is_signed)
+        {
             ret->name = "i" + std::to_string(number->bits);
-        } else {
+        }
+        else
+        {
             ret->name = "u" + std::to_string(number->bits);
         }
 
         return ret;
     }
 
-    case AstNodeType::AstBoolean: {
-        auto ret  = new AstType();
+    case AstNodeType::AstBoolean:
+    {
+        auto ret = new AstType();
         ret->name = "bool";
         return ret;
     }
 
-    case AstNodeType::AstArray: {
-        //auto x = (AstArray *)node;
-        // fml
+    case AstNodeType::AstArray:
+    {
+        auto x = (AstArray *)node;
+        if (x->ele_type)
+        {
+            return x->ele_type;
+        }
+        else
+        {
+            auto tp = infer_type(x->elements[0]);
+            auto re = new AstType();
+            re->subtype = new AstType();
+            re->subtype->name = tp->name;
+            re->is_array = true;
+            return re;
+        }
         break;
     }
 
-    case AstNodeType::AstDec: {
-        auto decl = (AstDec*)node;
+    case AstNodeType::AstDec:
+    {
+        auto decl = (AstDec *)node;
         add_local(decl);
         return clone_type(decl->type);
     }
@@ -843,29 +1060,42 @@ AstType *Semantics::infer_type(AstNode *node) {
     case AstNodeType::AstIf:
         this->errors.emplace_back(
             ErrorType::CompilerError, node,
-            "Attempt to infer the type of an if statement"
-        );
+            "Attempt to infer the type of an if statement");
         break;
 
-    case AstNodeType::AstFn: {
-        return clone_type(((AstFn*)node)->return_type);
+    case AstNodeType::AstFn:
+    {
+        return clone_type(((AstFn *)node)->return_type);
     }
 
-    case AstNodeType::AstFnCall: {
-        auto fn_call = (AstFnCall*)node;
+    case AstNodeType::AstFnCall:
+    {
+        auto fn_call = (AstFnCall *)node;
 
         {
             auto type = infer_type(p2_get_fn(fn_call->name));
 
-            if(type) {
+            if (type)
+            {
                 return type;
             }
         }
         {
             auto type = infer_type(p2_get_affix(fn_call->name));
 
-            if(type) {
+            if (type)
+            {
                 return type;
+            }
+        }
+        {
+            auto stct = p2_get_struct(fn_call->name);
+
+            if (stct)
+            {
+                auto ret = new AstType();
+                ret->name = stct->name;
+                return ret;
             }
         }
 
@@ -875,61 +1105,60 @@ AstType *Semantics::infer_type(AstNode *node) {
     case AstNodeType::AstLoop:
         this->errors.emplace_back(
             ErrorType::CompilerError, node,
-            "Attempt to infer the type of a loop statement"
-        );
+            "Attempt to infer the type of a loop statement");
         break;
 
     case AstNodeType::AstContinue:
         this->errors.emplace_back(
             ErrorType::CompilerError, node,
-            "Attempt to infer the type of a continue statement"
-        );
+            "Attempt to infer the type of a continue statement");
         break;
 
     case AstNodeType::AstBreak:
         this->errors.emplace_back(
             ErrorType::CompilerError, node,
-            "Attempt to infer the type of a break statement"
-        );
+            "Attempt to infer the type of a break statement");
         break;
 
-    case AstNodeType::AstStruct: {
-        auto ret  = new AstType();
-        ret->name = ((AstStruct*)node)->name;
+    case AstNodeType::AstStruct:
+    {
+        auto ret = new AstType();
+        ret->name = ((AstStruct *)node)->name;
         return ret;
     }
 
     case AstNodeType::AstImpl:
         this->errors.emplace_back(
             ErrorType::CompilerError, node,
-            "Attempt to infer the type of an impl statement"
-        );
+            "Attempt to infer the type of an impl statement");
         break;
 
     case AstNodeType::AstAttribute:
         this->errors.emplace_back(
             ErrorType::CompilerError, node,
-            "Attempt to infer the type of an attribute"
-        );
+            "Attempt to infer the type of an attribute");
         break;
 
     case AstNodeType::AstAffix:
-        return clone_type(((AstAffix*)node)->return_type);
+        return clone_type(((AstAffix *)node)->return_type);
 
-    case AstNodeType::AstUnaryExpr: {
-        auto un_expr = (AstUnaryExpr*)node;
+    case AstNodeType::AstUnaryExpr:
+    {
+        auto un_expr = (AstUnaryExpr *)node;
 
         {
             auto type = infer_type(p2_get_fn(un_expr->op));
 
-            if(type) {
+            if (type)
+            {
                 return type;
             }
         }
         {
             auto type = infer_type(p2_get_affix(un_expr->op));
 
-            if(type) {
+            if (type)
+            {
                 return type;
             }
         }
@@ -937,21 +1166,26 @@ AstType *Semantics::infer_type(AstNode *node) {
         break;
     }
 
-    case AstNodeType::AstBinaryExpr: {
-        auto bin_expr = (AstBinaryExpr*)node;
+    case AstNodeType::AstBinaryExpr:
+    {
+        auto bin_expr = (AstBinaryExpr *)node;
 
+        bin_expr->rhs = inline_if_need_be(bin_expr->rhs);
+        bin_expr->lhs = inline_if_need_be(bin_expr->lhs);
         {
             auto type = infer_type(p2_get_fn(bin_expr->op));
 
-            if(type) {
+            if (type)
+            {
                 return type;
             }
         }
         {
-            auto type = infer_type(p2_get_affix(bin_expr->op));
+            auto type = p2_get_affix(bin_expr->op);
 
-            if(type) {
-                return type;
+            if (type)
+            {
+                return type->return_type;
             }
         }
 
@@ -959,33 +1193,57 @@ AstType *Semantics::infer_type(AstNode *node) {
     }
 
     case AstNodeType::AstIndex:
-        return infer_type(((AstIndex*)node)->expr);
+        return infer_type(((AstIndex *)node)->expr);
 
     case AstNodeType::AstType:
-        return clone_type((AstType*)node);
+        return clone_type((AstType *)node);
 
-    case AstNodeType::AstSymbol: {
-        auto symbol = (AstSymbol*)node;
+    case AstNodeType::AstSymbol:
+    {
+        auto symbol = (AstSymbol *)node;
 
         {
             auto fn = p2_get_fn(symbol->name);
 
-            if(fn) {
+            if (fn)
+            {
                 return clone_type(fn->return_type);
             }
         }
         {
             auto fn = p2_get_affix(symbol->name);
 
-            if(fn) {
+            if (fn)
+            {
                 return clone_type(fn->return_type);
             }
         }
         {
             auto local = get_local(symbol->name);
 
-            if(local) {
-                return infer_type(local->value);
+            if (local)
+            {
+                return local->type;
+            }
+        }
+
+        {
+            auto arg = get_arg(symbol->name);
+
+            if (arg)
+            {
+                return arg->type;
+            }
+        }
+
+        {
+            auto stct = p2_get_struct(symbol->name);
+
+            if (stct)
+            {
+                auto ret = new AstType();
+                ret->name = stct->name;
+                return ret;
             }
         }
 
@@ -995,15 +1253,13 @@ AstType *Semantics::infer_type(AstNode *node) {
     case AstNodeType::AstReturn:
         this->errors.emplace_back(
             ErrorType::CompilerError, node,
-            "Attempt to infer the type of a return statement"
-        );
+            "Attempt to infer the type of a return statement");
         break;
 
     case AstNodeType::AstExtern:
         this->errors.emplace_back(
             ErrorType::CompilerError, node,
-            "Attempt to infer the type of an extern statement"
-        );
+            "Attempt to infer the type of an extern statement");
         break;
     }
 

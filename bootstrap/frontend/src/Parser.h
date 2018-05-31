@@ -22,6 +22,8 @@ public:
     std::vector<Error> errors;
 
 private:
+    Ast parse_root();
+
     /**
      * Parses a single statement.
      *
@@ -162,8 +164,7 @@ private:
     /**
      * Parses an affix function or operator. Expects the current token to be
      * "infix", "prefix" or "suffix". After this function, the current token is
-     * the one
- after the closing curly bracket.
+     * the one after the closing curly bracket.
      *
      * @return The affix node
      */
@@ -187,6 +188,17 @@ private:
      * @return The extern node
      */
     AstExtern *parse_extern();
+
+    /**
+     * Parses the right side of an expression, stopping at an appropriate
+     * operator.
+     *
+     * @param lhs        The left side of the expression.
+     * @param precedence The precedence of the preceding operator.
+     *
+     * @return The expression node
+     */
+    AstNode *parse_expr_rhs(AstNode *lhs, int prev_precedence);
 
     /**
      * Parses an expression.
@@ -252,11 +264,26 @@ private:
      */
     bool expect(TokenType type, std::string message);
 
+    void error(
+        ErrorType type,
+        unsigned int line, unsigned int column,
+        unsigned int offset, unsigned int count,
+        std::string message);
+
     /** Local copy of the token stream */
     std::vector<Token> tokens;
 
     /** The index in the token stream of the current token */
     size_t token_index = 0;
+
+    int passes_done = 0;
+
+    std::vector<AstAttribute*> attributes;
+
+    /** Stores operator precedences for the second pass */
+    static std::map<std::string, int> operator_precedences;
+
+    static std::map<std::string, AffixType> affix_types;
 };
 
 #endif /* PARSER_H */

@@ -6,6 +6,33 @@
 
 using namespace std::literals::string_literals;
 
+static const std::map<std::string, int> type_size_map = {
+    {"u8", 1},
+    {"bool", 1},
+    {"u16", 2},
+    {"u32", 4},
+    {"u64", 8},
+    {"i8", 1},
+    {"i16", 2},
+    {"i32", 4},
+    {"i64", 8},
+    {"f32", 4},
+    {"f64", 8},
+    {"str", 1},
+    {"ptr", 4},
+    {"void", 1},
+};
+
+int type_to_size(AstType *type)
+{
+    if (!type || type->is_array)
+    {
+        return type_to_size(type->subtype);
+    }
+
+    return type_size_map.at(type->name);
+}
+
 static unsigned char type_to_il_type(const AstType *type)
 {
     if (!type)
@@ -18,7 +45,15 @@ static unsigned char type_to_il_type(const AstType *type)
         return type_to_il_type(type->subtype);
     }
 
-    return type_map.at(type->name);
+    for (auto x : type_map)
+    {
+        if (x.first == type->name)
+        {
+            return type_map.at(type->name);
+        }
+    }
+
+    return U32;
 }
 
 static std::string type_to_string(const AstType *type)
@@ -140,8 +175,28 @@ void AstBoolean::code_gen(ILemitter &il, Semantics &sem)
 
 void AstArray::code_gen(ILemitter &il, Semantics &sem)
 {
-    (void)il;
-    (void)sem;
+    il.push_u32(type_to_size(ele_type) * elements.size());
+    il.call("malloc");
+    unsigned int offset = 0;
+
+    for (int i = 0; i < elements.size(); i++)
+    {
+        il.duplicate();
+    }
+
+    for (int i = 0; i < elements.size(); i++)
+    {
+
+        generate_il(elements[i], il, sem);
+        //il.push_u32(40);
+        il.swap();
+
+        il.push_u32(offset);
+        offset += type_to_size(ele_type);
+        il.integer_add();
+
+        il.write();
+    }
 }
 
 void AstDec::code_gen(ILemitter &il, Semantics &sem)
@@ -193,14 +248,9 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem)
 {
     scope_owner = mangled_name;
 
-    // if(body != nullptr) {
-    //     for(auto a : params) {
-    //         mangled_name += type_to_string(a->type);
-    //     }
-    // }
-
     if (body)
     {
+
         for (auto param : params)
         {
             il.function_parameter(
@@ -208,7 +258,6 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem)
                 param->name.c_str(),
                 type_to_il_type(param->type));
         }
-
         il.internal_function(
             mangled_name.c_str(), type_to_il_type(return_type));
     }
@@ -230,14 +279,8 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem)
 
     if (body)
     {
-        if (type_self != "")
-        {
-            il.function((type_self + "_" + mangled_name).c_str());
-        }
-        else
-        {
-            il.function(mangled_name.c_str());
-        }
+
+        il.function(mangled_name.c_str());
 
         push_scope();
 
@@ -284,20 +327,65 @@ void AstFn::code_gen(ILemitter &il, Semantics &sem)
     }
 }
 
+unsigned int calculate_struct_size(AstStruct *node)
+{
+    unsigned int re = 0;
+
+    for (int i = 0; i < node->block->statements.size(); i++)
+    {
+        auto dec = (AstDec *)node->block->statements[i];
+        re += type_to_size(dec->type);
+    }
+    return re;
+}
+
 void AstFnCall::code_gen(ILemitter &il, Semantics &sem)
 {
+
+    auto sct = sem.p2_get_struct(name);
+    if (sct)
+    {
+        auto size = calculate_struct_size(sct);
+        il.push_u32(size);
+        il.call("malloc");
+        unsigned int offset = 0;
+
+        for (int i = 0; i < args.size(); i++)
+        {
+            il.duplicate();
+        }
+
+        for (int i = 0; i < args.size(); i++)
+        {
+            auto arg = args[i];
+            auto dec = (AstDec *)sct->block->statements[i];
+
+            generate_il(arg, il, sem);
+
+            il.swap();
+
+            il.push_u32(offset);
+            offset += type_to_size(dec->type);
+            il.integer_add();
+
+            il.write();
+        }
+        return;
+    }
+
     auto fn = sem.p2_get_fn(name);
 
     for (size_t i = args.size(); i; i--)
     {
-        generate_il(args[i - 1], il, sem);
+        auto z = args[i - 1];
+        generate_il(z, il, sem);
     }
 
-    if (fn->attributes.size() == 0)
+    if (fn && fn->attributes.size() == 0)
     {
         il.call(name.c_str());
     }
-    else
+    else if (fn)
     {
         for (auto attribute : fn->attributes)
         {
@@ -413,8 +501,6 @@ void AstBreak::code_gen(ILemitter &il, Semantics &sem)
 
 void AstStruct::code_gen(ILemitter &il, Semantics &sem)
 {
-    (void)il;
-    (void)sem;
 }
 
 void AstImpl::code_gen(ILemitter &il, Semantics &sem)
@@ -424,18 +510,14 @@ void AstImpl::code_gen(ILemitter &il, Semantics &sem)
 
 void AstAttribute::code_gen(ILemitter &il, Semantics &sem)
 {
+    il.data(name.c_str(), "");
 }
 
 void AstAffix::code_gen(ILemitter &il, Semantics &sem)
 {
-    for (auto param : params)
-    {
-        name += type_to_string(param->type);
-    }
+    il.internal_function(mangled_name.c_str(), type_to_il_type(return_type));
 
-    il.internal_function(name.c_str(), type_to_il_type(return_type));
-
-    il.function(name.c_str());
+    il.function(mangled_name.c_str());
 
     generate_il(body, il, sem);
 
@@ -446,6 +528,22 @@ void AstUnaryExpr::code_gen(ILemitter &il, Semantics &sem)
 {
     generate_il(expr, il, sem);
     il.call(op.c_str());
+}
+
+unsigned int calculate_struct_field_offset(AstStruct *node, std::string name)
+{
+    unsigned int re = 0;
+
+    for (int i = 0; i < node->block->statements.size(); i++)
+    {
+        auto dec = (AstDec *)node->block->statements[i];
+
+        if (dec->name == name)
+            break;
+
+        re += type_to_size(dec->type);
+    }
+    return re;
 }
 
 void AstBinaryExpr::code_gen(ILemitter &il, Semantics &sem)
@@ -483,66 +581,79 @@ void AstBinaryExpr::code_gen(ILemitter &il, Semantics &sem)
         return;
     }
 
+    if (op == ".")
+    {
+
+        if (rhs->node_type == AstNodeType::AstFnCall)
+        {
+            auto call = (AstFnCall *)rhs;
+
+            generate_il(lhs, il, sem);
+            generate_il(call, il, sem);
+
+            return;
+        }
+
+        //we have a struct
+        auto x = sem.infer_type(lhs);
+        auto sct = sem.p2_get_struct(x->name);
+        if (sct)
+        {
+            unsigned int offset = 0;
+
+            if (rhs->node_type == AstNodeType::AstSymbol)
+            {
+                auto symbol = (AstSymbol *)rhs;
+                offset = calculate_struct_field_offset(sct, symbol->name);
+
+                generate_il(lhs, il, sem);
+                il.address_stack();
+                il.push_u32(offset);
+                il.integer_add();
+
+                il.read();
+            }
+        }
+
+        return;
+    }
+
     generate_il(lhs, il, sem);
     generate_il(rhs, il, sem);
     // il.call(op.c_str());
-
-    {
-        auto fn = sem.p2_get_fn(op);
-
-        if (fn)
-        {
-            for (auto stmt : fn->body->statements)
-            {
-                generate_il(stmt, il, sem);
-            }
-        }
-    }
     {
         auto fn = sem.p2_get_affix(op);
 
         if (fn)
         {
-            for (auto stmt : fn->body->statements)
+            for (auto attribute : fn->attributes)
             {
-                generate_il(stmt, il, sem);
+                if (attribute->name == "inline")
+                {
+                    for (auto stmt : fn->body->statements)
+                    {
+                        generate_il(stmt, il, sem);
+                    }
+                    return;
+                }
             }
+            il.call(op.c_str());
         }
     }
 }
 
-static const std::map<std::string, int> type_size_map = {
-    {"u8", 1},
-    {"bool", 1},
-    {"u16", 2},
-    {"u32", 4},
-    {"u64", 8},
-    {"i8", 1},
-    {"i16", 2},
-    {"i32", 4},
-    {"i64", 8},
-    {"f32", 4},
-    {"f64", 8},
-    {"str", 1},
-    {"ptr", 4},
-    {"void", 1},
-};
-
-int type_to_size(AstType *type)
-{
-    if (type->is_array)
-    {
-        type_to_size(type->subtype);
-    }
-
-    return type_size_map.at(type->name);
-}
-
 void AstIndex::code_gen(ILemitter &il, Semantics &sem)
 {
+    if (!array)
+        return;
+
     generate_il(array, il, sem);
 
     auto type = sem.infer_type(array);
+
+    if (!type)
+        return;
+
     auto size = type_to_size(type);
 
     il.address_stack();
@@ -556,7 +667,7 @@ void AstIndex::code_gen(ILemitter &il, Semantics &sem)
 
     il.read();
 
-    delete type;
+    //delete type;
 }
 
 void AstType::code_gen(ILemitter &il, Semantics &sem)

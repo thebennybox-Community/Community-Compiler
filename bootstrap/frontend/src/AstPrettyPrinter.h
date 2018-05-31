@@ -6,9 +6,10 @@
 
 void pretty_print_ast(Ast &ast);
 
-void syntax_highlight_print_line(
+void syntax_highlight_print_error(
     const std::string &source, const TokenStream &tokens,
-    size_t error_start, size_t error_len, size_t context_lines = 5);
+    unsigned int error_line, size_t error_start, size_t error_len,
+    size_t context_lines = 5);
 
 void syntax_highlight_print(
     const std::string &source, const TokenStream &tokens);
