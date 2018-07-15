@@ -1,12 +1,12 @@
 extern {
-  fn format(x: str);
+  fn format(x: str) : str;
   fn printf(x: str);
-  fn sqrt(x: f64);
+  fn sqrt(x: f64) : f64;
 }
 
 struct vec3 {
-  x: f32
-  y: f32
+  x: f32,
+  y: f32,
   z: f32
 }
 
