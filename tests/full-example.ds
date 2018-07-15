@@ -20,7 +20,7 @@ impl vec3 {
   }
 }
 
-infix fn +(a: vec3, b: vec3) {
+infix op +(a: vec3, b: vec3) : vec3 {
   vec3(a.x + b.x, a.y + b.y, a.z + b.z);
 }
 
