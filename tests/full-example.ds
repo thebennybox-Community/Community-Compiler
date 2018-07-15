@@ -10,7 +10,7 @@ struct vec3 {
   z: f32
 }
 
-impl vec32 {
+impl vec3 {
   fn length() : f32 {
     f32(sqrt(self.x*self.x + self.y*self.y + self.z*self.z));
   }
@@ -20,7 +20,7 @@ impl vec32 {
   }
 }
 
-infix fn +(a: vec32, b: vec32) {
+infix fn +(a: vec3, b: vec3) {
   vec3(a.x + b.x, a.y + b.y, a.z + b.z);
 }
 
