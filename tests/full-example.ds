@@ -28,9 +28,9 @@ fn main() {
   let a = vec3(1, 0, 0);
   let b = vec3(0, 1, 0);
   let c = a + b;
-  printf("Length of vector a (%s) is %d", a.toString(), a.length());
-  printf("Length of vector b (%s) is %d", b.toString(), b.length());
-  printf("Length of vector a+b (%s) is %d", c.toString(), c.length());
+  printf("Length of vector a (%s) is %d", a.to_str(), a.length());
+  printf("Length of vector b (%s) is %d", b.to_str(), b.length());
+  printf("Length of vector a+b (%s) is %d", c.to_str(), c.length());
   
   if (a.length() + b.length() > c.length()) {
     printf("The whole is less than the sum of it's parts!");
