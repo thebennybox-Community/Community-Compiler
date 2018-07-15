@@ -15,7 +15,7 @@ impl vec3 {
     f32(sqrt(self.x*self.x + self.y*self.y + self.z*self.z));
   }
   
-  fn toString() : str {
+  fn to_str() : str {
     format("Vec3 {X: %d, Y: %d, Z: %d}", self.x, self.y, self.z);
   }
 }
