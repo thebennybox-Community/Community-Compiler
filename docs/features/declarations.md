@@ -17,4 +17,4 @@ Note that ``dec`` is not an actual keyword for declarations and ``let`` or ``var
 
 ## Immutable And Mutable
 
-For immutable declarations the ``dec`` is replaced by a ``let`` and for mutable it is replaced by ``var``.
+For immutable declarations the ``dec`` is replaced by a ``let`` and for mutable it is replaced by ``var``. Immutable variables have to be initialized when declared. ``let a: i32`` is therefore invalid.
