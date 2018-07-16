@@ -1,0 +1,42 @@
+extern {
+  fn format(x: str): str; //TODO: add varargs
+  fn printf(x: str);
+  fn sqrt(x: f64): f64;
+}
+
+struct vec3 {
+  x: f32,
+  y: f32,
+  z: f32
+}
+
+impl vec3 {
+  fn length(): f32 {
+    f32(sqrt(self.x*self.x + self.y*self.y + self.z*self.z));
+  }
+  
+  fn to_str(): str {
+    format("Vec3 {X: %d, Y: %d, Z: %d}", self.x, self.y, self.z);
+  }
+}
+
+infix op +(a: vec3, b: vec3): vec3 {
+  vec3(a.x + b.x, a.y + b.y, a.z + b.z);
+}
+
+fn main() {
+  let a = vec3(1, 0, 0);
+  let b = vec3(0, 1, 0);
+  let c = a + b;
+  printf("Length of vector a (%s) is %d", a.to_str(), a.length());
+  printf("Length of vector b (%s) is %d", b.to_str(), b.length());
+  printf("Length of vector a+b (%s) is %d", c.to_str(), c.length());
+  
+  if (a.length() + b.length() > c.length()) {
+    printf("The whole is less than the sum of it's parts!");
+  } else if (a.length() + b.length() == c.length()) {
+    printf("The whole is the same as the sum of it's parts!");
+  } else {
+    printf("The whole is greater than the sum of it's parts!");
+  }
+}
