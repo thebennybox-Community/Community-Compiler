@@ -1,5 +1,5 @@
 extern {
-  fn format(x: str): str;
+  fn format(x: str): str; //TODO: add varargs
   fn printf(x: str);
   fn sqrt(x: f64): f64;
 }
