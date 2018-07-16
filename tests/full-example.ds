@@ -1,6 +1,6 @@
 extern {
-  fn format(x: str): str; //TODO: add varargs
-  fn printf(x: str);
+  fn format(x: str, ...): str;
+  fn printf(x: str, ...);
   fn sqrt(x: f64): f64;
 }
 
@@ -12,7 +12,7 @@ struct vec3 {
 
 impl vec3 {
   fn length(): f32 {
-    f32(sqrt(self.x*self.x + self.y*self.y + self.z*self.z));
+    return f32(sqrt(self.x*self.x + self.y*self.y + self.z*self.z));
   }
   
   fn to_str(): str {
@@ -20,9 +20,7 @@ impl vec3 {
   }
 }
 
-infix op +(a: vec3, b: vec3): vec3 {
-  vec3(a.x + b.x, a.y + b.y, a.z + b.z);
-}
+infix op +(a: vec3, b: vec3): vec3 = vec3(a.x + b.x, a.y + b.y, a.z + b.z);
 
 fn main() {
   let a = vec3(1, 0, 0);
