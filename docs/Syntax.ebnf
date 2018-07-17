@@ -40,6 +40,6 @@ codeblock = "{", {statement}, "}"; (* Block of code *)
 
 extern = "extern", ((funcdef, [":", type]) | ("{", [funcdef, [":", type], {"," funcdef, [":", type]}], "}")); (* Definition of external function(s) *)
 structure = "struct", identifier, "{", [definition, {"," definition}], "}"; (* Structure *)
-function = ["impl"], funcdef, (codeblock | ("->", expression)); (* Function *)
+function = ["impl"], funcdef, (("{", {statement}, [expression], "}") | ("->", expression, ";")); (* Function *)
 
 grammar = (extern | structure | function | comment | whitespace)*; (* Entire file *)
