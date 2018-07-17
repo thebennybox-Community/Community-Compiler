@@ -1,9 +1,12 @@
-alphaChar = ? all alphabetic characters ?;
+alphaChar = ? all alphabetic characters ? | "_";
 numChar = ? all numeric characters ?;
-whitespace = ? all whitespace characters ?
 
 identifier = alphaChar, {alphaChar | numChar}; (* Valid identifier *)
 number = ["-"], (numChar - "0"), {numChar}, [".", numChar*]; (* Decimal number *)
+operation =
+("!" | "#" | "$" | "%" | "&" | "*" | "+" | "-" | "/" | ":" | "<" | "=" | ">" | "?" | "@" | "^" | "|" | "~")* - (* Buildup of operators *)
+("=" | "//" | "/*" | "*/") (* Invalid or special *)
+; (* all operators *)
 
 type = identifier; (* Any type *)
 parameter = identifier + ":", type; (* Parameter to function *)
@@ -12,6 +15,7 @@ comment = ("//", ? all characters ?, "\n") | ("/*", ? all characters ?, "*/")
 
 vardef = ("var" | "let"), identifier; (* Beginning of variable definition *)
 funcdef = "fn", identifier, "(", parameter, {",", parameter}, ")"; (* Beginning of function definition *)
+opdef = "infix", "op", operator, "(", parameter, {",", parameter}, ")"; (* Beginning of function definition *)
 definition = (vardef | funcdef), [":", type]; (* Full definition of either variable or function *)
 
 if = "if", "(", expression, ")", statement; (* If statement *)
@@ -24,14 +28,14 @@ loop = "loop", "(",
 funccall = identifier, "(", expression, {",", expression}, ")";
 
 expression = (identifier | number | funccall,
-[("+" | "-" | "*" | "/" | "<<" | ">>" | "&" | "|" | "^" | "<" | "<=" | "==" | ">=" | ">" | "&&" | "||", "%"), expression]) |
-(identifier, ("+=" | "-=" | "*=" | "/=" | "<<=" | ">>=" | "&=" | "|=" | "^=", "="), expression) |
+[operation, expression]) |
+(identifier, ((operator, "=") | "="), expression) |
 (expression, "?", expression, ":", expression); (* Expression *)
 
 statement = (
 (
   (vardef, (":", type) | ("=", expression) | (":", type, "=", expression)) |
-  (identifier, "=", expression) |
+  (identifier, ((operator, "=") | "="), expression) |
   funccall | "continue" | "break" | ("return", expression)),
 ";") |
 comment | if | loop | codeblock; (* Any valid statement *)
@@ -40,6 +44,6 @@ codeblock = "{", {statement}, [expression], "}"; (* Block of code *)
 
 extern = "extern", ((funcdef, [":", type]) | ("{", [funcdef, [":", type], {"," funcdef, [":", type]}], "}")); (* Definition of external function(s) *)
 structure = "struct", identifier, "{", [definition, {"," definition}], "}"; (* Structure *)
-function = ["impl"], funcdef, (codeblock | ("->", expression, ";")); (* Function *)
+function = (["impl"], funcdef, [":", type], (codeblock | ("->", expression, ";"))) | (opdef, ":", type, (codeblock | ("->", expression, ";"))); (* Function *)
 
-grammar = (extern | structure | function | comment | whitespace)*; (* Entire file *)
+grammar = (extern | structure | function | comment)*; (* Entire file *)
