@@ -31,7 +31,7 @@ statement = (
 (
   (vardef, (":", type) | ("=", expression) | (":", type, "=", expression)) |
   (identifier, "=", expression) |
-  funccall),
+  funccall | "continue" | "break" | ("return", expression)),
 ";") |
 comment | if | loop | codeblock; (* Any valid statement *)
 
