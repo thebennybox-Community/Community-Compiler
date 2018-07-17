@@ -11,7 +11,7 @@ operation =
 type = identifier; (* Any type *)
 parameter = identifier + ":", type; (* Parameter to function *)
 
-comment = ("//", ? all characters ?, "\n") | ("/*", ? all characters ?, "*/")
+comment = ("//", ? all characters ?, "\n") | ("/*", ? all characters ?, "*/");
 
 vardef = ("var" | "let"), identifier; (* Beginning of variable definition *)
 funcdef = "fn", identifier, "(", parameter, {",", parameter}, ")"; (* Beginning of function definition *)
