@@ -15,11 +15,11 @@ funcdef = "fn", identifier, "(", parameter, {",", parameter}, ")"; (* Beginning 
 definition = (vardef | funcdef), [":", type]; (* Full definition of either variable or function *)
 
 if = "if", "(", expression, ")", statement; (* If statement *)
+
 loop = "loop", "(",
 (expression | (* loop(10) or loop(1==1) *)
-(expression, "to", expression) | (*  *)
-((statement | ";"), [expression], ";", [statement - ";"]) |
-((identifier, [":", type], "in", identifier))),
+((statement | ";"), [expression], ";", [statement - ";"]) | (* for-based loop *)
+((identifier, [":", type], "in", identifier))), (* foreach-based loop *)
 ")", statement; (* Loop *)
 funccall = identifier, "(", expression, {",", expression}, ")";
 
