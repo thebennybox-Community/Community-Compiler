@@ -36,10 +36,10 @@ statement = (
 ";") |
 comment | if | loop | codeblock; (* Any valid statement *)
 
-codeblock = "{", {statement}, "}"; (* Block of code *)
+codeblock = "{", {statement}, [expression], "}"; (* Block of code *)
 
 extern = "extern", ((funcdef, [":", type]) | ("{", [funcdef, [":", type], {"," funcdef, [":", type]}], "}")); (* Definition of external function(s) *)
 structure = "struct", identifier, "{", [definition, {"," definition}], "}"; (* Structure *)
-function = ["impl"], funcdef, (("{", {statement}, [expression], "}") | ("->", expression, ";")); (* Function *)
+function = ["impl"], funcdef, (codeblock | ("->", expression, ";")); (* Function *)
 
 grammar = (extern | structure | function | comment | whitespace)*; (* Entire file *)
