@@ -4,31 +4,31 @@ extern {
   fn sqrt(x: f64): f64;
 }
 
-struct vector3 {
+struct Vector3 {
   var x: f32,
   var y: f32,
   var z: f32
 }
 
-impl vector3 {
+impl Vector3 {
   fn length(): f32 {
     return f32(sqrt(self.x*self.x + self.y*self.y + self.z*self.z));
   }
   
   fn to_str(): str {
-    format("vector3 {X: %d, Y: %d, Z: %d}", self.x, self.y, self.z)
+    format("Vector3 {X: %d, Y: %d, Z: %d}", self.x, self.y, self.z)
   }
 }
 
-infix op +(a: vector3, b: vector3): vector3 -> vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+infix op +(a: Vector3, b: Vector3): Vector3 -> Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
 
 fn main() {
-  let a = vector3(1, 0, 0);
-  let b = vector3(0, 1, 0);
+  let a = Vector3(1, 0, 0);
+  let b = Vector3(0, 1, 0);
   let c = a + b;
-  printf("Length of vector a (%s) is %d", a.to_str(), a.length());
-  printf("Length of vector b (%s) is %d", b.to_str(), b.length());
-  printf("Length of vector a+b (%s) is %d", c.to_str(), c.length());
+  printf("Length of Vector a (%s) is %d", a.to_str(), a.length());
+  printf("Length of Vector b (%s) is %d", b.to_str(), b.length());
+  printf("Length of Vector a+b (%s) is %d", c.to_str(), c.length());
   
   if (a.length() + b.length() > c.length()) {
     printf("The whole is less than the sum of it's parts!");
