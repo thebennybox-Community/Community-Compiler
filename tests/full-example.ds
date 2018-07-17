@@ -15,9 +15,7 @@ impl vec3 {
     return f32(sqrt(self.x*self.x + self.y*self.y + self.z*self.z));
   }
   
-  fn to_str(): str {
-    format("Vec3 {X: %d, Y: %d, Z: %d}", self.x, self.y, self.z);
-  }
+  fn to_str(): str -> format("Vec3 {X: %d, Y: %d, Z: %d}", self.x, self.y, self.z)
 }
 
 infix op +(a: vec3, b: vec3): vec3 -> vec3(a.x + b.x, a.y + b.y, a.z + b.z)
