@@ -14,8 +14,8 @@ parameter = identifier + ":", type; (* Parameter to function *)
 comment = ("//", ? all characters ?, "\n") | ("/*", ? all characters ?, "*/");
 
 vardef = ("var" | "let"), identifier; (* Beginning of variable definition *)
-funcdef = "fn", identifier, "(", parameter, {",", parameter}, ")"; (* Beginning of function definition *)
-opdef = "infix", "op", operator, "(", parameter, {",", parameter}, ")"; (* Beginning of function definition *)
+funcdef = ["infix" | "suffix" | "prefix"], "fn", identifier, "(", parameter, {",", parameter}, ")"; (* Beginning of function definition *)
+opdef = ("infix" | "suffix" | "prefix"), "op", operator, "(", parameter, {",", parameter}, ")"; (* Beginning of function definition *)
 definition = (vardef | funcdef), [":", type]; (* Full definition of either variable or function *)
 
 if = "if", "(", expression, ")", statement; (* If statement *)
