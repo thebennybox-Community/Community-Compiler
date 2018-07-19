@@ -1,4 +1,0 @@
-extern {
-    fn malloc(size : u32) : str;
-    fn free(ptr: str);
-}
