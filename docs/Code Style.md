@@ -68,6 +68,13 @@ dec a = 0;
 dec a: str = "cool stuff";
 ```
 
+The same goes for function return types and parameter types.
+```
+fn test(parameter: str): i32 {
+
+}
+```
+
 ## Statements
 
 #### If
