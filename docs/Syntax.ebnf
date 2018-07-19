@@ -1,62 +1,49 @@
-Comment ::= SingleLineComment | MultilineComment
+alphaChar = ? all alphabetic characters ? | "_";
+numChar = ? all numeric characters ?;
 
-Literal ::= StringLiteral | NumberLiteral | Boolean
+identifier = alphaChar, {alphaChar | numChar}; (* Valid identifier *)
+number = ["-"], (numChar - "0"), {numChar}, [".", numChar*]; (* Decimal number *)
+operation =
+("!" | "#" | "$" | "%" | "&" | "*" | "+" | "-" | "/" | ":" | "<" | "=" | ">" | "?" | "@" | "^" | "|" | "~")* - (* Buildup of operators *)
+("=" | "//" | "/*" | "*/") (* Invalid or special *)
+; (* all operators *)
 
-DecStatement ::= (VarKeyword | LetKeyword) Symbol (Colon Type)? (Equal Expr)?
+type = identifier; (* Any type *)
+parameter = identifier + ":", type; (* Parameter to function *)
 
-CodeBlock ::= OpenCurlyBracket grammar* CloseCurlyBracket
+comment = ("//", ? all characters ?, "\n") | ("/*", ? all characters ?, "*/");
 
-Invoke ::= Symbol OpenParenthesis (Expr (Comma Expr)*)? CloseParenthesis
+vardef = ("var" | "let"), identifier; (* Beginning of variable definition *)
+funcdef = ["infix" | "suffix" | "prefix"], "fn", identifier, "(", parameter, {",", parameter}, ")"; (* Beginning of function definition *)
+opdef = ("infix" | "suffix" | "prefix"), "op", operator, "(", parameter, {",", parameter}, ")"; (* Beginning of function definition *)
+definition = (vardef | funcdef), [":", type]; (* Full definition of either variable or function *)
 
-InfixOperator ::= Equal
-                | Plus | Minus | Mul | Divide
-                | Or | And | Xor
-                | CompareEqual | NotEqual
-                | GreaterThan | LessThan
-                | GreaterThanEqual | LessThanEqual
+if = "if", "(", expression, ")", statement; (* If statement *)
 
-PrefixOperator ::= Not | Minus | MinusMinus | PlusPlus
+loop = "loop", "(",
+(expression | (* loop(10) or loop(1==1) *)
+((statement | ";"), [expression], ";", [statement - ";"]) | (* for-based loop *)
+((identifier, [":", type], "in", identifier))), (* foreach-based loop *)
+")", statement; (* Loop *)
+funccall = identifier, "(", expression, {",", expression}, ")";
 
-SuffixOperator ::= MinusMinus | PlusPlus
+expression = (identifier | number | funccall,
+[operation, expression]) |
+(identifier, ((operator, "=") | "="), expression) |
+(expression, "?", expression, ":", expression); (* Expression *)
 
-Expr ::= OpenParenthesis Expr CloseParenthesis
-       | Literal | Symbol
-       | Invoke
-       | CodeBlock
-       | Array
-       | Fn
-       | Expr (InfixOperator | Symbol) Expr
-       | (Symbol | PrefixOperator) Expr
-       | Expr (Symbol | SuffixOperator)
+statement = (
+(
+  (vardef, (":", type) | ("=", expression) | (":", type, "=", expression)) |
+  (identifier, ((operator, "=") | "="), expression) |
+  funccall | "continue" | "break" | ("return", expression)),
+";") |
+comment | if | loop | codeblock; (* Any valid statement *)
 
-Params ::= OpenParenthesis (Symbol Colon Type (Comma Symbol Colon Type)*)? CloseParenthesis
-Fn ::= FnKeyword Symbol Params (Colon Type)? CodeBlock
+codeblock = "{", {statement}, [expression], "}"; (* Block of code *)
 
-Type ::= Symbol (OpenSquareBracket CloseSquareBracket)*
+extern = "extern", ((funcdef, [":", type]) | ("{", [funcdef, [":", type], {"," funcdef, [":", type]}], "}")); (* Definition of external function(s) *)
+structure = "struct", identifier, "{", [definition, {"," definition}], "}"; (* Structure *)
+function = (["impl"], funcdef, [":", type], (codeblock | ("->", expression, ";"))) | (opdef, ":", type, (codeblock | ("->", expression, ";"))); (* Function *)
 
-Array ::= OpenSquareBracket (Expr (Comma Expr)* Comma?)? CloseSquareBracket
-
-ForeachLoop ::= Symbol InKeyword Expr
-Loop ::= LoopKeyword OpenParenthesis (ForeachLoop | Expr) CloseParenthesis CodeBlock
-
-If ::= IfKeyword OpenParenthesis Expr CloseParenthesis CodeBlock
-       (ElseKeyword (CodeBlock | If))?
-
-Return ::= ReturnKeyword Expr
-
-Struct ::= StructKeyword Symbol OpenCurlyBracket (Symbol Colon Type)* CloseCurlyBracket
-
-Impl ::= ImplKeyword Symbol CodeBlock
-
-Attribute ::= At Invoke
-
-AffixFn ::= (InfixKeyword | PrefixKeyword | SuffixKeyword)
-            (Fn | OpKeyword AffixOperator Params (Colon Type)? CodeBlock)
-
-grammar ::= (Comment
-             | DecStatement
-             | Expr
-             | Return
-             | Struct
-             | Impl
-             | Attribute)*
+grammar = (extern | structure | function | comment)*; (* Entire file *)
