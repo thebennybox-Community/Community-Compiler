@@ -1,9 +1,7 @@
 # Literals
-
 There are four types of literals: boolean, number, character and string literals.
 
 ## Booleans
-
 A boolean literal is either ``true`` or ``false``.
 
 ## Numbers
@@ -25,6 +23,7 @@ _123
 123_
 0___0
 ```
+
 #### Decimal
 Decimals can be expressed by putting a dot and another number behind it.
 ```
@@ -32,6 +31,7 @@ Decimals can be expressed by putting a dot and another number behind it.
 0.0001
 0.000_000_000_1
 ```
+
 #### Typed
 The type and size of a number can be specified at the end of the number. If not specified it's either i32 or f32 depending on if the number is a decimal.
 
