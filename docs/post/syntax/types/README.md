@@ -4,6 +4,7 @@
 
 ### Table of Contents
 
-| Folder | Contents |
-| ------ | -------- |
-| n/a    | n/a      |
+| File     | Contents                            |
+| -------- | ----------------------------------- |
+| literals | How literals are used in Dusk.      |
+| structs  | How structures are used in Dusk.    |
