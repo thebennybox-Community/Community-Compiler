@@ -1,9 +1,9 @@
 # The Dusk Programming Language
 
-## Post-Bootstrap -> Syntax -> Documentation
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> Documentation
 
 ### Table of Contents
 
-| File        | Contents                        |
-| ----------- | ------------------------------- |
-| comments.md | How comments work in Dusk.      |
+| File                    | Contents                        |
+| ----------------------- | ------------------------------- |
+| [comments](comments.md) | How comments work in Dusk.      |

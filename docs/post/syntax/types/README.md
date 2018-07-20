@@ -1,10 +1,10 @@
 # The Dusk Programming Language
 
-## Post-Bootstrap -> Syntax -> Types
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> Types
 
 ### Table of Contents
 
-| File     | Contents                            |
-| -------- | ----------------------------------- |
-| literals | How literals are used in Dusk.      |
-| structs  | How structures are used in Dusk.    |
+| File                    | Contents                            |
+| ----------------------- | ----------------------------------- |
+| [literals](literals.md) | How literals are used in Dusk.      |
+| [structs](structs.md)   | How structures are used in Dusk.    |

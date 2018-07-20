@@ -8,7 +8,7 @@ the final say over whether or not the features make it into post.
 
 ### Table of Contents
 
-| Folder | Contents                               |
-| ------ | -------------------------------------- |
-| syntax | The syntax spec for Dusk.              |
-| tools  | The usage spec for `duskc` and `dawn`. | 
+| Folder                     | Contents                               |
+| -------------------------- | -------------------------------------- |
+| [syntax](syntax/README.md) | The syntax spec for Dusk.              |
+| [tools](tools/README.md)   | The usage spec for `duskc` and `dawn`. |

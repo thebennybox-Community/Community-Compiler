@@ -1,6 +1,6 @@
 # The Dusk Programming Language
 
-## Post-Bootstrap -> Sntax -> Blocks -> If Conditionals
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Blocks](README.md) -> If Conditionals
 
 ### If Conditionals
 
@@ -33,4 +33,3 @@ if(<condition>)
   gets_executed_if_true();
 gets_executed_anyway();
 ```
-

@@ -1,9 +1,9 @@
 # The Dusk Programming Language
 
-## Post-Bootstrap -> Syntax -> Variables
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> Variables
 
 ### Table of Contents
 
-| File        | Contents                              |
-| ----------- | ------------------------------------- |
-| declaration | How to declare variables in Dusk.     |
+| File                          | Contents                              |
+| ----------------------------- | ------------------------------------- |
+| [declaration](declaration.md) | How to declare variables in Dusk.     |
