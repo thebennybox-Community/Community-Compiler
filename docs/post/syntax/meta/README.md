@@ -1,6 +1,6 @@
 # The Dusk Programming Language
 
-## Post-Bootstrap -> Syntax -> Metaprogramming
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> Metaprogramming
 
 ### Table of Contents
 

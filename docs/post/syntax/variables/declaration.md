@@ -1,6 +1,6 @@
 # The Dusk Programming Language
 
-## Post-Bootstrap -> Syntax -> Variables -> Declaration
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Variables](README.md) -> Declaration
 
 Declarations declare the type of a variable and can optionally initialize them. Declarations are either immutable or mutable.
 
@@ -30,4 +30,3 @@ let pi = 3.14159265359
 var count: i32;
 var width: f32 = 1.5;
 ```
-

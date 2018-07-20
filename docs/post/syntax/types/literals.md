@@ -1,8 +1,8 @@
 # The Dusk programming Language
 
-## Post-Bootstrap -> Syntax -> Types -> Literals
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Types](README.md) -> Literals
 
-There are four types of literals: boolean, number, character and string 
+There are four types of literals: boolean, number, character and string
 literals.
 
 ### Booleans
@@ -13,7 +13,7 @@ A boolean literal is either ``true`` or ``false``.
 
 #### Simple
 
-A number is a sequence of digits and underscores. An underscore is only allowed 
+A number is a sequence of digits and underscores. An underscore is only allowed
 inbetween numbers.
 
 valid:  
@@ -57,7 +57,7 @@ u8, u16, u32, u64
 f32, f64
 ```
 
-The number specifies the size in bits and the letter the type: ``i`` for signed 
+The number specifies the size in bits and the letter the type: ``i`` for signed
 integers, ``u`` for unsigned integers and ``f`` for floating point numbers.
 
 Examples:
@@ -71,7 +71,7 @@ Examples:
 
 ### Strings
 
-Strings start and end with quotation marks ("). Special characters can also be 
+Strings start and end with quotation marks ("). Special characters can also be
 used with "escaping".
 
 Examples:
@@ -106,9 +106,9 @@ There are special escape sequences that are replaced with a special characters.
 ```
 
 ### Characters
-Characters are similar to strings. They use single quotation marks and support 
-escape sequences. However characters can only represent one character. 
-Characters are of the unsigned integer type and take on the smallest size they 
+Characters are similar to strings. They use single quotation marks and support
+escape sequences. However characters can only represent one character.
+Characters are of the unsigned integer type and take on the smallest size they
 can represent.
 
 Valid:
@@ -125,4 +125,3 @@ Invalid:
 ```
 'abc'
 ```
-
