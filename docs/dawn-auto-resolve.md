@@ -2,15 +2,17 @@
 
 Sometimes, when you are making a project, you need to use `extern` libraries for things such as OpenGL/Vulkan, OpenAL/PulseAudio, and maybe also input utilities, but you don't know what library they are in, so you just slap the following into your program:
 
-    extern {
-      glInit();
-      // ...
-    }
-    
-    fn main() {
-      glInit();
-      // ...
-    }
+```dusk
+extern {
+    glInit();
+    // ...
+}
+
+fn main() {
+    glInit();
+    // ...
+}
+```
 
 If you don't remember that you're missing a library, and you call `duskc`, you will certainly get a linker error saying that it can't find your extern. This is where `dawn` comes in again.
 
