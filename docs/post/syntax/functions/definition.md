@@ -1,6 +1,6 @@
 # The Dusk Programming Language
 
-## Post-Bootstrap -> Syntax -> Functions -> Definition
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Functions](README.md) -> Definition
 
 Functions are defined like this:
 
@@ -11,7 +11,7 @@ fn <name>([<par_name>: <par_type>[, <par2_name>: <par2_type>]*])[: <return_type>
 
 ```
 
-If the return type isn't specified then it is inferred. Multiple functions with 
+If the return type isn't specified then it is inferred. Multiple functions with
 the same name can exist as long as they don't have the same parameter type count
 and order.
 
@@ -37,7 +37,7 @@ fn bar(): i32 { //Error: bar() is already defined
 
 ### Default Parameter Values
 
-Parameters can be given default values to make calling them easier. To specify a 
+Parameters can be given default values to make calling them easier. To specify a
 default value you put a ``=`` and a constant expression after the parameter type
 similar to a declaration.
 
@@ -61,4 +61,3 @@ fn foo() -> bar();
 
 fn square(num: i32) -> num * num;
 ```
-
