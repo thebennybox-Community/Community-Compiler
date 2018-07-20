@@ -4,6 +4,7 @@
 
 ### Table of Contents
 
-| Folder | Contents |
-| ------ | -------- |
-| n/a    | n/a      |
+| File       | Contents                                                     |
+| ---------- | ------------------------------------------------------------ |
+| definition | How functions are defined in Dusk.                           |
+| external   | Detailing the `extern` keyword and external linkage in Dusk. |

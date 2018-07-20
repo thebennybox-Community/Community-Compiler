@@ -4,6 +4,6 @@
 
 ### Table of Contents
 
-| Folder | Contents |
-| ------ | -------- |
-| n/a    | n/a      |
+| File        | Contents                              |
+| ----------- | ------------------------------------- |
+| declaration | How to declare variables in Dusk.     |

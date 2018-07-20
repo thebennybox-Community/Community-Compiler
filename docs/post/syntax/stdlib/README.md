@@ -4,6 +4,6 @@
 
 ### Table of Contents
 
-| Folder | Contents |
+| File   | Contents |
 | ------ | -------- |
 | n/a    | n/a      |
