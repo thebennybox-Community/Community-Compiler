@@ -1,6 +1,6 @@
 # The Dusk Programming Language
 
-## Post-Bootstrap -> Syntax -> Types -> Structures
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Types](README.md) -> Structures
 
 Structures, or `struct`s for short, can be used to group data.
 
@@ -49,4 +49,3 @@ let foo = Foo("this is the bar field");
 
 let string: str = foo.bar;
 ```
-

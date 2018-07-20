@@ -1,9 +1,9 @@
 # The Dusk Programming Language
 
-## Post-Bootstrap -> Syntax -> Blocks
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> Blocks
 
 ### Table of Contents
 
-| File           | Contents                          |
-| -------------- | --------------------------------- |
-| if_conditional | How if conditionals work in Dusk. |
+| File                                | Contents                          |
+| ----------------------------------- | --------------------------------- |
+| [if_conditional](if_conditional.md) | How if conditionals work in Dusk. |
