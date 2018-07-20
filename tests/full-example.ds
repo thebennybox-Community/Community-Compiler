@@ -20,7 +20,7 @@ impl Vector3 {
   }
 }
 
-infix op +(a: Vector3, b: Vector3): Vector3 -> Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+infix fn +(a: Vector3, b: Vector3): Vector3 -> Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
 
 fn main() {
   let a = Vector3(1, 0, 0);
