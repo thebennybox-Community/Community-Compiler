@@ -4,6 +4,7 @@
 
 ### Table of Contents
 
-| File   | Contents |
-| ------ | -------- |
-| n/a    | n/a      |
+| File            | Contents                           |
+| --------------- | ---------------------------------- |
+| [file](file.md) | WIP definition of `File`s in Dusk. |
+| [list](list.md) | WIP definition of `list`s in Dusk. |
