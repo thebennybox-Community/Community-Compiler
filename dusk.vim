@@ -17,7 +17,7 @@ syn match   SINGLLINE "//.*$"
 
 syn region  CODEBLOCK start="{" end="}" fold transparent
 syn region  MULTILINE start="/\*" end="\*/" fold
-syn region  STRING start='"' end='"' skip='\\"'
+syn region  STRING start='"' end='"' skip=+\\\\\|\\"+
 
 hi def link KEYWORDS  Statement
 
