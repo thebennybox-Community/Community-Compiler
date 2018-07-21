@@ -1,11 +1,13 @@
-# Files
+# The Dusk Programming Language
+
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Standard Library](README.md) -> Files
 
 File objects represent files or directories on the filesystem. They support reading and writing.
 
 Defining is simple:
 
 ```dusk
-var x: File("path/to/directory/or/file.txt");
+var x = File("path/to/directory/or/file.txt");
 ```
 
 Member functions:

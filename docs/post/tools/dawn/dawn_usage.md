@@ -1,4 +1,4 @@
-# Dawn Usage
+# The Dusk Programming Language
 
 ## [Post-Bootstrap](../../README.md) -> [Tools](../README.md) -> [Dawn](README.md) -> Dawn Usage
 
