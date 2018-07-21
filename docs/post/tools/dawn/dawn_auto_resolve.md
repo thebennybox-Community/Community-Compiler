@@ -1,4 +1,4 @@
-# Dawn Auto-Resolve
+# The Dusk Programming Language
 
 ## [Post-Bootstrap](../../README.md) -> [Tools](../README.md) -> [Dawn](README.md) -> Dawn Auto-Resolve
 
