@@ -2,9 +2,11 @@
 
 ## [Post-Bootstrap](../../README.md) -> [Tools](../README.md) -> [Dawn](README.md) -> Dawn Usage
 
-    dawn [-r] [-l <libraryname> ...] [-L <librarypath> ...] [<srcdir>] [-p] [-f <srcfile> ...] [-b <builddir>] [-o <outputfile>]
+    dawn [-v] [-r] [-l <libraryname> ...] [-L <librarypath> ...] [<srcdir>] [-p] [-f <srcfile> ...] [-b <builddir>] [-o <outputfile>]
 
 ## Options
+
+`-v | --verbose`: Verbose logging
 
 `-r | --rebuild`: Force rebuild of all files.
 
