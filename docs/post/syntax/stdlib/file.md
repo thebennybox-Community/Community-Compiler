@@ -14,6 +14,8 @@ Member functions:
 
 `exists(): bool`: Returns true if the file or directory exists, false if it doesn't.
 
+`getName(): str`: Returns name of file.
+
 `isDirectory(): bool`: Returns true if the file is a directory, false otherwise.
 
 `isFile(): bool`: Returns opposite of `isDirectory()`, i.e., returns true for files and false for directories.
