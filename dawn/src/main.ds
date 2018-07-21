@@ -25,19 +25,19 @@ fn main(args: str[]) {
 	}
 
 	if(verbose) {
-		for(srcdir in srcdirs) {
+		loop(srcdir in srcdirs) {
 			printf("Using source folder: %s\n", srcdir);
 		}
 	}
 
-	for(srcfile in srcfiles) {
+	loop(srcfile in srcfiles) {
 		if(isDirectory(srcfile)) {
 			fprintf(stderr, "Error: %s is not a file, but you said it was!\n", srcfile.getName());
 			exit(1);
 		}
 	}
 
-	for(srcdir in srcdirs) {
+	loop(srcdir in srcdirs) {
 		var fileSet = recursiveFindFiles(srcdir);
 		if(fileSet == null) {
 			fprintf(stderr, "Error: %s is not a directory, or its contents cannot be read!\n", srcdir);
@@ -47,7 +47,7 @@ fn main(args: str[]) {
 	}
 
 	if(verbose) {
-		for(srcfile in srcfiles) {
+		loop(srcfile in srcfiles) {
 			printf("Using source file: %s\n", getName(srcfile));
 		}
 	}
