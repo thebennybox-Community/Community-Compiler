@@ -1,9 +1,11 @@
-# Lists
+# The Dusk Programming Language
+
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Standard Library](README.md) -> Lists
 
 Lists are basically arrays with support for expansion. You can even instantiate them with an array:
 
 ```dusk
-var x: list<str> = ["Thing one", "Thing two"];
+var x: List<str> = ["Thing one", "Thing two"];
 ```
 
 Member functions:
