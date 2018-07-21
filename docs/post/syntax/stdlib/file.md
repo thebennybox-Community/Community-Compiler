@@ -1,4 +1,6 @@
-# Files
+# The Dusk Programming Language
+
+## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Standard Library](README.md) -> Files
 
 Fully static set of functions to handle files.
 
