@@ -12,3 +12,4 @@ fn recursivelyFindFiles(path: str): list<str> {
 	
 	return result;
 }
+
