@@ -6,4 +6,10 @@ Lists are basically arrays with support for expansion. You can even instantiate 
 var x: list<str> = ["Thing one", "Thing two"];
 ```
 
-They can be appended to easily with `list.add(item)`, and removal is just as easy: `list.remove(index)`.
+Member functions:
+
+`add(T item)`: Add single item to a list.
+
+`addAll(T[] item) | addAll(list<T> item)`: Add all items in array to a list.
+
+`remove(index)`: Remove item at specified index and move all items after the index one back in the list.
