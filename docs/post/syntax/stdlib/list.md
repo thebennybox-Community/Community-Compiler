@@ -15,3 +15,5 @@ Member functions:
 `addAll(item: T[]) | addAll(item: list<T>)`: Add all items in array to a list.
 
 `remove(index)`: Remove item at specified index and move all items after the index one back in the list.
+
+`size()`: Get current size of list.
