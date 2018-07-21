@@ -190,7 +190,7 @@ class Lexer {
                     i += 2
                     column += 2
 
-                    while(!(text[i] == '*' && text[i + 1] == '/')) {
+                    while(!(text[i] == '*' && text[i + 1] == '/') && i < text.length) {
                         if(text[i] == '\r') {
                             i++
                             line++
@@ -260,6 +260,43 @@ class Lexer {
                         '\"' -> TokenKind.String
                         '\'' -> TokenKind.Char
                         else -> TokenKind.None
+                    }
+
+                    token.text = token.text.replace(
+                        Regex(
+                            """\\u[\dA-Fa-f]{4}|""" +
+                            """\\U[\dA-Fa-f]{8}|""" +
+                            """\\[abfrntv\\\"\']"""
+                        ),
+                        { match ->
+                            val value = match.value
+                            val sb = StringBuilder()
+
+                            when(value[1]) {
+                                'u', 'U' -> {
+                                    val codepoint = value.substring(2).toInt(16)
+                                    sb.appendCodePoint(codepoint)
+                                }
+                                'a' -> sb.append(7.toChar())
+                                'b' -> sb.append('\b')
+                                'f' -> sb.append(12.toChar())
+                                'n' -> sb.append('\n')
+                                'r' -> sb.append('\r')
+                                't' -> sb.append('\t')
+                                'v' -> sb.append(11.toChar())
+                                '\\' -> sb.append('\\')
+                                '\"' -> sb.append('\"')
+                                '\'' -> sb.append('\'')
+                                else -> {} // Unreachable
+                            }
+
+                            sb.toString()
+                        }
+                    )
+
+                    if(token.kind == TokenKind.Char &&
+                       token.text.codePointCount(0, token.text.length) != 1) {
+                        println("Invalid char literal: '${token.text}'")
                     }
 
                     // Skip the closing quote - again, don't need it in the
