@@ -1,0 +1,14 @@
+fn recursivelyFindFiles(path: str): list<str> {
+	var result: list<str> = directoryContents(path);
+	
+	loop(var i = 0; i < result.size(); i++) {
+		if(isDirectory(result.get(i))) {
+			var curDir = result.get(i);
+			result.remove(i);
+			result.addAll(directoryContents(curDir));
+			i--;
+		}
+	}
+	
+	return result;
+}

@@ -1,0 +1,54 @@
+extern fprintf(FILE* x, str y, ...);
+extern stderr;
+extern printf(str x, ...);
+
+import util.fileutil;
+
+fn main(args: str[]) {
+	var srcdirs: list<str> = ["src"];
+	var srcdir_declared = false;
+	var srcfiles: list<str>;
+	var verbose = false;
+	loop(arg in args) {
+		if(arg == "-v" || arg == "--verbose") {
+			verbose = true;
+		} else if(arg == "-f" || "--file") {
+			srcfiles.add(arg);
+		} else {
+			if(!srcdir_declared) {
+				srcdirs[0] = arg;
+				srcdir_declared = true;
+			} else {
+				srcdirs.add(arg);
+			}
+		}
+	}
+
+	if(verbose) {
+		loop(srcdir in srcdirs) {
+			printf("Using source folder: %s\n", srcdir);
+		}
+	}
+
+	loop(srcfile in srcfiles) {
+		if(isDirectory(srcfile)) {
+			fprintf(stderr, "Error: %s is not a file, but you said it was!\n", srcfile.getName());
+			exit(1);
+		}
+	}
+
+	loop(srcdir in srcdirs) {
+		var fileSet = recursiveFindFiles(srcdir);
+		if(fileSet == null) {
+			fprintf(stderr, "Error: %s is not a directory, or its contents cannot be read!\n", srcdir);
+			exit(1);
+		}
+		srcfiles.addAll(fileSet);
+	}
+
+	if(verbose) {
+		loop(srcfile in srcfiles) {
+			printf("Using source file: %s\n", getName(srcfile));
+		}
+	}
+}
