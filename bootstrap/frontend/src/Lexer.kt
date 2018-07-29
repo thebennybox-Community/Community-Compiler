@@ -6,10 +6,10 @@ class Lexer {
         var line = 1   // Current line number
         var column = 1 // Current column number
 
-        var result: MutableList<Token> = mutableListOf()
+        val result: MutableList<Token> = mutableListOf()
 
         lexer@ while(i < text.length) {
-            var token = Token(TokenKind.None, line, column, "")
+            val token = Token(TokenKind.None, line, column, "")
 
             when {
                 text[i] == '\r' -> {
@@ -128,8 +128,8 @@ class Lexer {
 
                     // Keep the end of the number literal in case the suffix
                     // doesn't work out
-                    var end = i
-                    var endColumn = column
+                    val end = i
+                    val endColumn = column
 
                     // We reject invalid suffixes here rather than in the
                     // parser. u and i can be followed by 8, 16, 32 or 64,
@@ -267,32 +267,31 @@ class Lexer {
                             """\\u[\dA-Fa-f]{4}|""" +
                             """\\U[\dA-Fa-f]{8}|""" +
                             """\\[abfrntv\\\"\']"""
-                        ),
-                        { match ->
-                            val value = match.value
-                            val sb = StringBuilder()
+                        )
+                    ) { match ->
+                        val value = match.value
+                        val sb = StringBuilder()
 
-                            when(value[1]) {
-                                'u', 'U' -> {
-                                    val codepoint = value.substring(2).toInt(16)
-                                    sb.appendCodePoint(codepoint)
-                                }
-                                'a' -> sb.append(7.toChar())
-                                'b' -> sb.append('\b')
-                                'f' -> sb.append(12.toChar())
-                                'n' -> sb.append('\n')
-                                'r' -> sb.append('\r')
-                                't' -> sb.append('\t')
-                                'v' -> sb.append(11.toChar())
-                                '\\' -> sb.append('\\')
-                                '\"' -> sb.append('\"')
-                                '\'' -> sb.append('\'')
-                                else -> {} // Unreachable
+                        when(value[1]) {
+                            'u', 'U' -> {
+                                val codepoint = value.substring(2).toInt(16)
+                                sb.appendCodePoint(codepoint)
                             }
-
-                            sb.toString()
+                            'a' -> sb.append(7.toChar())
+                            'b' -> sb.append('\b')
+                            'f' -> sb.append(12.toChar())
+                            'n' -> sb.append('\n')
+                            'r' -> sb.append('\r')
+                            't' -> sb.append('\t')
+                            'v' -> sb.append(11.toChar())
+                            '\\' -> sb.append('\\')
+                            '\"' -> sb.append('\"')
+                            '\'' -> sb.append('\'')
+                            else -> {} // Unreachable
                         }
-                    )
+
+                        sb.toString()
+                    }
 
                     if(token.kind == TokenKind.Char &&
                        token.text.codePointCount(0, token.text.length) != 1) {
