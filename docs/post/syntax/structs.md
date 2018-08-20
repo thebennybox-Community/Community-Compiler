@@ -1,6 +1,6 @@
 # The Dusk Programming Language
 
-## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Types](README.md) -> Structures
+## [Post-Bootstrap](../README.md) -> [Syntax](README.md) -> Structures
 
 Structures, or `struct`s for short, can be used to group data.
 

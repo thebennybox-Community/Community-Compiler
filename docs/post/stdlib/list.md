@@ -1,6 +1,6 @@
 # The Dusk Programming Language
 
-## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Standard Library](README.md) -> Lists
+## [Post-Bootstrap](../README.md) -> [Standard Library](README.md) -> Lists
 
 Lists are basically arrays with support for expansion. You can even instantiate them with an array:
 

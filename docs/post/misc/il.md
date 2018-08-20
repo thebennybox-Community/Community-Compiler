@@ -1,6 +1,8 @@
-# IL Code
+# The Dusk Programming Language
 
-This IL is stack backed.
+## [Post-Bootstrap](../README.md) -> [Misc](README.md) -> IL
+
+Description of Dusk's intermediate language.
 
 ## Opcodes
 

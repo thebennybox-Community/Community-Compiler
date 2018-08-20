@@ -1,6 +1,6 @@
 # The Dusk Programming Language
 
-## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Variables](README.md) -> Declaration
+## [Post-Bootstrap](../README.md) -> [Syntax](README.md) -> Variables
 
 Declarations declare the type of a variable and can optionally initialize them. Declarations are either immutable or mutable.
 
@@ -29,4 +29,21 @@ For immutable declarations the ``dec`` is replaced by a ``let`` and for mutable 
 let pi = 3.14159265359
 var count: i32;
 var width: f32 = 1.5;
+```
+
+### Misc notes
+
+```
+dec a : i32;
+dec a : i32 = 10;
+dec a = 10i32;
+dec a = "string";
+dec a = true;
+
+// When no explicit type is provided for a number, i32 will be assumed
+dec a = 10;
+
+// When no explicit type is provided for a floating point number, f32 will be
+// assumed
+dec a = 10.0128;
 ```
