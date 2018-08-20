@@ -10,7 +10,7 @@ The Community Compiler project primarily aims to create a new language called Du
 
 The language will include a standard library and various tools including Dawn, a package manager and build system for Dusk.
 
-The full language specification can be found in [docs/post/syntax/](./docs/post/syntax/)
+The full language specification can be found in [docs/post/syntax](./docs/post/syntax/).
 
 ## Current status
 
@@ -28,17 +28,20 @@ Have the following dependencies installed:
 
 1. Clone the repository:
 
-``` git clone https://github.com/thebennybox-Community/Community-Compiler.git
+```sh
+git clone https://github.com/thebennybox-Community/Community-Compiler.git
 ```
 
-2. Change the working directory to [Community-Compiler/bootstrap/frontend/](./bootstrap/frontend/):
+2. Change the working directory to [Community-Compiler/bootstrap/frontend](./bootstrap/frontend/):
 
-``` cd Community-Compiler/bootstrap/frontend/
+```sh
+cd Community-Compiler/bootstrap/frontend/
 ```
 
 3. Run cmake:
 
-``` cmake src
+```sh
+cmake src
 ```
 
 #### On Windows
