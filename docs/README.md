@@ -4,7 +4,7 @@
 
 ### Table of Contents
 
-| Folder | Contents                                       |
-| ------ | ---------------------------------------------- |
-| pre    | Specification of pre-bootstrap subset of Dusk. |
-| post   | Full Dusk language specification.              |
+| Folder                 | Contents                                       |
+| ---------------------- | ---------------------------------------------- |
+| [pre](pre/README.md)   | Specification of pre-bootstrap subset of Dusk. |
+| [post](post/README.md) | Full Dusk language specification.              |
