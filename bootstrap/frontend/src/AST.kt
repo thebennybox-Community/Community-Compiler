@@ -4,7 +4,7 @@ abstract class ASTNode(val parent: ASTNode?)
 
 class ASTCodeBlock(parent: ASTNode?, val name: String?, val children: List<ASTNode>) : ASTNode(parent)
 
-class ASTFunction(parent: ASTCodeBlock, val name: String, val affixPos: int, val returnType: ASTType, parameters: List<ASTParameter>) : ASTNode(parent)
+class ASTFunction(parent: ASTCodeBlock, val name: String, val affixPos: Int, val returnType: ASTType, parameters: List<ASTParameter>) : ASTNode(parent)
 
 class ASTParameter(parent: ASTFunction, val name: String, val type: ASTType) : ASTNode(parent)
 
