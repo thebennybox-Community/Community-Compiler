@@ -1,6 +1,6 @@
 # The Dusk Programming Language
 
-## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Blocks](README.md) -> If Conditionals
+## [Post-Bootstrap](../README.md) -> [Syntax](README.md) -> Conditionals
 
 ### If Conditionals
 
@@ -32,4 +32,60 @@ included into the body.
 if(<condition>)
   gets_executed_if_true();
 gets_executed_anyway();
+```
+
+#### If-statement examples
+
+```
+if (x > y) {
+
+}
+
+if (x == a <-> b) {
+    // (x == a) || (x == b)
+}
+
+if (true) {
+
+}
+else {
+
+}
+
+if (...) {
+
+}
+else if (...) {
+
+}
+else {
+
+}
+```
+
+### For-loop examples
+
+```
+loop (5) {
+    // Do this 5 times
+}
+
+loop (x to y) {
+    // For-loop
+}
+
+loop (x = 0; x < z; x++) {
+    // For-loop
+}
+
+loop (true == true) {
+    // While loop
+}
+
+loop (item in list) {
+    // Foreach loop
+}
+
+continue;
+break;
 ```

@@ -1,4 +1,8 @@
-# Code Style
+# The Dusk Programming Language
+
+## [Post-Bootstrap](../README.md) -> [Misc](README.md) -> Style
+
+Code style guidelines for Dusk.
 
 ## General
 
@@ -35,30 +39,6 @@ impl Test {
 ```
 
 
-## Literals
-
-#### Numbers
-Numbers should written like normal numbers. They can also contain underscores to help readability.  
-```
-12
-65
-1_000_000
-1.25
-0.000_000_1
-```
-
-#### Strings
-You can't do anything wrong here.
-```
-"Hey there!"
-```
-
-#### Booleans
-You'll create a compiler error if you do it wrong.
-```
-true
-false
-```
 
 ## Declarations
 The equal sign has spaces on both sides, the colon specifying the type however only has one afterwards.

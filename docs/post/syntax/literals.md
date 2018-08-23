@@ -1,6 +1,6 @@
 # The Dusk programming Language
 
-## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Types](README.md) -> Literals
+## [Post-Bootstrap](../README.md) -> [Syntax](README.md) -> Literals
 
 There are four types of literals: boolean, number, character and string
 literals.
@@ -13,10 +13,9 @@ A boolean literal is either ``true`` or ``false``.
 
 #### Simple
 
-A number is a sequence of digits and underscores. An underscore is only allowed
-inbetween numbers.
+A number is a sequence of digits and underscores. Numbers may include underscores for the purposes of improved readability. An underscore is only allowed in between numbers.
 
-valid:  
+valid:
 
 ```
 123

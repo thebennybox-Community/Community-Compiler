@@ -1,6 +1,6 @@
 # The Dusk Programming Language
 
-## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Documentation](README.md) -> Comments
+## [Post-Bootstrap](../README.md) -> [Syntax](README.md) -> Comments
 
 Comments are used to explain code and are ignored by the compiler. Should a
 comment be inside a string literal it is parsed as a string instead of a

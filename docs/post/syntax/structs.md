@@ -1,6 +1,6 @@
 # The Dusk Programming Language
 
-## [Post-Bootstrap](../../README.md) -> [Syntax](../README.md) -> [Types](README.md) -> Structures
+## [Post-Bootstrap](../README.md) -> [Syntax](README.md) -> Structures
 
 Structures, or `struct`s for short, can be used to group data.
 
@@ -48,4 +48,35 @@ To access the data you use a dot. E.g. ``<variable name>.<field name>``.
 let foo = Foo("this is the bar field");
 
 let string: str = foo.bar;
+```
+
+### Structure Implementations
+
+To give structs methods you have to write an implementation. The methods inside the implementation block are like normal function definitions except that they have an implicit parameter ``self`` that is the struct.
+
+```
+impl <struct name> {
+  fn method() {
+
+  }
+}
+
+```
+
+#### Examples
+
+```
+struct Foo {
+  var counter: i32;
+}
+
+impl Foo {
+  fn increase() {
+    self.counter++;
+  }
+
+  fn increase(amount: i32) {
+    self.counter += amount;
+  }
+}
 ```
